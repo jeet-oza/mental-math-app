@@ -2,20 +2,32 @@
 //  ContentView.swift
 //  MentalMathApp
 //
-//  Created by Jeet Oza on 5/28/26.
+//  Root view with tab-based navigation between Learn and Arena modes.
 //
 
 import SwiftUI
 
+/// The root view of the app, providing tab navigation
+/// between Learn Mode and Arena Mode.
 struct ContentView: View {
+    @StateObject private var curriculumVM = CurriculumViewModel()
+    @StateObject private var arenaVM = ArenaViewModel()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            LearnTabView()
+                .environmentObject(curriculumVM)
+                .tabItem {
+                    Label("Learn", systemImage: "book.fill")
+                }
+
+            ArenaTabView()
+                .environmentObject(arenaVM)
+                .tabItem {
+                    Label("Arena", systemImage: "flame.fill")
+                }
         }
-        .padding()
+        .tint(.orange)
     }
 }
 
