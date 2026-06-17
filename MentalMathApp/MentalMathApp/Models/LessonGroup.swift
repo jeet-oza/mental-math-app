@@ -9,7 +9,7 @@ import Foundation
 
 /// A thematic group of lessons (e.g., "Basic Addition", "Multiplication Tricks").
 /// Groups are displayed in Learn Mode and can be locked/unlocked based on progress.
-struct LessonGroup: Identifiable, Codable, Equatable {
+struct LessonGroup: Identifiable, Codable, Equatable, Sendable {
     let id: String
     let title: String
     let description: String

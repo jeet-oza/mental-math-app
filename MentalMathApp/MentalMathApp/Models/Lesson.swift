@@ -9,7 +9,7 @@ import Foundation
 
 /// A single lesson that teaches a specific mental math trick,
 /// followed by practice problems to reinforce it.
-struct Lesson: Identifiable, Codable, Equatable {
+struct Lesson: Identifiable, Codable, Equatable, Sendable {
     let id: String
     let title: String
     let description: String
@@ -39,14 +39,14 @@ struct Lesson: Identifiable, Codable, Equatable {
 }
 
 /// A mental math trick with step-by-step explanation.
-struct MathTrick: Codable, Equatable {
+struct MathTrick: Codable, Equatable, Sendable {
     let name: String
     let steps: [String]
     let example: TrickExample
 }
 
 /// A worked example showing a trick applied to a specific problem.
-struct TrickExample: Codable, Equatable {
+struct TrickExample: Codable, Equatable, Sendable {
     let problem: String
     let solution: String
     let stepByStepExplanation: [String]

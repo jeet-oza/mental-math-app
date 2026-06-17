@@ -6,6 +6,7 @@
 //  and unlocking logic for the grouped curriculum.
 //
 
+import Combine
 import Foundation
 import SwiftUI
 

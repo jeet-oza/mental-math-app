@@ -11,7 +11,7 @@ import Foundation
 
 /// A deterministic pseudo-random number generator conforming to `RandomNumberGenerator`.
 /// Given the same seed string, always produces the identical sequence of random values.
-struct SeededRandomNumberGenerator: RandomNumberGenerator {
+struct SeededRandomNumberGenerator: RandomNumberGenerator, Sendable {
 
     private var state: UInt64
 

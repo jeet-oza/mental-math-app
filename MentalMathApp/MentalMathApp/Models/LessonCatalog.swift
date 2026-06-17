@@ -9,7 +9,7 @@
 import Foundation
 
 /// Provides the complete curriculum of lesson groups.
-enum LessonCatalog {
+nonisolated enum LessonCatalog {
 
     /// All available lesson groups, ordered for progression.
     static let allGroups: [LessonGroup] = [

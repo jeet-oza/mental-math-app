@@ -9,7 +9,7 @@ import Foundation
 
 /// Calculates scores for math problem answers.
 /// Shared between Learn Mode practice and Arena Mode gameplay.
-enum ScoreCalculator {
+nonisolated enum ScoreCalculator {
 
     /// Base points awarded for a correct answer.
     static let basePoints = 100
@@ -69,7 +69,7 @@ enum ScoreCalculator {
 }
 
 /// Records the result of answering a single problem.
-struct AnswerResult: Codable, Equatable {
+struct AnswerResult: Codable, Equatable, Sendable {
     let problemIndex: Int
     let isCorrect: Bool
     let isSkipped: Bool

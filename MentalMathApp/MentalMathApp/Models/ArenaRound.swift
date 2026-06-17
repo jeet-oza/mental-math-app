@@ -9,7 +9,7 @@ import Foundation
 
 /// Represents a single arena round fetched from the server.
 /// All players receive the same round data simultaneously.
-struct ArenaRound: Codable, Equatable {
+struct ArenaRound: Codable, Equatable, Sendable {
     let roundId: String
     let seed: String
     let difficulty: MathEngine.Difficulty
@@ -31,7 +31,7 @@ struct ArenaRound: Codable, Equatable {
 }
 
 /// The player's result submitted at end of a round.
-struct ArenaScore: Codable, Equatable {
+struct ArenaScore: Codable, Equatable, Sendable {
     let roundId: String
     let userId: String
     let totalScore: Int
@@ -54,7 +54,7 @@ struct ArenaScore: Codable, Equatable {
 }
 
 /// Leaderboard entry shown during intermission.
-struct LeaderboardEntry: Identifiable, Codable, Equatable {
+struct LeaderboardEntry: Identifiable, Codable, Equatable, Sendable {
     let id: String
     let username: String
     let score: Int

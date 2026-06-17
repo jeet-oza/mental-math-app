@@ -9,7 +9,7 @@ import Foundation
 
 /// A math problem with two operands and an operation.
 /// Conforms to Identifiable for use in SwiftUI lists and Equatable for testing.
-struct MathProblem: Identifiable, Equatable, Codable {
+struct MathProblem: Identifiable, Equatable, Codable, Sendable {
     let id: UUID
     let operandA: Int
     let operandB: Int

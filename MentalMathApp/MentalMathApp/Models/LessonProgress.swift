@@ -8,7 +8,7 @@
 import Foundation
 
 /// Tracks completion status for a single lesson.
-struct LessonProgress: Codable, Equatable {
+struct LessonProgress: Codable, Equatable, Sendable {
     let lessonId: String
     var isCompleted: Bool
     var bestScore: Int
@@ -35,7 +35,7 @@ struct LessonProgress: Codable, Equatable {
 }
 
 /// Tracks completion for an entire lesson group.
-struct GroupProgress: Codable, Equatable {
+struct GroupProgress: Codable, Equatable, Sendable {
     let groupId: String
     var lessonProgresses: [LessonProgress]
 

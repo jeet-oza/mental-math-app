@@ -23,7 +23,7 @@ final class MathEngine {
     // MARK: - Difficulty
 
     /// Defines operand ranges for each difficulty tier.
-    enum Difficulty: Codable {
+    enum Difficulty: Codable, Sendable {
         case easy
         case medium
         case hard

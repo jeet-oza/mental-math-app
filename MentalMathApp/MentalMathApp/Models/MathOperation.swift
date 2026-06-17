@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents a type of arithmetic operation used in math problems.
-enum MathOperation: String, CaseIterable, Codable {
+enum MathOperation: String, CaseIterable, Codable, Sendable {
     case addition = "+"
     case subtraction = "−"
     case multiplication = "×"
