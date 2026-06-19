@@ -21,7 +21,7 @@ struct PracticeView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemGroupedBackground)
+            Color(uiColor: .systemGroupedBackground)
                 .ignoresSafeArea()
 
             if viewModel.isSessionComplete {
@@ -123,7 +123,7 @@ struct PracticeView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemBackground))
+                        .fill(Color(uiColor: .systemBackground))
                         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
                 )
 
@@ -215,7 +215,7 @@ struct PracticeResultsView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
+                    .fill(Color(uiColor: .systemBackground))
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
 

@@ -28,7 +28,7 @@ struct LessonListView: View {
             .padding()
         }
         .navigationTitle(group.title)
-        .background(Color(.systemGroupedBackground))
+        .background(Color(uiColor: .systemGroupedBackground))
     }
 }
 
@@ -81,7 +81,7 @@ struct LessonRow: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.systemBackground))
+                    .fill(Color(uiColor: .systemBackground))
                     .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
             )
         }

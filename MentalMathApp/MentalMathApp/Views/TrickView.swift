@@ -30,7 +30,7 @@ struct TrickView: View {
             .padding()
         }
         .navigationTitle(lesson.title)
-        .background(Color(.systemGroupedBackground))
+        .background(Color(uiColor: .systemGroupedBackground))
     }
 
     // MARK: - Subviews
@@ -68,7 +68,7 @@ struct TrickView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
+                .fill(Color(uiColor: .systemBackground))
                 .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
         )
     }
@@ -100,7 +100,7 @@ struct TrickView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
+                .fill(Color(uiColor: .systemBackground))
                 .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
         )
     }

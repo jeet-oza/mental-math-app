@@ -14,7 +14,7 @@ struct ArenaTabView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(.systemGroupedBackground)
+                Color(uiColor: .systemGroupedBackground)
                     .ignoresSafeArea()
 
                 switch viewModel.phase {
@@ -77,7 +77,7 @@ struct ArenaWaitingView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
+                    .fill(Color(uiColor: .systemBackground))
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
 
@@ -173,7 +173,7 @@ struct ArenaPlayingView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
+                .fill(Color(uiColor: .systemBackground))
                 .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
         )
     }
@@ -206,7 +206,7 @@ struct ArenaPlayingView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemBackground))
+                        .fill(Color(uiColor: .systemBackground))
                         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
                 )
 
@@ -286,7 +286,7 @@ struct ArenaLeaderboardView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
+                    .fill(Color(uiColor: .systemBackground))
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
 
@@ -314,7 +314,7 @@ struct ArenaLeaderboardView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(.systemBackground))
+                        .fill(Color(uiColor: .systemBackground))
                         .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
                 )
             }
