@@ -14,7 +14,7 @@ struct ArenaTabView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(uiColor: .systemGroupedBackground)
+                Color.groupedBackground
                     .ignoresSafeArea()
 
                 switch viewModel.phase {
@@ -35,7 +35,9 @@ struct ArenaTabView: View {
                 }
             }
             .navigationTitle("Arena")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
         }
     }
 }
@@ -77,7 +79,7 @@ struct ArenaWaitingView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(uiColor: .systemBackground))
+                    .fill(Color.appBackground)
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
 
@@ -173,7 +175,7 @@ struct ArenaPlayingView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(uiColor: .systemBackground))
+                .fill(Color.appBackground)
                 .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
         )
     }
@@ -201,12 +203,14 @@ struct ArenaPlayingView: View {
         VStack(spacing: 12) {
             TextField("Answer", text: $viewModel.userInput)
                 .font(.title2)
+                #if os(iOS)
                 .keyboardType(.numberPad)
+                #endif
                 .multilineTextAlignment(.center)
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(uiColor: .systemBackground))
+                        .fill(Color.appBackground)
                         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
                 )
 
@@ -286,7 +290,7 @@ struct ArenaLeaderboardView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(uiColor: .systemBackground))
+                    .fill(Color.appBackground)
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
 
@@ -314,7 +318,7 @@ struct ArenaLeaderboardView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(uiColor: .systemBackground))
+                        .fill(Color.appBackground)
                         .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
                 )
             }

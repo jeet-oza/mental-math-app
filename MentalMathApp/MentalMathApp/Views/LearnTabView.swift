@@ -26,7 +26,7 @@ struct LearnTabView: View {
                 .padding()
             }
             .navigationTitle("Learn")
-            .background(Color(uiColor: .systemGroupedBackground))
+            .background(Color.groupedBackground)
         }
     }
 }
@@ -81,7 +81,7 @@ struct LessonGroupCard: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(uiColor: .systemBackground))
+                    .fill(Color.appBackground)
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
         }

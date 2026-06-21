@@ -21,7 +21,7 @@ struct PracticeView: View {
 
     var body: some View {
         ZStack {
-            Color(uiColor: .systemGroupedBackground)
+            Color.groupedBackground
                 .ignoresSafeArea()
 
             if viewModel.isSessionComplete {
@@ -34,8 +34,10 @@ struct PracticeView: View {
             }
         }
         .navigationTitle("Practice")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(!viewModel.isSessionComplete)
+        #endif
     }
 
     // MARK: - Practice Content
@@ -118,12 +120,14 @@ struct PracticeView: View {
             // Text field
             TextField("Your answer", text: $viewModel.userInput)
                 .font(.title2)
+                #if os(iOS)
                 .keyboardType(.numberPad)
+                #endif
                 .multilineTextAlignment(.center)
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(uiColor: .systemBackground))
+                        .fill(Color.appBackground)
                         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
                 )
 
@@ -215,7 +219,7 @@ struct PracticeResultsView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(uiColor: .systemBackground))
+                    .fill(Color.appBackground)
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
 
