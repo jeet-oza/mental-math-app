@@ -21,6 +21,12 @@ struct ContentView: View {
                     Label("Learn", systemImage: "book.fill")
                 }
 
+            PracticeTabView()
+                .environmentObject(curriculumVM)
+                .tabItem {
+                    Label("Practice", systemImage: "pencil.and.list.clipboard")
+                }
+
             ArenaTabView()
                 .environmentObject(arenaVM)
                 .tabItem {
