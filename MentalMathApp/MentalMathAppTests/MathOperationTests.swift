@@ -64,9 +64,16 @@ final class MathOperationTests: XCTestCase {
         XCTAssertEqual(MathOperation.division.evaluate(lhs: 7, rhs: 2), 3)
     }
 
+    func testPercentageEvaluation() {
+        XCTAssertEqual(MathOperation.percentage.evaluate(lhs: 10, rhs: 80), 8)
+        XCTAssertEqual(MathOperation.percentage.evaluate(lhs: 25, rhs: 80), 20)
+    }
+
     // MARK: - CaseIterable
 
-    func testAllCasesCount() {
+    func testAllCasesCountExcludesPercentage() {
+        // Percentage is concept-only and must not appear in random generation.
         XCTAssertEqual(MathOperation.allCases.count, 4)
+        XCTAssertFalse(MathOperation.allCases.contains(.percentage))
     }
 }

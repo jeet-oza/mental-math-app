@@ -13,6 +13,14 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     case subtraction = "−"
     case multiplication = "×"
     case division = "÷"
+    case percentage = "%"
+
+    /// The four arithmetic operations used for random/Arena generation.
+    /// `.percentage` is intentionally excluded — it is only used by concept
+    /// patterns, never by generic random generation.
+    static var allCases: [MathOperation] {
+        [.addition, .subtraction, .multiplication, .division]
+    }
 
     /// Returns the display symbol for the operation.
     var symbol: String {
@@ -41,6 +49,9 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
         case .division:
             guard rhs != 0 else { return 0 }
             return lhs / rhs
+        case .percentage:
+            // lhs = percent, rhs = base. Patterns guarantee an exact result.
+            return lhs * rhs / 100
         }
     }
 }

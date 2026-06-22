@@ -20,9 +20,12 @@ struct MathProblem: Identifiable, Equatable, Codable, Sendable {
         operation.evaluate(lhs: operandA, rhs: operandB)
     }
 
-    /// Human-readable string for display, e.g. "12 × 5".
+    /// Human-readable string for display, e.g. "12 × 5" or "10% of 80".
     var displayText: String {
-        "\(operandA) \(operation.symbol) \(operandB)"
+        if operation == .percentage {
+            return "\(operandA)% of \(operandB)"
+        }
+        return "\(operandA) \(operation.symbol) \(operandB)"
     }
 
     /// Creates a MathProblem with auto-generated UUID.
