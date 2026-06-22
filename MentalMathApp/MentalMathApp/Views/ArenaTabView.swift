@@ -19,7 +19,10 @@ struct ArenaTabView: View {
 
                 switch viewModel.phase {
                 case .waiting:
-                    ArenaWaitingView(onStart: { viewModel.startLocalRound() })
+                    ArenaWaitingView(
+                        secondsUntilStart: viewModel.nextRoundStartsIn,
+                        roundNumber: viewModel.currentRoundIndex
+                    )
 
                 case .playing:
                     ArenaPlayingView()
@@ -39,14 +42,18 @@ struct ArenaTabView: View {
             .navigationBarTitleDisplayMode(.inline)
             #endif
         }
+        .onAppear { viewModel.connect() }
+        .onDisappear { viewModel.disconnect() }
     }
 }
 
 // MARK: - Waiting Phase
 
-/// Pre-game screen with play button and instructions.
+/// Pre-game lobby. All players join the same clock-driven round, so this
+/// screen counts down to the next global start rather than offering a button.
 struct ArenaWaitingView: View {
-    let onStart: () -> Void
+    let secondsUntilStart: Int
+    let roundNumber: Int
 
     var body: some View {
         VStack(spacing: 32) {
@@ -63,11 +70,26 @@ struct ArenaWaitingView: View {
                 Text("Math Arena")
                     .font(.largeTitle.bold())
 
-                Text("Answer as many questions as you can\nin 90 seconds!")
+                Text("Everyone plays the same questions,\nstarting at the same time.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
+
+            // Countdown to next round
+            VStack(spacing: 6) {
+                Text("Next round starts in")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text("\(secondsUntilStart)s")
+                    .font(.system(size: 56, weight: .heavy, design: .rounded).monospacedDigit())
+                    .foregroundStyle(.orange)
+                    .contentTransition(.numericText())
+                Text("Round #\(roundNumber + 1)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 8)
 
             // How it works
             VStack(alignment: .leading, spacing: 12) {
@@ -84,19 +106,6 @@ struct ArenaWaitingView: View {
             )
 
             Spacer()
-
-            // Start button
-            Button(action: onStart) {
-                Label("Start Round", systemImage: "play.fill")
-                    .font(.title3.bold())
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .foregroundStyle(.white)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(.orange)
-                    )
-            }
         }
         .padding()
     }
@@ -301,18 +310,24 @@ struct ArenaLeaderboardView: View {
                         .font(.headline)
 
                     ForEach(viewModel.leaderboard) { entry in
+                        let isYou = entry.id == "you"
                         HStack {
                             Text("#\(entry.rank)")
                                 .font(.headline.monospacedDigit())
                                 .frame(width: 40)
                             Text(entry.username)
-                                .font(.body)
+                                .font(isYou ? .body.bold() : .body)
                             Spacer()
                             Text("\(entry.score) pts")
                                 .font(.headline.monospacedDigit())
                                 .foregroundStyle(.orange)
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(isYou ? Color.orange.opacity(0.12) : .clear)
+                        )
                     }
                 }
                 .padding()
@@ -325,17 +340,15 @@ struct ArenaLeaderboardView: View {
 
             Spacer()
 
-            // Play again
-            Button(action: { viewModel.reset() }) {
-                Label("Play Again", systemImage: "arrow.counterclockwise")
-                    .font(.title3.bold())
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .foregroundStyle(.white)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(.orange)
-                    )
+            // Auto-advance: the next global round starts on the shared clock.
+            VStack(spacing: 4) {
+                Text("Next round starts in")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text("\(viewModel.nextRoundStartsIn)s")
+                    .font(.title.bold().monospacedDigit())
+                    .foregroundStyle(.orange)
+                    .contentTransition(.numericText())
             }
         }
         .padding()

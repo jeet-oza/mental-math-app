@@ -36,14 +36,25 @@ final class ArenaViewModel: ObservableObject {
     @Published var userInput: String = ""
     @Published private(set) var feedbackMessage: String?
     @Published private(set) var isCorrectFeedback: Bool?
+    /// Seconds until the next global round begins (used during intermission).
+    @Published private(set) var nextRoundStartsIn: Int = 0
+    /// The globally-synchronized index of the active or upcoming round.
+    @Published private(set) var currentRoundIndex: Int = 0
 
     // MARK: - Properties
 
     private var engine: MathEngine?
     private var currentRound: ArenaRound?
     private var timer: AnyCancellable?
+    private var syncTimer: AnyCancellable?
     private var problemStartTime: Date = Date()
     private let roundDuration: Int = 90
+
+    /// The round index the player actually played this cycle (nil if they
+    /// joined during intermission and have not played the current round).
+    private var playedRoundIndex: Int?
+    /// The round index whose results have already been finalized.
+    private var finalizedRoundIndex: Int?
 
     // MARK: - Computed
 
@@ -62,6 +73,76 @@ final class ArenaViewModel: ObservableObject {
         return totalElapsed / Double(questionsAnswered)
     }
 
+    // MARK: - Global Schedule
+
+    /// Begins following the global Arena schedule. Call when the view appears.
+    /// Players cannot start their own game — everyone joins the same clock-driven
+    /// round, so all devices play identical questions in lockstep.
+    func connect() {
+        sync()
+        syncTimer?.cancel()
+        syncTimer = Timer.publish(every: 0.5, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.sync()
+            }
+    }
+
+    /// Stops following the schedule. Call when the view disappears.
+    func disconnect() {
+        syncTimer?.cancel()
+        syncTimer = nil
+    }
+
+    /// Reconciles local state with the global schedule.
+    private func sync() {
+        switch ArenaSchedule.phase() {
+        case let .playing(roundIndex, remaining):
+            currentRoundIndex = roundIndex
+            if phase != .playing || playedRoundIndex != roundIndex {
+                beginScheduledRound(index: roundIndex)
+            }
+            remainingSeconds = remaining
+
+        case let .intermission(nextRoundIndex, startsIn):
+            currentRoundIndex = nextRoundIndex
+            nextRoundStartsIn = startsIn
+            remainingSeconds = 0
+
+            if let played = playedRoundIndex, finalizedRoundIndex != played {
+                // The round the player just competed in has ended: show results.
+                finalize(roundIndex: played)
+            } else if playedRoundIndex == nil {
+                // Joined mid-intermission with nothing played yet.
+                phase = .waiting
+            }
+        }
+    }
+
+    /// Starts the gameplay for a clock-scheduled round (no internal countdown;
+    /// `remainingSeconds` is driven by `sync()` from the shared clock).
+    private func beginScheduledRound(index: Int) {
+        let round = ArenaRound(
+            roundId: "arena_\(index)",
+            seed: ArenaSchedule.seed(forRound: index),
+            difficulty: ArenaSchedule.difficulty(forRound: index),
+            durationSeconds: ArenaSchedule.playDuration,
+            startTimestamp: Date()
+        )
+        configureRound(round)
+        playedRoundIndex = index
+        phase = .playing
+    }
+
+    /// Builds the leaderboard (computer opponents + the player) and shows results.
+    private func finalize(roundIndex: Int) {
+        timer?.cancel()
+        timer = nil
+        finalizedRoundIndex = roundIndex
+        buildLeaderboard(forRound: roundIndex)
+        phase = .leaderboard
+    }
+
     // MARK: - Round Lifecycle
 
     /// Starts a new arena round with the given parameters.
@@ -69,13 +150,20 @@ final class ArenaViewModel: ObservableObject {
     /// a local round is generated.
     /// - Parameter round: The arena round configuration.
     func startRound(_ round: ArenaRound) {
+        configureRound(round)
+        phase = .playing
+        startTimer()
+    }
+
+    /// Resets gameplay state and prepares the engine for a round, without
+    /// changing phase or starting a timer. Shared by manual and scheduled play.
+    private func configureRound(_ round: ArenaRound) {
         currentRound = round
         engine = MathEngine(
             seed: round.seed,
             difficulty: round.difficulty
         )
 
-        // Reset state
         answers.removeAll()
         questionsAnswered = 0
         correctCount = 0
@@ -85,10 +173,7 @@ final class ArenaViewModel: ObservableObject {
         feedbackMessage = nil
         isCorrectFeedback = nil
 
-        // Start gameplay
-        phase = .playing
         advanceToNextProblem()
-        startTimer()
     }
 
     /// Starts a quick local round for offline play or testing.
@@ -187,10 +272,7 @@ final class ArenaViewModel: ObservableObject {
         timer?.cancel()
         timer = nil
         phase = .submitting
-
-        // In production, this would POST to Firebase.
-        // For now, transition directly to leaderboard with local results.
-        buildLocalLeaderboard()
+        buildLeaderboard(forRound: currentRoundIndex)
         phase = .leaderboard
     }
 
@@ -238,20 +320,32 @@ final class ArenaViewModel: ObservableObject {
             : "✗ Answer: \(correctAnswer)"
     }
 
-    /// Builds a placeholder local leaderboard (single-player offline mode).
-    private func buildLocalLeaderboard() {
+    /// Builds the round leaderboard by merging the player's result with the
+    /// round's deterministic computer opponents, then ranking by score.
+    private func buildLeaderboard(forRound index: Int) {
         let accuracy = questionsAnswered > 0
             ? Double(correctCount) / Double(questionsAnswered)
             : 0
-        leaderboard = [
+        let player = LeaderboardEntry(
+            id: "you",
+            username: "You",
+            score: totalScore,
+            accuracy: accuracy,
+            rank: 0
+        )
+
+        let merged = (ArenaSchedule.opponents(forRound: index) + [player])
+            .sorted { $0.score > $1.score }
+
+        leaderboard = merged.enumerated().map { position, entry in
             LeaderboardEntry(
-                id: "you",
-                username: "You",
-                score: totalScore,
-                accuracy: accuracy,
-                rank: 1
+                id: entry.id,
+                username: entry.username,
+                score: entry.score,
+                accuracy: entry.accuracy,
+                rank: position + 1
             )
-        ]
+        }
     }
 
     /// Resets the arena to the waiting state.
@@ -269,5 +363,8 @@ final class ArenaViewModel: ObservableObject {
         feedbackMessage = nil
         isCorrectFeedback = nil
         leaderboard.removeAll()
+        playedRoundIndex = nil
+        finalizedRoundIndex = nil
+        nextRoundStartsIn = 0
     }
 }
