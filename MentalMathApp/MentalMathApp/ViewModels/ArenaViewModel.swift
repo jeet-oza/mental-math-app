@@ -50,6 +50,17 @@ final class ArenaViewModel: ObservableObject {
     private var problemStartTime: Date = Date()
     private let roundDuration: Int = 90
 
+    /// Backend boundary for score submission and leaderboards.
+    /// Defaults to offline play; swap for a networked service to enable
+    /// real multiplayer without changing this view model.
+    private let leaderboardService: LeaderboardService
+
+    // MARK: - Initialization
+
+    init(leaderboardService: LeaderboardService = LocalLeaderboardService()) {
+        self.leaderboardService = leaderboardService
+    }
+
     /// The round index the player actually played this cycle (nil if they
     /// joined during intermission and have not played the current round).
     private var playedRoundIndex: Int?
@@ -139,7 +150,7 @@ final class ArenaViewModel: ObservableObject {
         timer?.cancel()
         timer = nil
         finalizedRoundIndex = roundIndex
-        buildLeaderboard(forRound: roundIndex)
+        loadLeaderboard(forRound: roundIndex)
         phase = .leaderboard
     }
 
@@ -272,7 +283,7 @@ final class ArenaViewModel: ObservableObject {
         timer?.cancel()
         timer = nil
         phase = .submitting
-        buildLeaderboard(forRound: currentRoundIndex)
+        loadLeaderboard(forRound: currentRoundIndex)
         phase = .leaderboard
     }
 
@@ -320,9 +331,10 @@ final class ArenaViewModel: ObservableObject {
             : "✗ Answer: \(correctAnswer)"
     }
 
-    /// Builds the round leaderboard by merging the player's result with the
-    /// round's deterministic computer opponents, then ranking by score.
-    private func buildLeaderboard(forRound index: Int) {
+    /// Submits the player's result and loads the round leaderboard through the
+    /// leaderboard service (offline opponents today, real players once a
+    /// networked service is wired in).
+    private func loadLeaderboard(forRound index: Int) {
         let accuracy = questionsAnswered > 0
             ? Double(correctCount) / Double(questionsAnswered)
             : 0
@@ -333,18 +345,22 @@ final class ArenaViewModel: ObservableObject {
             accuracy: accuracy,
             rank: 0
         )
+        let score = ArenaScore(
+            roundId: currentRound?.roundId ?? "arena_\(index)",
+            userId: "you",
+            totalScore: totalScore,
+            correctCount: correctCount,
+            skippedCount: answers.filter { $0.isSkipped }.count,
+            totalAttempted: questionsAnswered,
+            timeTakenSeconds: Double(roundDuration)
+        )
 
-        let merged = (ArenaSchedule.opponents(forRound: index) + [player])
-            .sorted { $0.score > $1.score }
-
-        leaderboard = merged.enumerated().map { position, entry in
-            LeaderboardEntry(
-                id: entry.id,
-                username: entry.username,
-                score: entry.score,
-                accuracy: entry.accuracy,
-                rank: position + 1
-            )
+        let service = leaderboardService
+        Task { [weak self] in
+            try? await service.submit(score)
+            if let entries = try? await service.leaderboard(forRound: index, including: player) {
+                self?.leaderboard = entries
+            }
         }
     }
 
