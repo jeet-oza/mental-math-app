@@ -17,7 +17,7 @@ struct MathProblem: Identifiable, Equatable, Codable, Sendable {
 
     /// The correct answer for this problem.
     var correctAnswer: Int {
-        Int(operation.evaluate(lhs: operandA, rhs: operandB))
+        operation.evaluate(lhs: operandA, rhs: operandB)
     }
 
     /// Human-readable string for display, e.g. "12 × 5".

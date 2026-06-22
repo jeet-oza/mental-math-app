@@ -20,21 +20,27 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     }
 
     /// Evaluates the operation on two integer operands.
+    ///
+    /// All problems in this app are integer-valued by construction
+    /// (see `MathEngine`, which only generates evenly-divisible division
+    /// problems), so the result is always an exact `Int`.
     /// - Parameters:
     ///   - lhs: Left-hand side operand.
     ///   - rhs: Right-hand side operand.
-    /// - Returns: The result of applying the operation.
-    func evaluate(lhs: Int, rhs: Int) -> Double {
+    /// - Returns: The integer result of applying the operation.
+    ///   Division by zero returns 0 as a safe fallback.
+    ///   Division that is not exact truncates toward zero.
+    func evaluate(lhs: Int, rhs: Int) -> Int {
         switch self {
         case .addition:
-            return Double(lhs + rhs)
+            return lhs + rhs
         case .subtraction:
-            return Double(lhs - rhs)
+            return lhs - rhs
         case .multiplication:
-            return Double(lhs * rhs)
+            return lhs * rhs
         case .division:
             guard rhs != 0 else { return 0 }
-            return Double(lhs) / Double(rhs)
+            return lhs / rhs
         }
     }
 }

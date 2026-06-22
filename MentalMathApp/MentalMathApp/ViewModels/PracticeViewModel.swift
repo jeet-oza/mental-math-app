@@ -3,7 +3,10 @@
 //  MentalMathApp
 //
 //  ViewModel for individual lesson practice sessions.
-//  Generates problems, tracks answers, and reports results back to CurriculumViewModel.
+//  Generates problems and tracks answers, exposing `isSessionComplete`,
+//  `correctCount`, and `totalProblems` for the owning view to read.
+//  The view is responsible for reporting the final result to
+//  CurriculumViewModel (see PracticeView.handleCompletion).
 //
 
 import Foundation
@@ -32,6 +35,12 @@ final class PracticeViewModel: ObservableObject {
     private var problemStartTime: Date = Date()
     private let difficulty: MathEngine.Difficulty
 
+    /// Seconds of feedback shown before advancing to the next problem.
+    private let feedbackDuration: TimeInterval = 1.0
+
+    /// Pending advance work, cancelled if the session is torn down early.
+    private var pendingAdvance: DispatchWorkItem?
+
     // MARK: - Computed
 
     /// Number of correct answers so far.
@@ -51,11 +60,10 @@ final class PracticeViewModel: ObservableObject {
         return "\(pct)%"
     }
 
-    /// Whether the session result is a passing score.
+    /// Whether the session result is a passing score (≥ 70% correct).
     var isPassing: Bool {
-        guard isSessionComplete else { return false }
-        return ScoreCalculator.calculatePoints(isCorrect: true, timeElapsed: 0, difficulty: .easy) > 0
-            && Double(correctCount) / Double(totalProblems) >= 0.7
+        guard isSessionComplete, totalProblems > 0 else { return false }
+        return Double(correctCount) / Double(totalProblems) >= 0.7
     }
 
     // MARK: - Initialization
@@ -102,10 +110,7 @@ final class PracticeViewModel: ObservableObject {
 
         answers.append(result)
         showFeedback(isCorrect: isCorrect, correctAnswer: problem.correctAnswer)
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            self?.clearFeedbackAndAdvance()
-        }
+        scheduleAdvance()
     }
 
     /// Skips the current problem.
@@ -125,13 +130,21 @@ final class PracticeViewModel: ObservableObject {
 
         answers.append(result)
         showFeedback(isCorrect: false, correctAnswer: problem.correctAnswer)
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            self?.clearFeedbackAndAdvance()
-        }
+        scheduleAdvance()
     }
 
     // MARK: - Private Helpers
+
+    /// Schedules the move to the next problem after the feedback window,
+    /// cancelling any previously scheduled advance.
+    private func scheduleAdvance() {
+        pendingAdvance?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.clearFeedbackAndAdvance()
+        }
+        pendingAdvance = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + feedbackDuration, execute: work)
+    }
 
     /// Advances to the next problem or ends the session.
     private func advanceToNextProblem() {
@@ -156,6 +169,7 @@ final class PracticeViewModel: ObservableObject {
 
     /// Clears feedback and moves to the next problem.
     private func clearFeedbackAndAdvance() {
+        pendingAdvance = nil
         feedbackMessage = nil
         isCorrectFeedback = nil
         advanceToNextProblem()

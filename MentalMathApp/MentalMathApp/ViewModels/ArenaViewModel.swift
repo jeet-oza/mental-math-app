@@ -57,7 +57,8 @@ final class ArenaViewModel: ObservableObject {
     /// Average time per question in seconds.
     var averageTimePerQuestion: Double {
         guard questionsAnswered > 0 else { return 0 }
-        let totalElapsed = Double(roundDuration - remainingSeconds)
+        let roundLength = currentRound?.durationSeconds ?? roundDuration
+        let totalElapsed = Double(roundLength - remainingSeconds)
         return totalElapsed / Double(questionsAnswered)
     }
 
