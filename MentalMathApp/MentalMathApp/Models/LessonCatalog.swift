@@ -53,7 +53,13 @@ nonisolated enum LessonCatalog {
             )
         ),
         operations: [.addition],
-        difficulty: .easy
+        difficulty: .easy,
+        pattern: ProblemPattern(
+            operation: .addition,
+            fixedValues: [9],
+            fixedPosition: .right,
+            variableRange: 10...99
+        )
     )
 
     private static let addingElevenLesson = Lesson(
@@ -77,7 +83,13 @@ nonisolated enum LessonCatalog {
             )
         ),
         operations: [.addition],
-        difficulty: .easy
+        difficulty: .easy,
+        pattern: ProblemPattern(
+            operation: .addition,
+            fixedValues: [11],
+            fixedPosition: .right,
+            variableRange: 10...99
+        )
     )
 
     private static let doublingNumbersLesson = Lesson(
@@ -104,7 +116,13 @@ nonisolated enum LessonCatalog {
             )
         ),
         operations: [.multiplication],
-        difficulty: .easy
+        difficulty: .easy,
+        pattern: ProblemPattern(
+            operation: .multiplication,
+            fixedValues: [2],
+            fixedPosition: .right,
+            variableRange: 11...99
+        )
     )
 
     // MARK: - Basic Subtraction
@@ -142,7 +160,13 @@ nonisolated enum LessonCatalog {
             )
         ),
         operations: [.subtraction],
-        difficulty: .easy
+        difficulty: .easy,
+        pattern: ProblemPattern(
+            operation: .subtraction,
+            fixedValues: [9],
+            fixedPosition: .right,
+            variableRange: 18...99
+        )
     )
 
     private static let subtractingFromRoundNumbersLesson = Lesson(
@@ -167,7 +191,13 @@ nonisolated enum LessonCatalog {
             )
         ),
         operations: [.subtraction],
-        difficulty: .easy
+        difficulty: .easy,
+        pattern: ProblemPattern(
+            operation: .subtraction,
+            fixedValues: [100, 1000],
+            fixedPosition: .left,
+            variableRange: 11...89
+        )
     )
 
     // MARK: - Multiplication Tricks
@@ -208,7 +238,13 @@ nonisolated enum LessonCatalog {
             )
         ),
         operations: [.multiplication],
-        difficulty: .medium
+        difficulty: .medium,
+        pattern: ProblemPattern(
+            operation: .multiplication,
+            fixedValues: [11],
+            fixedPosition: .right,
+            variableRange: 10...99
+        )
     )
 
     private static let multiplyByFiveLesson = Lesson(
@@ -233,6 +269,12 @@ nonisolated enum LessonCatalog {
             )
         ),
         operations: [.multiplication],
-        difficulty: .easy
+        difficulty: .easy,
+        pattern: ProblemPattern(
+            operation: .multiplication,
+            fixedValues: [5],
+            fixedPosition: .right,
+            variableRange: 2...99
+        )
     )
 }

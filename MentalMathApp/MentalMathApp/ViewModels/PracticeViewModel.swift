@@ -77,7 +77,8 @@ final class PracticeViewModel: ObservableObject {
         self.engine = MathEngine(
             seed: "\(lesson.id)_practice_\(UUID().uuidString)",
             difficulty: lesson.difficulty,
-            operations: lesson.operations
+            operations: lesson.operations,
+            pattern: lesson.pattern
         )
         advanceToNextProblem()
     }

@@ -18,6 +18,7 @@ final class MathEngine {
     private var rng: SeededRandomNumberGenerator
     private let operations: [MathOperation]
     private let difficulty: Difficulty
+    private let pattern: ProblemPattern?
     private var questionIndex: Int = 0
 
     // MARK: - Difficulty
@@ -48,14 +49,18 @@ final class MathEngine {
     ///   - seed: A string seed for deterministic problem generation.
     ///   - difficulty: The difficulty tier controlling operand ranges.
     ///   - operations: The set of operations to include. Defaults to all four.
+    ///   - pattern: An optional concept pattern. When provided, every problem
+    ///     is generated from the pattern instead of generic random operands.
     init(
         seed: String,
         difficulty: Difficulty = .easy,
-        operations: [MathOperation] = MathOperation.allCases
+        operations: [MathOperation] = MathOperation.allCases,
+        pattern: ProblemPattern? = nil
     ) {
         self.rng = SeededRandomNumberGenerator(seed: seed)
         self.difficulty = difficulty
         self.operations = operations
+        self.pattern = pattern
     }
 
     // MARK: - Problem Generation
@@ -63,13 +68,19 @@ final class MathEngine {
     /// Generates the next problem in the deterministic sequence.
     /// - Returns: The next `MathProblem`.
     func nextProblem() -> MathProblem {
+        questionIndex += 1
+
+        // Concept-based generation: every problem matches the lesson's trick.
+        if let pattern {
+            return pattern.makeProblem(using: &rng)
+        }
+
         let operation = operations[Int.random(in: 0..<operations.count, using: &rng)]
         var operandA = Int.random(in: difficulty.operandRange, using: &rng)
         var operandB = Int.random(in: difficulty.operandRange, using: &rng)
 
         adjustOperandsForOperation(operation, a: &operandA, b: &operandB)
 
-        questionIndex += 1
         return MathProblem(operandA: operandA, operandB: operandB, operation: operation)
     }
 

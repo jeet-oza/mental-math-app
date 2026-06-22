@@ -17,6 +17,9 @@ struct Lesson: Identifiable, Codable, Equatable, Sendable {
     let operations: [MathOperation]
     let difficulty: MathEngine.Difficulty
     let practiceCount: Int
+    /// Generates practice problems matching this lesson's concept.
+    /// When nil, practice falls back to generic random generation.
+    let pattern: ProblemPattern?
 
     /// Example: "Multiply by 11", "Squaring numbers ending in 5"
     init(
@@ -26,7 +29,8 @@ struct Lesson: Identifiable, Codable, Equatable, Sendable {
         trick: MathTrick,
         operations: [MathOperation],
         difficulty: MathEngine.Difficulty = .easy,
-        practiceCount: Int = 10
+        practiceCount: Int = 10,
+        pattern: ProblemPattern? = nil
     ) {
         self.id = id
         self.title = title
@@ -35,6 +39,7 @@ struct Lesson: Identifiable, Codable, Equatable, Sendable {
         self.operations = operations
         self.difficulty = difficulty
         self.practiceCount = practiceCount
+        self.pattern = pattern
     }
 }
 
