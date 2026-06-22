@@ -65,12 +65,12 @@ struct LessonRow: View {
                 if let best = progress?.bestScore, best > 0 {
                     Text("Best: \(best)")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.brandPrimary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(Color.orange.opacity(0.12))
+                                .fill(Color.brandPrimary.opacity(0.12))
                         )
                 }
 

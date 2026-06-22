@@ -39,7 +39,7 @@ struct TrickView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label(lesson.trick.name, systemImage: "lightbulb.fill")
                 .font(.title2.bold())
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.brandPrimary)
 
             Text(lesson.description)
                 .font(.body)
@@ -58,7 +58,7 @@ struct TrickView: View {
                         .font(.caption.bold())
                         .foregroundStyle(.white)
                         .frame(width: 24, height: 24)
-                        .background(Circle().fill(.orange))
+                        .background(Circle().fill(Color.brandPrimary))
 
                     Text(step)
                         .font(.body)
@@ -81,7 +81,7 @@ struct TrickView: View {
             // Problem
             Text(lesson.trick.example.problem)
                 .font(.title.monospaced())
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.brandPrimary)
 
             // Step-by-step
             ForEach(lesson.trick.example.stepByStepExplanation, id: \.self) { step in
@@ -114,7 +114,7 @@ struct TrickView: View {
                 .foregroundStyle(.white)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(.orange)
+                        .fill(.brandGradient)
                 )
         }
         .padding(.top, 8)

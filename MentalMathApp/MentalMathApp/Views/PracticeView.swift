@@ -82,7 +82,7 @@ struct PracticeView: View {
 
             Text(viewModel.accuracyText)
                 .font(.subheadline.bold())
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.brandPrimary)
         }
     }
 
@@ -138,10 +138,10 @@ struct PracticeView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.brandPrimary)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(.orange, lineWidth: 2)
+                                .stroke(Color.brandPrimary, lineWidth: 2)
                         )
                 }
 
@@ -153,7 +153,7 @@ struct PracticeView: View {
                         .foregroundStyle(.white)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(.orange)
+                                .fill(.brandGradient)
                         )
                 }
                 .disabled(viewModel.userInput.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -167,7 +167,7 @@ struct PracticeView: View {
                 .foregroundStyle(.green)
             Spacer()
             Label("\(viewModel.totalScore) pts", systemImage: "star.fill")
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.brandPrimary)
         }
         .font(.footnote)
         .padding(.horizontal)
@@ -234,7 +234,7 @@ struct PracticeResultsView: View {
                     .foregroundStyle(.white)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(.orange)
+                            .fill(.brandGradient)
                     )
             }
         }

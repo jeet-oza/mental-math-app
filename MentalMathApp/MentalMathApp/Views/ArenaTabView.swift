@@ -62,7 +62,7 @@ struct ArenaWaitingView: View {
             // Icon
             Image(systemName: "flame.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.brandPrimary)
                 .symbolEffect(.pulse, options: .repeating)
 
             // Title
@@ -83,7 +83,7 @@ struct ArenaWaitingView: View {
                     .foregroundStyle(.secondary)
                 Text("\(secondsUntilStart)s")
                     .font(.system(size: 56, weight: .heavy, design: .rounded).monospacedDigit())
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.brandPrimary)
                     .contentTransition(.numericText())
                 Text("Round #\(roundNumber + 1)")
                     .font(.caption)
@@ -113,7 +113,7 @@ struct ArenaWaitingView: View {
     private func infoRow(icon: String, text: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.brandPrimary)
                 .frame(width: 24)
             Text(text)
                 .font(.subheadline)
@@ -161,7 +161,7 @@ struct ArenaPlayingView: View {
             // Timer
             HStack(spacing: 4) {
                 Image(systemName: "clock.fill")
-                    .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : .orange)
+                    .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : Color.brandPrimary)
                 Text("\(viewModel.remainingSeconds)s")
                     .font(.title2.bold().monospacedDigit())
                     .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : .primary)
@@ -179,7 +179,7 @@ struct ArenaPlayingView: View {
             // Score
             Text("\(viewModel.totalScore) pts")
                 .font(.headline.monospacedDigit())
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.brandPrimary)
         }
         .padding()
         .background(
@@ -229,10 +229,10 @@ struct ArenaPlayingView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.brandPrimary)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(.orange, lineWidth: 2)
+                                .stroke(Color.brandPrimary, lineWidth: 2)
                         )
                 }
 
@@ -244,7 +244,7 @@ struct ArenaPlayingView: View {
                         .foregroundStyle(.white)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(.orange)
+                                .fill(.brandGradient)
                         )
                 }
                 .disabled(viewModel.userInput.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -284,7 +284,7 @@ struct ArenaLeaderboardView: View {
             VStack(spacing: 8) {
                 Text("\(viewModel.totalScore)")
                     .font(.system(size: 56, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.brandPrimary)
                 Text("points")
                     .font(.headline)
                     .foregroundStyle(.secondary)
@@ -320,13 +320,13 @@ struct ArenaLeaderboardView: View {
                             Spacer()
                             Text("\(entry.score) pts")
                                 .font(.headline.monospacedDigit())
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(Color.brandPrimary)
                         }
                         .padding(.vertical, 6)
                         .padding(.horizontal, 8)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(isYou ? Color.orange.opacity(0.12) : .clear)
+                                .fill(isYou ? Color.brandPrimary.opacity(0.12) : .clear)
                         )
                     }
                 }
@@ -347,7 +347,7 @@ struct ArenaLeaderboardView: View {
                     .foregroundStyle(.secondary)
                 Text("\(viewModel.nextRoundStartsIn)s")
                     .font(.title.bold().monospacedDigit())
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.brandPrimary)
                     .contentTransition(.numericText())
             }
         }

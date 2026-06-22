@@ -43,12 +43,12 @@ struct LessonGroupCard: View {
                 // Icon
                 Image(systemName: group.iconName)
                     .font(.title)
-                    .foregroundStyle(isUnlocked ? .orange : .gray)
+                    .foregroundStyle(isUnlocked ? Color.brandPrimary : .gray)
                     .frame(width: 48, height: 48)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
                             .fill(isUnlocked
-                                  ? Color.orange.opacity(0.15)
+                                  ? Color.brandPrimary.opacity(0.15)
                                   : Color.gray.opacity(0.1))
                     )
 
@@ -66,7 +66,7 @@ struct LessonGroupCard: View {
                     // Progress bar
                     if isUnlocked {
                         ProgressView(value: completionPercentage)
-                            .tint(.orange)
+                            .tint(Color.brandPrimary)
                     }
                 }
 

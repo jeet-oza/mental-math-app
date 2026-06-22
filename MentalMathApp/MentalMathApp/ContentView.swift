@@ -33,7 +33,7 @@ struct ContentView: View {
                     Label("Arena", systemImage: "flame.fill")
                 }
         }
-        .tint(.orange)
+        .tint(Color.brandPrimary)
     }
 }
 
