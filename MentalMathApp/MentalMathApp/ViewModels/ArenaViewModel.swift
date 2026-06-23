@@ -51,14 +51,29 @@ final class ArenaViewModel: ObservableObject {
     private let roundDuration: Int = 90
 
     /// Backend boundary for score submission and leaderboards.
-    /// Defaults to offline play; swap for a networked service to enable
-    /// real multiplayer without changing this view model.
-    private let leaderboardService: LeaderboardService
+    /// Defaults to offline play; `configureOnlinePlay` swaps in a networked
+    /// service so real multiplayer works without changing this view model.
+    private var leaderboardService: LeaderboardService
+
+    /// Identity used for the player's leaderboard entry. Defaults to a local
+    /// placeholder; set to the real user once signed in.
+    private var playerId = "you"
+    private var playerName = "You"
 
     // MARK: - Initialization
 
     init(leaderboardService: LeaderboardService = LocalLeaderboardService()) {
         self.leaderboardService = leaderboardService
+    }
+
+    /// The id used for the local player's leaderboard entry (for UI highlighting).
+    var currentPlayerId: String { playerId }
+
+    /// Switches to networked multiplayer using the signed-in user's identity.
+    func configureOnlinePlay(userId: String, displayName: String) {
+        playerId = userId
+        playerName = displayName
+        leaderboardService = FirebaseLeaderboardService()
     }
 
     /// The round index the player actually played this cycle (nil if they
@@ -339,25 +354,16 @@ final class ArenaViewModel: ObservableObject {
             ? Double(correctCount) / Double(questionsAnswered)
             : 0
         let player = LeaderboardEntry(
-            id: "you",
-            username: "You",
+            id: playerId,
+            username: playerName,
             score: totalScore,
             accuracy: accuracy,
             rank: 0
         )
-        let score = ArenaScore(
-            roundId: currentRound?.roundId ?? "arena_\(index)",
-            userId: "you",
-            totalScore: totalScore,
-            correctCount: correctCount,
-            skippedCount: answers.filter { $0.isSkipped }.count,
-            totalAttempted: questionsAnswered,
-            timeTakenSeconds: Double(roundDuration)
-        )
 
         let service = leaderboardService
         Task { [weak self] in
-            try? await service.submit(score)
+            try? await service.submit(player, forRound: index)
             if let entries = try? await service.leaderboard(forRound: index, including: player) {
                 self?.leaderboard = entries
             }

@@ -36,8 +36,9 @@ struct ContentView: View {
         }
         .tint(Color.brandPrimary)
         .task(id: auth.user?.uid) {
-            if let uid = auth.user?.uid {
-                await curriculumVM.enableCloudSync(uid: uid)
+            if let user = auth.user {
+                arenaVM.configureOnlinePlay(userId: user.uid, displayName: user.displayName)
+                await curriculumVM.enableCloudSync(uid: user.uid)
             }
         }
     }

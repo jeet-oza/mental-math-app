@@ -310,7 +310,7 @@ struct ArenaLeaderboardView: View {
                         .font(.headline)
 
                     ForEach(viewModel.leaderboard) { entry in
-                        let isYou = entry.id == "you"
+                        let isYou = entry.id == viewModel.currentPlayerId
                         HStack {
                             Text("#\(entry.rank)")
                                 .font(.headline.monospacedDigit())
