@@ -13,6 +13,8 @@ struct ContentView: View {
     @EnvironmentObject private var auth: AuthService
     @StateObject private var curriculumVM = CurriculumViewModel()
     @StateObject private var arenaVM = ArenaViewModel()
+    @StateObject private var gridArenaVM = GridArenaViewModel()
+    @StateObject private var gridStats = GridStatsStore()
 
     var body: some View {
         TabView {
@@ -28,17 +30,29 @@ struct ContentView: View {
                     Label("Practice", systemImage: "pencil.and.list.clipboard")
                 }
 
-            ArenaTabView()
+            ArenaContainerView()
                 .environmentObject(arenaVM)
+                .environmentObject(gridArenaVM)
+                .environmentObject(gridStats)
                 .tabItem {
                     Label("Arena", systemImage: "flame.fill")
                 }
         }
         .tint(Color.brandPrimary)
         .task(id: auth.user?.uid) {
+            gridArenaVM.onRoundComplete { score, paths, longest, hundreds in
+                gridStats.record(
+                    gameScore: score,
+                    pathsFound: paths,
+                    longestPathThisGame: longest,
+                    hundredsThisGame: hundreds
+                )
+            }
             if let user = auth.user {
                 arenaVM.configureOnlinePlay(userId: user.uid, displayName: user.displayName)
+                gridArenaVM.configureOnlinePlay(userId: user.uid, displayName: user.displayName)
                 await curriculumVM.enableCloudSync(uid: user.uid)
+                await gridStats.enableCloudSync(uid: user.uid)
             }
         }
     }

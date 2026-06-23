@@ -15,13 +15,21 @@ import FirebaseFirestore
 
 struct FirebaseLeaderboardService: LeaderboardService {
 
+    /// Top-level collection of rounds (e.g. "rounds" for equations,
+    /// "gridRounds" for the grid mode) so the two arenas keep separate boards.
+    let collection: String
+
     /// Minimum number of rows to show; real entries are padded with bots up to this.
     private let minimumRows = 8
+
+    init(collection: String = "rounds") {
+        self.collection = collection
+    }
 
     private var db: Firestore { Firestore.firestore() }
 
     private func scoresCollection(forRound index: Int) -> CollectionReference {
-        db.collection("rounds").document("\(index)").collection("scores")
+        db.collection(collection).document("\(index)").collection("scores")
     }
 
     func submit(_ entry: LeaderboardEntry, forRound index: Int) async throws {

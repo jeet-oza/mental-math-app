@@ -7,40 +7,35 @@
 
 import SwiftUI
 
-/// The Arena Mode tab with waiting, playing, and leaderboard phases.
+/// Equation Arena content (hosted by ArenaContainerView, which owns the
+/// navigation chrome and mode picker).
 struct ArenaTabView: View {
     @EnvironmentObject var viewModel: ArenaViewModel
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.groupedBackground
-                    .ignoresSafeArea()
+        ZStack {
+            Color.groupedBackground
+                .ignoresSafeArea()
 
-                switch viewModel.phase {
-                case .waiting:
-                    ArenaWaitingView(
-                        secondsUntilStart: viewModel.nextRoundStartsIn,
-                        roundNumber: viewModel.currentRoundIndex
-                    )
+            switch viewModel.phase {
+            case .waiting:
+                ArenaWaitingView(
+                    secondsUntilStart: viewModel.nextRoundStartsIn,
+                    roundNumber: viewModel.currentRoundIndex
+                )
 
-                case .playing:
-                    ArenaPlayingView()
-                        .environmentObject(viewModel)
+            case .playing:
+                ArenaPlayingView()
+                    .environmentObject(viewModel)
 
-                case .submitting:
-                    ProgressView("Submitting score...")
-                        .font(.headline)
+            case .submitting:
+                ProgressView("Submitting score...")
+                    .font(.headline)
 
-                case .leaderboard:
-                    ArenaLeaderboardView()
-                        .environmentObject(viewModel)
-                }
+            case .leaderboard:
+                ArenaLeaderboardView()
+                    .environmentObject(viewModel)
             }
-            .navigationTitle("Arena")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
         }
         .onAppear { viewModel.connect() }
         .onDisappear { viewModel.disconnect() }
