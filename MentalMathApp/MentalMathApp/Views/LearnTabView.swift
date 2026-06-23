@@ -10,6 +10,7 @@ import SwiftUI
 /// The Learn Mode tab showing grouped lessons with progress tracking.
 struct LearnTabView: View {
     @EnvironmentObject var viewModel: CurriculumViewModel
+    @EnvironmentObject var auth: AuthService
 
     var body: some View {
         NavigationStack {
@@ -27,6 +28,23 @@ struct LearnTabView: View {
             }
             .navigationTitle("Learn")
             .background(Color.groupedBackground)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        if let name = auth.user?.displayName {
+                            Text("Signed in as \(name)")
+                        }
+                        Button(role: .destructive) {
+                            viewModel.disableCloudSync()
+                            auth.signOut()
+                        } label: {
+                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                    } label: {
+                        Image(systemName: "person.crop.circle")
+                    }
+                }
+            }
         }
     }
 }

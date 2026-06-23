@@ -26,11 +26,44 @@ final class CurriculumViewModel: ObservableObject {
 
     private let progressKey = "curriculum_progress"
 
+    /// Remote sync boundary. Defaults to offline; replaced once a user signs in.
+    private var sync: ProgressSyncing = NoopProgressSync()
+    private var isCloudSyncEnabled = false
+
     // MARK: - Initialization
 
     init(groups: [LessonGroup] = LessonCatalog.allGroups) {
         self.lessonGroups = groups
         loadProgress()
+    }
+
+    // MARK: - Cloud Sync
+
+    /// Enables cloud sync for the signed-in user: pulls remote progress, merges
+    /// it with the local cache (keeping the strongest result per lesson), and
+    /// pushes the reconciled result back. Safe to call once per session.
+    func enableCloudSync(uid: String) async {
+        guard !isCloudSyncEnabled else { return }
+        isCloudSyncEnabled = true
+        sync = FirestoreProgressSync(uid: uid)
+
+        do {
+            if let remote = try await sync.fetch() {
+                progressMap = ProgressMerger.merge(local: progressMap, remote: remote)
+                saveProgress() // persists locally and pushes the merged result
+            } else {
+                // First time on the cloud — seed it with whatever we have locally.
+                try await sync.push(progressMap)
+            }
+        } catch {
+            // Stay offline-first: a sync failure must never block local play.
+        }
+    }
+
+    /// Disables cloud sync (e.g. on sign-out) and reverts to local-only.
+    func disableCloudSync() {
+        sync = NoopProgressSync()
+        isCloudSyncEnabled = false
     }
 
     // MARK: - Group Unlock Logic
@@ -102,10 +135,15 @@ final class CurriculumViewModel: ObservableObject {
 
     // MARK: - Persistence
 
-    /// Saves all progress to UserDefaults.
+    /// Saves all progress to UserDefaults and mirrors it to the cloud.
     private func saveProgress() {
-        guard let data = try? JSONEncoder().encode(progressMap) else { return }
-        UserDefaults.standard.set(data, forKey: progressKey)
+        if let data = try? JSONEncoder().encode(progressMap) {
+            UserDefaults.standard.set(data, forKey: progressKey)
+        }
+        // Fire-and-forget remote push; offline-first means we never block on it.
+        let snapshot = progressMap
+        let sync = sync
+        Task { try? await sync.push(snapshot) }
     }
 
     /// Loads progress from UserDefaults.

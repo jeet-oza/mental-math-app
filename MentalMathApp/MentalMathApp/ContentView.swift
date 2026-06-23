@@ -10,6 +10,7 @@ import SwiftUI
 /// The root view of the app, providing tab navigation
 /// between Learn Mode and Arena Mode.
 struct ContentView: View {
+    @EnvironmentObject private var auth: AuthService
     @StateObject private var curriculumVM = CurriculumViewModel()
     @StateObject private var arenaVM = ArenaViewModel()
 
@@ -34,6 +35,11 @@ struct ContentView: View {
                 }
         }
         .tint(Color.brandPrimary)
+        .task(id: auth.user?.uid) {
+            if let uid = auth.user?.uid {
+                await curriculumVM.enableCloudSync(uid: uid)
+            }
+        }
     }
 }
 
