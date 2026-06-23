@@ -107,6 +107,19 @@ final class AuthService: ObservableObject {
         }
     }
 
+    #if DEBUG
+    /// Debug-only guest sign-in via Firebase Anonymous Auth. Lets the app be
+    /// exercised in the simulator where Sign in with Apple is unreliable.
+    /// Requires the Anonymous provider to be enabled in the Firebase console.
+    func signInAsGuest() async {
+        do {
+            _ = try await Auth.auth().signInAnonymously()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    #endif
+
     func signOut() {
         do {
             try Auth.auth().signOut()

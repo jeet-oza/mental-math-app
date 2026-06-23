@@ -57,7 +57,17 @@ struct SignInView: View {
                 .frame(height: 50)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 32)
+
+                #if DEBUG
+                Button("Continue as Guest (debug)") {
+                    Task { await auth.signInAsGuest() }
+                }
+                .font(.footnote.bold())
+                .foregroundStyle(.white.opacity(0.9))
                 .padding(.bottom, 40)
+                #else
+                Color.clear.frame(height: 1).padding(.bottom, 40)
+                #endif
             }
         }
     }
