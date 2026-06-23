@@ -6,12 +6,26 @@
 //
 
 import SwiftUI
+import FirebaseCore
 
 @main
 struct MentalMathAppApp: App {
+    @StateObject private var auth = AuthService()
+
+    init() {
+        FirebaseApp.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if auth.isSignedIn {
+                    ContentView()
+                } else {
+                    SignInView()
+                }
+            }
+            .environmentObject(auth)
         }
     }
 }

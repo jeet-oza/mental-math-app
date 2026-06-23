@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C291C6A92FEA23230070960E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C291C6A82FEA23230070960E /* FirebaseAuth */; };
+		C291C6AB2FEA23290070960E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C291C6AA2FEA23290070960E /* FirebaseFirestore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C20467FA2FC93B1F002EB970 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C291C6A92FEA23230070960E /* FirebaseAuth in Frameworks */,
+				C291C6AB2FEA23290070960E /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +85,7 @@
 				C20467EE2FC93B1F002EB970 /* MentalMathApp */,
 				C20467FC2FC93B1F002EB970 /* MentalMathAppTests */,
 				C20468062FC93B1F002EB970 /* MentalMathAppUITests */,
+				C291C6A72FEA23230070960E /* Frameworks */,
 				C20467ED2FC93B1F002EB970 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +98,13 @@
 				C20468032FC93B1F002EB970 /* MentalMathAppUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C291C6A72FEA23230070960E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +127,8 @@
 			);
 			name = MentalMathApp;
 			packageProductDependencies = (
+				C291C6A82FEA23230070960E /* FirebaseAuth */,
+				C291C6AA2FEA23290070960E /* FirebaseFirestore */,
 			);
 			productName = MentalMathApp;
 			productReference = C20467EC2FC93B1F002EB970 /* MentalMathApp.app */;
@@ -195,6 +212,9 @@
 			);
 			mainGroup = C20467E32FC93B1F002EB970;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C20467ED2FC93B1F002EB970 /* Products */;
 			projectDirPath = "";
@@ -390,6 +410,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MentalMathApp/MentalMathApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T3GLYD39RJ;
@@ -434,6 +455,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MentalMathApp/MentalMathApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T3GLYD39RJ;
@@ -615,6 +637,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.15.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C291C6A82FEA23230070960E /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		C291C6AA2FEA23290070960E /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C20467E42FC93B1F002EB970 /* Project object */;
 }
