@@ -107,18 +107,22 @@ final class AuthService: ObservableObject {
         }
     }
 
-    #if DEBUG
-    /// Debug-only guest sign-in via Firebase Anonymous Auth. Lets the app be
-    /// exercised in the simulator where Sign in with Apple is unreliable.
+    /// Guest sign-in via Firebase Anonymous Auth. Firebase persists the
+    /// anonymous session in the keychain, so the same device keeps the same
+    /// `uid` (and therefore the same derived guest name) across relaunches.
     /// Requires the Anonymous provider to be enabled in the Firebase console.
     func signInAsGuest() async {
+        // Reuse any existing session rather than minting a new identity.
+        if let existing = Auth.auth().currentUser {
+            user = Self.makeUser(from: existing)
+            return
+        }
         do {
             _ = try await Auth.auth().signInAnonymously()
         } catch {
             errorMessage = error.localizedDescription
         }
     }
-    #endif
 
     func signOut() {
         do {
@@ -132,10 +136,26 @@ final class AuthService: ObservableObject {
 
     private static func makeUser(from firebaseUser: FirebaseAuth.User?) -> AppUser? {
         guard let firebaseUser else { return nil }
+        if firebaseUser.isAnonymous {
+            // Guests have no Apple name — derive a stable one from the uid.
+            return AppUser(uid: firebaseUser.uid, displayName: guestName(for: firebaseUser.uid))
+        }
         let name = firebaseUser.displayName?.isEmpty == false
             ? firebaseUser.displayName!
             : "Player"
         return AppUser(uid: firebaseUser.uid, displayName: name)
+    }
+
+    /// Deterministic, friendly guest name derived from the uid, so the same
+    /// device (same uid) always shows the same name.
+    private static func guestName(for uid: String) -> String {
+        var rng = SeededRandomNumberGenerator(seed: uid)
+        let adjectives = ["Swift", "Clever", "Brave", "Sharp", "Quick", "Cosmic", "Mighty", "Lucky"]
+        let animals = ["Fox", "Otter", "Falcon", "Tiger", "Panda", "Hawk", "Lynx", "Whale"]
+        let adjective = adjectives[Int.random(in: 0..<adjectives.count, using: &rng)]
+        let animal = animals[Int.random(in: 0..<animals.count, using: &rng)]
+        let number = Int.random(in: 10...99, using: &rng)
+        return "\(adjective) \(animal) \(number)"
     }
 
     private static func formattedName(_ components: PersonNameComponents) -> String? {
