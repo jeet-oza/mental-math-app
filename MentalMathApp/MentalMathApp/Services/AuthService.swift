@@ -14,6 +14,7 @@ import Combine
 import AuthenticationServices
 import CryptoKit
 import FirebaseAuth
+import FirebaseFirestore
 
 /// A minimal, Firebase-free representation of the signed-in user.
 struct AppUser: Equatable, Sendable {
@@ -128,6 +129,24 @@ final class AuthService: ObservableObject {
         do {
             try Auth.auth().signOut()
         } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Permanently deletes the signed-in user's account and personal data
+    /// (their `users/{uid}` document with progress and stats), then the Firebase
+    /// Auth user. The auth-state listener returns the app to the sign-in screen.
+    /// Required by the App Store for apps offering account creation.
+    func deleteAccount() async {
+        guard let firebaseUser = Auth.auth().currentUser else { return }
+        let uid = firebaseUser.uid
+        do {
+            // Remove personal data first so nothing is orphaned.
+            try? await Firestore.firestore().collection("users").document(uid).delete()
+            try await firebaseUser.delete()
+        } catch {
+            // Re-auth may be required for non-anonymous accounts that signed in
+            // a while ago; surface the reason so the user can sign in again.
             errorMessage = error.localizedDescription
         }
     }
