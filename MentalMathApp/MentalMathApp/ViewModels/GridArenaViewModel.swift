@@ -35,6 +35,10 @@ final class GridArenaViewModel: ObservableObject {
     @Published private(set) var currentRoundIndex = 0
     @Published private(set) var leaderboard: [LeaderboardEntry] = []
     @Published private(set) var message: String?
+    /// All multiple-of-100 combinations on the board (post-round), by points desc.
+    @Published private(set) var solutionsHundreds: [GridSolution] = []
+    /// All multiple-of-10 (not 100) combinations on the board, by points desc.
+    @Published private(set) var solutionsTens: [GridSolution] = []
 
     // MARK: - Dependencies
 
@@ -67,6 +71,9 @@ final class GridArenaViewModel: ObservableObject {
     }
 
     var currentPlayerId: String { playerId }
+
+    /// Tile-set keys the player banked this round (to mark found solutions).
+    var foundSolutionKeys: Set<String> { foundKeys }
 
     // MARK: - Computed (current selection)
 
@@ -117,6 +124,8 @@ final class GridArenaViewModel: ObservableObject {
         currentPath.removeAll()
         foundPaths.removeAll()
         foundKeys.removeAll()
+        solutionsHundreds.removeAll()
+        solutionsTens.removeAll()
         score = 0
         message = nil
         playedRoundIndex = index
@@ -129,7 +138,22 @@ final class GridArenaViewModel: ObservableObject {
         let hundreds = foundPaths.filter(\.isHundred).count
         onRoundFinished?(score, foundPaths.count, longest, hundreds)
         loadLeaderboard(forRound: roundIndex)
+        computeSolutions()
         phase = .leaderboard
+    }
+
+    /// Enumerates every scoring combination on the board for the results screen.
+    private func computeSolutions() {
+        let board = self.board
+        Task { [weak self] in
+            let all = GridSolver.solutions(on: board)
+            let hundreds = all.filter(\.isHundred).sorted { $0.points > $1.points }
+            let tens = all.filter { !$0.isHundred }.sorted { $0.points > $1.points }
+            await MainActor.run {
+                self?.solutionsHundreds = hundreds
+                self?.solutionsTens = tens
+            }
+        }
     }
 
     // MARK: - Player Interaction

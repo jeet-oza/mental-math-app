@@ -237,6 +237,19 @@ private struct GridResultsView: View {
                     leaderboardCard
                 }
 
+                if !viewModel.solutionsHundreds.isEmpty {
+                    solutionsCard(
+                        title: "Multiples of 100",
+                        solutions: viewModel.solutionsHundreds
+                    )
+                }
+                if !viewModel.solutionsTens.isEmpty {
+                    solutionsCard(
+                        title: "Multiples of 10",
+                        solutions: viewModel.solutionsTens
+                    )
+                }
+
                 VStack(spacing: 4) {
                     Text("Next round starts in").font(.subheadline).foregroundStyle(.secondary)
                     Text("\(viewModel.nextRoundStartsIn)s")
@@ -258,6 +271,44 @@ private struct GridResultsView: View {
                     Spacer()
                     Text(value).font(.headline.monospacedDigit())
                 }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.appBackground)
+            .shadow(color: .black.opacity(0.05), radius: 6, y: 3))
+    }
+
+    /// A capped, Wordament-style list of board solutions, marking ones the
+    /// player found. Sorted by points; shows the top entries with a "+N more".
+    private func solutionsCard(title: String, solutions: [GridSolution]) -> some View {
+        let cap = 30
+        let shown = Array(solutions.prefix(cap))
+        let found = viewModel.foundSolutionKeys
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(title).font(.headline)
+                Spacer()
+                Text("\(found.intersection(Set(solutions.map(\.id))).count)/\(solutions.count) found")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            ForEach(shown) { solution in
+                HStack(spacing: 8) {
+                    Image(systemName: found.contains(solution.id) ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(found.contains(solution.id) ? .green : .secondary)
+                    Text(solution.expression)
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(found.contains(solution.id) ? .primary : .secondary)
+                    Spacer()
+                    Text("\(solution.points)")
+                        .font(.subheadline.bold().monospacedDigit())
+                        .foregroundStyle(Color.brandPrimary)
+                }
+                .padding(.vertical, 2)
+            }
+            if solutions.count > cap {
+                Text("+\(solutions.count - cap) more combinations")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .padding()
