@@ -268,9 +268,8 @@ struct ArenaLeaderboardView: View {
     @EnvironmentObject var viewModel: ArenaViewModel
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
+        ScrollView {
+            VStack(spacing: 24) {
             // Result title
             Text("Round Complete!")
                 .font(.largeTitle.bold())
@@ -335,6 +334,11 @@ struct ArenaLeaderboardView: View {
 
             Spacer()
 
+            // Attempted equations review
+            if !viewModel.attempts.isEmpty {
+                attemptsCard
+            }
+
             // Auto-advance: the next global round starts on the shared clock.
             VStack(spacing: 4) {
                 Text("Next round starts in")
@@ -345,8 +349,49 @@ struct ArenaLeaderboardView: View {
                     .foregroundStyle(Color.brandPrimary)
                     .contentTransition(.numericText())
             }
+            }
+            .padding()
+        }
+    }
+
+    private var attemptsCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Your Equations")
+                .font(.headline)
+
+            ForEach(viewModel.attempts) { attempt in
+                HStack(spacing: 10) {
+                    Image(systemName: attempt.isCorrect ? "checkmark.circle.fill"
+                          : (attempt.isSkipped ? "forward.circle.fill" : "xmark.circle.fill"))
+                        .foregroundStyle(attempt.isCorrect ? .green
+                                         : (attempt.isSkipped ? .secondary : .red))
+
+                    Text(attempt.problem)
+                        .font(.subheadline.monospacedDigit())
+
+                    Spacer()
+
+                    if attempt.isSkipped {
+                        Text("skipped").font(.caption).foregroundStyle(.secondary)
+                    } else if attempt.isCorrect {
+                        Text("= \(attempt.correctAnswer)")
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(.green)
+                    } else {
+                        Text("\(attempt.userAnswer.map(String.init) ?? "—") (✗ \(attempt.correctAnswer))")
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(.red)
+                    }
+                }
+                .padding(.vertical, 3)
+            }
         }
         .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.appBackground)
+                .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
+        )
     }
 
     private func statColumn(label: String, value: String) -> some View {

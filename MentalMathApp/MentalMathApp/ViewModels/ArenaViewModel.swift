@@ -19,6 +19,16 @@ enum ArenaPhase: Equatable {
     case leaderboard  // Viewing post-match results
 }
 
+/// A single attempted equation, for the post-round review list.
+struct ArenaAttempt: Identifiable, Equatable {
+    let id = UUID()
+    let problem: String
+    let userAnswer: Int?
+    let correctAnswer: Int
+    let isCorrect: Bool
+    let isSkipped: Bool
+}
+
 /// Manages Arena Mode gameplay state.
 @MainActor
 final class ArenaViewModel: ObservableObject {
@@ -32,6 +42,8 @@ final class ArenaViewModel: ObservableObject {
     @Published private(set) var correctCount: Int = 0
     @Published private(set) var totalScore: Int = 0
     @Published private(set) var answers: [AnswerResult] = []
+    /// Every attempted equation this round, for the results review.
+    @Published private(set) var attempts: [ArenaAttempt] = []
     @Published private(set) var leaderboard: [LeaderboardEntry] = []
     @Published var userInput: String = ""
     @Published private(set) var feedbackMessage: String?
@@ -191,6 +203,7 @@ final class ArenaViewModel: ObservableObject {
         )
 
         answers.removeAll()
+        attempts.removeAll()
         questionsAnswered = 0
         correctCount = 0
         totalScore = 0
@@ -247,6 +260,13 @@ final class ArenaViewModel: ObservableObject {
             elapsed: elapsed,
             points: points
         )
+        attempts.append(ArenaAttempt(
+            problem: problem.displayText,
+            userAnswer: userAnswer,
+            correctAnswer: problem.correctAnswer,
+            isCorrect: isCorrect,
+            isSkipped: false
+        ))
 
         showFeedback(isCorrect: isCorrect, correctAnswer: problem.correctAnswer)
         advanceToNextProblem()
@@ -265,6 +285,13 @@ final class ArenaViewModel: ObservableObject {
             elapsed: elapsed,
             points: ScoreCalculator.skipPenalty
         )
+        attempts.append(ArenaAttempt(
+            problem: problem.displayText,
+            userAnswer: nil,
+            correctAnswer: problem.correctAnswer,
+            isCorrect: false,
+            isSkipped: true
+        ))
 
         advanceToNextProblem()
     }
@@ -364,9 +391,11 @@ final class ArenaViewModel: ObservableObject {
         let service = leaderboardService
         Task { [weak self] in
             try? await service.submit(player, forRound: index)
-            if let entries = try? await service.leaderboard(forRound: index, including: player) {
-                self?.leaderboard = entries
-            }
+            // Always show a ranking: fall back to local opponents if the
+            // networked read fails (e.g. before Firestore rules are set).
+            let entries = (try? await service.leaderboard(forRound: index, including: player))
+                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+            self?.leaderboard = entries
         }
     }
 
@@ -385,6 +414,7 @@ final class ArenaViewModel: ObservableObject {
         feedbackMessage = nil
         isCorrectFeedback = nil
         leaderboard.removeAll()
+        attempts.removeAll()
         playedRoundIndex = nil
         finalizedRoundIndex = nil
         nextRoundStartsIn = 0
