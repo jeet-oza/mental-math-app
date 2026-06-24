@@ -15,6 +15,7 @@ struct ContentView: View {
     @StateObject private var arenaVM = ArenaViewModel()
     @StateObject private var gridArenaVM = GridArenaViewModel()
     @StateObject private var gridStats = GridStatsStore()
+    @StateObject private var equationStats = EquationStatsStore()
 
     var body: some View {
         TabView {
@@ -34,6 +35,7 @@ struct ContentView: View {
                 .environmentObject(arenaVM)
                 .environmentObject(gridArenaVM)
                 .environmentObject(gridStats)
+                .environmentObject(equationStats)
                 .tabItem {
                     Label("Arena", systemImage: "flame.fill")
                 }
@@ -48,11 +50,15 @@ struct ContentView: View {
                     hundredsThisGame: hundreds
                 )
             }
+            arenaVM.onRoundComplete { score, correct, answered in
+                equationStats.record(gameScore: score, correct: correct, answered: answered)
+            }
             if let user = auth.user {
                 arenaVM.configureOnlinePlay(userId: user.uid, displayName: user.displayName)
                 gridArenaVM.configureOnlinePlay(userId: user.uid, displayName: user.displayName)
                 await curriculumVM.enableCloudSync(uid: user.uid)
                 await gridStats.enableCloudSync(uid: user.uid)
+                await equationStats.enableCloudSync(uid: user.uid)
             }
         }
     }

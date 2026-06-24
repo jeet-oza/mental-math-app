@@ -88,6 +88,12 @@ final class ArenaViewModel: ObservableObject {
         leaderboardService = FirebaseLeaderboardService()
     }
 
+    /// Called once when a round the player played ends: (score, correct, answered).
+    private var onRoundFinished: ((Int, Int, Int) -> Void)?
+    func onRoundComplete(_ handler: @escaping (Int, Int, Int) -> Void) {
+        onRoundFinished = handler
+    }
+
     /// The round index the player actually played this cycle (nil if they
     /// joined during intermission and have not played the current round).
     private var playedRoundIndex: Int?
@@ -177,6 +183,7 @@ final class ArenaViewModel: ObservableObject {
         timer?.cancel()
         timer = nil
         finalizedRoundIndex = roundIndex
+        onRoundFinished?(totalScore, correctCount, questionsAnswered)
         loadLeaderboard(forRound: roundIndex)
         phase = .leaderboard
     }
