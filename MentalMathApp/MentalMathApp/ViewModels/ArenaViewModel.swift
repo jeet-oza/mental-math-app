@@ -45,6 +45,9 @@ final class ArenaViewModel: ObservableObject {
     /// Every attempted equation this round, for the results review.
     @Published private(set) var attempts: [ArenaAttempt] = []
     @Published private(set) var leaderboard: [LeaderboardEntry] = []
+    /// False during the post-round collection window; true once the final
+    /// leaderboard (all players + bots) is ready to display.
+    @Published private(set) var leaderboardReady = false
     @Published var userInput: String = ""
     @Published private(set) var feedbackMessage: String?
     @Published private(set) var isCorrectFeedback: Bool?
@@ -174,6 +177,8 @@ final class ArenaViewModel: ObservableObject {
             startTimestamp: Date()
         )
         configureRound(round)
+        leaderboard = []
+        leaderboardReady = false
         playedRoundIndex = index
         phase = .playing
     }
@@ -395,19 +400,20 @@ final class ArenaViewModel: ObservableObject {
             rank: 0
         )
 
-        // Show a provisional ranking immediately (local opponents + you), so the
-        // board is never blank while scores are still being collected.
-        leaderboard = rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+        // Hide the leaderboard during the collection window.
+        leaderboard = []
+        leaderboardReady = false
 
         // Submit now, wait for the collection window so every player's score has
-        // landed, then read the final networked board and replace.
+        // landed, then publish the final board (all players + bots) at once.
         let service = leaderboardService
         Task { [weak self] in
             try? await service.submit(player, forRound: index)
             try? await Task.sleep(for: .seconds(Double(ArenaSchedule.leaderboardDelaySeconds)))
-            if let entries = try? await service.leaderboard(forRound: index, including: player) {
-                self?.leaderboard = entries
-            }
+            let entries = (try? await service.leaderboard(forRound: index, including: player))
+                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+            self?.leaderboard = entries
+            self?.leaderboardReady = true
         }
     }
 
@@ -426,6 +432,7 @@ final class ArenaViewModel: ObservableObject {
         feedbackMessage = nil
         isCorrectFeedback = nil
         leaderboard.removeAll()
+        leaderboardReady = false
         attempts.removeAll()
         playedRoundIndex = nil
         finalizedRoundIndex = nil

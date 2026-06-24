@@ -145,9 +145,16 @@ private struct GridPlayingView: View {
             DragGesture(minimumDistance: 0, coordinateSpace: .named("grid"))
                 .onChanged { value in
                     guard gridWidth > 0 else { return }
-                    let tile = (gridWidth - spacing * CGFloat(GridBoard.size - 1)) / CGFloat(GridBoard.size)
-                    let col = Int(value.location.x / (tile + spacing))
-                    let row = Int(value.location.y / (tile + spacing))
+                    let cell = (gridWidth - spacing * CGFloat(GridBoard.size - 1)) / CGFloat(GridBoard.size) + spacing
+                    let col = Int(value.location.x / cell)
+                    let row = Int(value.location.y / cell)
+                    // Only register when the finger is inside the tile body, not
+                    // the gap between tiles — lets diagonal drags trace cleanly
+                    // instead of grabbing an orthogonal in-between tile.
+                    let xInCell = value.location.x - CGFloat(col) * cell
+                    let yInCell = value.location.y - CGFloat(row) * cell
+                    let tile = cell - spacing
+                    guard xInCell <= tile, yInCell <= tile else { return }
                     let pos = GridPosition(row: row, col: col)
                     if GridBoard.isInBounds(pos) { viewModel.dragEntered(pos) }
                 }
@@ -229,27 +236,43 @@ private struct GridResultsView: View {
                 .font(.headline.monospacedDigit())
                 .foregroundStyle(Color.brandAccent)
 
-            Picker("View", selection: $tab) {
-                ForEach(ResultsTab.allCases) { Text($0.rawValue).tag($0) }
+            if viewModel.leaderboardReady {
+                Picker("View", selection: $tab) {
+                    ForEach(ResultsTab.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
 
             ScrollView {
                 VStack(spacing: 20) {
-                    switch tab {
-                    case .results:
-                        resultsContent
-                    case .leaderboards:
+                    if viewModel.leaderboardReady && tab == .leaderboards {
                         LeaderboardTableView(
                             entries: viewModel.leaderboard,
                             playerId: viewModel.currentPlayerId
                         )
+                    } else {
+                        resultsContent
+                        if !viewModel.leaderboardReady {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                Text("Final standings in \(secondsUntilReady)s…")
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                            }
+                            .padding()
+                        }
                     }
                 }
                 .padding()
             }
         }
+        .onChange(of: viewModel.leaderboardReady) { _, ready in
+            if ready { tab = .leaderboards }
+        }
+    }
+
+    private var secondsUntilReady: Int {
+        max(0, viewModel.nextRoundStartsIn - (ArenaSchedule.intermission - ArenaSchedule.leaderboardDelaySeconds))
     }
 
     private var resultsContent: some View {

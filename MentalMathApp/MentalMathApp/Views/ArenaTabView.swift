@@ -275,27 +275,51 @@ struct ArenaLeaderboardView: View {
                 .font(.headline.monospacedDigit())
                 .foregroundStyle(Color.brandAccent)
 
-            Picker("View", selection: $tab) {
-                ForEach(ResultsTab.allCases) { Text($0.rawValue).tag($0) }
+            // The leaderboard tab only appears once the final board is ready.
+            if viewModel.leaderboardReady {
+                Picker("View", selection: $tab) {
+                    ForEach(ResultsTab.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
 
             ScrollView {
                 VStack(spacing: 20) {
-                    switch tab {
-                    case .results:
-                        resultsContent
-                    case .leaderboards:
+                    if viewModel.leaderboardReady && tab == .leaderboards {
                         LeaderboardTableView(
                             entries: viewModel.leaderboard,
                             playerId: viewModel.currentPlayerId
                         )
+                    } else {
+                        resultsContent
+                        if !viewModel.leaderboardReady {
+                            collectingNotice
+                        }
                     }
                 }
                 .padding()
             }
         }
+        // When the final board lands, jump straight to the leaderboard.
+        .onChange(of: viewModel.leaderboardReady) { _, ready in
+            if ready { tab = .leaderboards }
+        }
+    }
+
+    /// Shown under the results while scores are still being collected.
+    private var collectingNotice: some View {
+        HStack(spacing: 8) {
+            ProgressView()
+            Text("Final standings in \(secondsUntilReady)s…")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+    }
+
+    private var secondsUntilReady: Int {
+        max(0, viewModel.nextRoundStartsIn - (ArenaSchedule.intermission - ArenaSchedule.leaderboardDelaySeconds))
     }
 
     private var resultsContent: some View {

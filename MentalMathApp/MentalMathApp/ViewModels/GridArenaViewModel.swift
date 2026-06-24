@@ -34,6 +34,8 @@ final class GridArenaViewModel: ObservableObject {
     @Published private(set) var nextRoundStartsIn = 0
     @Published private(set) var currentRoundIndex = 0
     @Published private(set) var leaderboard: [LeaderboardEntry] = []
+    /// False during the post-round collection window; true once the final board is ready.
+    @Published private(set) var leaderboardReady = false
     @Published private(set) var message: String?
     /// All multiple-of-100 combinations on the board (post-round), by points desc.
     @Published private(set) var solutionsHundreds: [GridSolution] = []
@@ -126,6 +128,8 @@ final class GridArenaViewModel: ObservableObject {
         foundKeys.removeAll()
         solutionsHundreds.removeAll()
         solutionsTens.removeAll()
+        leaderboard = []
+        leaderboardReady = false
         score = 0
         message = nil
         playedRoundIndex = index
@@ -248,19 +252,20 @@ final class GridArenaViewModel: ObservableObject {
             accuracy: 0,
             rank: 0
         )
-        // Show a provisional ranking immediately (local opponents + you), so the
-        // board is never blank while scores are still being collected.
-        leaderboard = rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+        // Hide the leaderboard during the collection window.
+        leaderboard = []
+        leaderboardReady = false
 
-        // Submit now, wait for the collection window so every player's score has
-        // landed, then read the final networked board and replace.
+        // Submit now, wait for the collection window, then publish the final
+        // board (all players + bots) at once.
         let service = leaderboardService
         Task { [weak self] in
             try? await service.submit(player, forRound: index)
             try? await Task.sleep(for: .seconds(Double(ArenaSchedule.leaderboardDelaySeconds)))
-            if let entries = try? await service.leaderboard(forRound: index, including: player) {
-                self?.leaderboard = entries
-            }
+            let entries = (try? await service.leaderboard(forRound: index, including: player))
+                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+            self?.leaderboard = entries
+            self?.leaderboardReady = true
         }
     }
 }
