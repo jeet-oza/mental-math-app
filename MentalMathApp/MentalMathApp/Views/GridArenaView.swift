@@ -75,14 +75,16 @@ private struct GridPlayingView: View {
     var body: some View {
         VStack(spacing: 16) {
             header
+            Text("Drag across tiles that sum to a multiple of 10")
+                .font(.caption)
+                .foregroundStyle(.secondary)
             grid
             selectionBar
             if let message = viewModel.message {
                 Text(message)
                     .font(.subheadline.bold())
-                    .foregroundStyle(viewModel.currentIsValid || message.hasPrefix("+") ? .green : .red)
+                    .foregroundStyle(message.hasPrefix("+") ? .green : .secondary)
             }
-            actions
             foundSummary
             Spacer()
         }
@@ -106,21 +108,37 @@ private struct GridPlayingView: View {
         .padding(.horizontal, 4)
     }
 
+    private let spacing: CGFloat = 8
+
     private var grid: some View {
-        VStack(spacing: 8) {
-            ForEach(0..<GridBoard.size, id: \.self) { row in
-                HStack(spacing: 8) {
-                    ForEach(0..<GridBoard.size, id: \.self) { col in
-                        let pos = GridPosition(row: row, col: col)
-                        GridTileView(
-                            value: viewModel.board.value(at: pos),
-                            selectionIndex: viewModel.currentPath.firstIndex(of: pos)
-                        )
-                        .onTapGesture { viewModel.tapTile(pos) }
-                    }
+        GeometryReader { geo in
+            let tile = (geo.size.width - spacing * CGFloat(GridBoard.size - 1)) / CGFloat(GridBoard.size)
+            ZStack(alignment: .topLeading) {
+                ForEach(0..<(GridBoard.size * GridBoard.size), id: \.self) { idx in
+                    let pos = GridPosition(row: idx / GridBoard.size, col: idx % GridBoard.size)
+                    GridTileView(
+                        value: viewModel.board.value(at: pos),
+                        selectionIndex: viewModel.currentPath.firstIndex(of: pos)
+                    )
+                    .frame(width: tile, height: tile)
+                    .offset(x: CGFloat(pos.col) * (tile + spacing),
+                            y: CGFloat(pos.row) * (tile + spacing))
                 }
             }
+            .frame(width: geo.size.width, height: geo.size.width)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let col = Int(value.location.x / (tile + spacing))
+                        let row = Int(value.location.y / (tile + spacing))
+                        let pos = GridPosition(row: row, col: col)
+                        if GridBoard.isInBounds(pos) { viewModel.dragEntered(pos) }
+                    }
+                    .onEnded { _ in viewModel.endDrag() }
+            )
         }
+        .aspectRatio(1, contentMode: .fit)
     }
 
     private var selectionBar: some View {
@@ -137,30 +155,6 @@ private struct GridPlayingView: View {
         }
         .padding(.horizontal, 4)
         .frame(height: 24)
-    }
-
-    private var actions: some View {
-        HStack(spacing: 16) {
-            Button(action: viewModel.clearPath) {
-                Text("Clear")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .foregroundStyle(Color.brandPrimary)
-                    .background(RoundedRectangle(cornerRadius: 12).stroke(Color.brandPrimary, lineWidth: 2))
-            }
-            .disabled(viewModel.currentPath.isEmpty)
-
-            Button(action: viewModel.submitPath) {
-                Text("Submit")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .foregroundStyle(.white)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(.brandGradient))
-            }
-            .disabled(viewModel.currentPath.count < GridScoring.minimumLength)
-        }
     }
 
     private var foundSummary: some View {

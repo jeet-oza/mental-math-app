@@ -155,6 +155,38 @@ final class GridArenaViewModel: ObservableObject {
         message = nil
     }
 
+    /// Drag-trace: called as the finger moves over a tile. Extends the path,
+    /// or backtracks if the finger returns to the previous tile.
+    func dragEntered(_ position: GridPosition) {
+        guard phase == .playing else { return }
+        if currentPath.isEmpty {
+            currentPath = [position]
+            message = nil
+            return
+        }
+        if currentPath.last == position { return }
+        // Finger moved back onto the previous tile → undo the last step.
+        if currentPath.count >= 2, currentPath[currentPath.count - 2] == position {
+            currentPath.removeLast()
+            return
+        }
+        if currentPath.contains(position) { return }
+        if GridBoard.areAdjacent(currentPath.last!, position) {
+            currentPath.append(position)
+        }
+    }
+
+    /// Drag-trace ended (finger lifted): bank the path if it scores, else
+    /// clear it silently (Wordament-style — no nag for non-scoring traces).
+    func endDrag() {
+        guard phase == .playing else { return }
+        if currentPath.count >= GridScoring.minimumLength, currentIsValid {
+            submitPath()
+        } else {
+            currentPath.removeAll()
+        }
+    }
+
     /// Validates and banks the current path if it scores and is new.
     func submitPath() {
         guard phase == .playing else { return }
@@ -195,9 +227,9 @@ final class GridArenaViewModel: ObservableObject {
         let service = leaderboardService
         Task { [weak self] in
             try? await service.submit(player, forRound: index)
-            if let entries = try? await service.leaderboard(forRound: index, including: player) {
-                self?.leaderboard = entries
-            }
+            let entries = (try? await service.leaderboard(forRound: index, including: player))
+                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+            self?.leaderboard = entries
         }
     }
 }
