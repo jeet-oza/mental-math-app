@@ -110,7 +110,7 @@ private struct ArenaLandingView: View {
         VStack(spacing: 24) {
             Image(systemName: icon)
                 .font(.system(size: 56))
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
                 .padding(.top, 16)
 
             VStack(spacing: 6) {

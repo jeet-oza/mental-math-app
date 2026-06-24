@@ -61,12 +61,12 @@ struct LessonGroupCard: View {
                 // Icon
                 Image(systemName: group.iconName)
                     .font(.title)
-                    .foregroundStyle(isUnlocked ? Color.brandPrimary : .gray)
+                    .foregroundStyle(isUnlocked ? Color.brandAccent : .gray)
                     .frame(width: 48, height: 48)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
                             .fill(isUnlocked
-                                  ? Color.brandPrimary.opacity(0.15)
+                                  ? Color.brandAccent.opacity(0.18)
                                   : Color.gray.opacity(0.1))
                     )
 
@@ -74,7 +74,7 @@ struct LessonGroupCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(group.title)
                         .font(.headline)
-                        .foregroundStyle(isUnlocked ? .primary : .secondary)
+                        .foregroundStyle(isUnlocked ? .white : .secondary)
 
                     Text(group.description)
                         .font(.caption)
@@ -84,7 +84,7 @@ struct LessonGroupCard: View {
                     // Progress bar
                     if isUnlocked {
                         ProgressView(value: completionPercentage)
-                            .tint(Color.brandPrimary)
+                            .tint(Color.brandAccent)
                     }
                 }
 
@@ -103,6 +103,7 @@ struct LessonGroupCard: View {
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
         }
+        .buttonStyle(.plain)
         .disabled(!isUnlocked)
     }
 }

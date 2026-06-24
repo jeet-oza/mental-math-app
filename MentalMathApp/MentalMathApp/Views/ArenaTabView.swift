@@ -57,7 +57,7 @@ struct ArenaWaitingView: View {
             // Icon
             Image(systemName: "flame.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
                 .symbolEffect(.pulse, options: .repeating)
 
             // Title
@@ -78,7 +78,7 @@ struct ArenaWaitingView: View {
                     .foregroundStyle(.secondary)
                 Text("\(secondsUntilStart)s")
                     .font(.system(size: 56, weight: .heavy, design: .rounded).monospacedDigit())
-                    .foregroundStyle(Color.brandPrimary)
+                    .foregroundStyle(Color.brandAccent)
                     .contentTransition(.numericText())
                 Text("Round #\(roundNumber + 1)")
                     .font(.caption)
@@ -108,7 +108,7 @@ struct ArenaWaitingView: View {
     private func infoRow(icon: String, text: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
                 .frame(width: 24)
             Text(text)
                 .font(.subheadline)
@@ -156,7 +156,7 @@ struct ArenaPlayingView: View {
             // Timer
             HStack(spacing: 4) {
                 Image(systemName: "clock.fill")
-                    .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : Color.brandPrimary)
+                    .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : Color.brandAccent)
                 Text("\(viewModel.remainingSeconds)s")
                     .font(.title2.bold().monospacedDigit())
                     .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : .primary)
@@ -174,7 +174,7 @@ struct ArenaPlayingView: View {
             // Score
             Text("\(viewModel.totalScore) pts")
                 .font(.headline.monospacedDigit())
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
         }
         .padding()
         .background(
@@ -224,7 +224,7 @@ struct ArenaPlayingView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .foregroundStyle(Color.brandPrimary)
+                        .foregroundStyle(Color.brandAccent)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(Color.brandPrimary, lineWidth: 2)
@@ -239,7 +239,7 @@ struct ArenaPlayingView: View {
                         .foregroundStyle(.white)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(.brandGradient)
+                                .fill(.accentGradient)
                         )
                 }
                 .disabled(viewModel.userInput.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -273,7 +273,7 @@ struct ArenaLeaderboardView: View {
             // Countdown to the next global round (Wordament header).
             Text("Next game in 0:\(String(format: "%02d", viewModel.nextRoundStartsIn))")
                 .font(.headline.monospacedDigit())
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
 
             Picker("View", selection: $tab) {
                 ForEach(ResultsTab.allCases) { Text($0.rawValue).tag($0) }
@@ -303,7 +303,7 @@ struct ArenaLeaderboardView: View {
             VStack(spacing: 4) {
                 Text("\(viewModel.totalScore)")
                     .font(.system(size: 52, weight: .heavy, design: .rounded))
-                    .foregroundStyle(Color.brandPrimary)
+                    .foregroundStyle(Color.brandAccent)
                 Text("points").font(.subheadline).foregroundStyle(.secondary)
             }
 

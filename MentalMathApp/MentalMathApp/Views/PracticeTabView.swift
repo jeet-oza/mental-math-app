@@ -39,7 +39,7 @@ private struct PracticeGroupSection: View {
         VStack(alignment: .leading, spacing: 10) {
             Label(group.title, systemImage: group.iconName)
                 .font(.headline)
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
 
             ForEach(group.lessons) { lesson in
                 NavigationLink(destination: PracticeView(lesson: lesson)) {
@@ -75,7 +75,7 @@ private struct PracticeLessonRow: View {
             Spacer()
             Image(systemName: "play.circle.fill")
                 .font(.title3)
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
         }
         .padding(.vertical, 6)
         .contentShape(Rectangle())

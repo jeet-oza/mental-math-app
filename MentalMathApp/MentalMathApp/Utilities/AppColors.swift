@@ -8,13 +8,12 @@
 import SwiftUI
 
 extension Color {
-    #if canImport(UIKit)
-    static let groupedBackground = Color(UIColor.systemGroupedBackground)
-    static let appBackground = Color(UIColor.systemBackground)
-    #elseif canImport(AppKit)
-    static let groupedBackground = Color(NSColor.windowBackgroundColor)
-    static let appBackground = Color(NSColor.controlBackgroundColor)
-    #endif
+    /// Deep navy screen background (Wordament-style — never white).
+    static let groupedBackground = Color(red: 0.039, green: 0.094, blue: 0.184)  // #0A182F
+    /// Slightly lighter navy for cards and panels.
+    static let appBackground = Color(red: 0.086, green: 0.161, blue: 0.298)       // #162A4C
+    /// Maroon panel accent used for headers/bands, like Wordament.
+    static let brandMaroon = Color(red: 0.318, green: 0.067, blue: 0.110)         // #51111C
 
     // MARK: - Brand Palette (Sophisticated Earthy)
 
@@ -47,5 +46,24 @@ extension ShapeStyle where Self == LinearGradient {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+    }
+
+    /// Deep navy screen gradient used as the app-wide background.
+    static var navyBackground: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(red: 0.055, green: 0.122, blue: 0.235),  // #0E1F3C
+                Color(red: 0.024, green: 0.063, blue: 0.137)   // #061023
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+}
+
+/// Full-bleed navy gradient background for any screen.
+struct BrandBackground: View {
+    var body: some View {
+        LinearGradient.navyBackground.ignoresSafeArea()
     }
 }

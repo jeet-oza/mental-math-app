@@ -54,7 +54,7 @@ private struct GridWaitingView: View {
             Spacer()
             Image(systemName: "square.grid.3x3.fill")
                 .font(.system(size: 60))
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
             Text("Number Grid")
                 .font(.largeTitle.bold())
             Text("Trace tiles that add up to a multiple of 10.\nLonger paths score more.")
@@ -65,7 +65,7 @@ private struct GridWaitingView: View {
                 Text("Next round starts in").font(.subheadline).foregroundStyle(.secondary)
                 Text("\(secondsUntilStart)s")
                     .font(.system(size: 52, weight: .heavy, design: .rounded).monospacedDigit())
-                    .foregroundStyle(Color.brandPrimary)
+                    .foregroundStyle(Color.brandAccent)
                     .contentTransition(.numericText())
                 Text("Round #\(roundNumber + 1)").font(.caption).foregroundStyle(.secondary)
             }
@@ -103,7 +103,7 @@ private struct GridPlayingView: View {
         HStack {
             HStack(spacing: 4) {
                 Image(systemName: "clock.fill")
-                    .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : Color.brandPrimary)
+                    .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : Color.brandAccent)
                 Text("\(viewModel.remainingSeconds)s")
                     .font(.title2.bold().monospacedDigit())
                     .foregroundStyle(viewModel.remainingSeconds <= 10 ? .red : .primary)
@@ -111,7 +111,7 @@ private struct GridPlayingView: View {
             Spacer()
             Text("\(viewModel.score) pts")
                 .font(.title2.bold().monospacedDigit())
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
         }
         .padding(.horizontal, 4)
     }
@@ -195,18 +195,18 @@ private struct GridTileView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? AnyShapeStyle(.brandGradient) : AnyShapeStyle(Color.appBackground))
-                .shadow(color: .black.opacity(0.06), radius: 3, y: 2)
+                .fill(isSelected ? AnyShapeStyle(.accentGradient) : AnyShapeStyle(Color.brandBeige))
+                .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
 
             Text("\(value)")
                 .font(.title.bold().monospacedDigit())
-                .foregroundStyle(isSelected ? .white : .primary)
+                .foregroundStyle(isSelected ? .white : Color.groupedBackground)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if let index = selectionIndex {
                 Text("\(index + 1)")
                     .font(.caption2.bold())
-                    .foregroundStyle(Color.brandPrimary)
+                    .foregroundStyle(Color.brandRust)
                     .padding(4)
                     .background(Circle().fill(.white))
                     .padding(4)
@@ -227,7 +227,7 @@ private struct GridResultsView: View {
         VStack(spacing: 12) {
             Text("Next game in 0:\(String(format: "%02d", viewModel.nextRoundStartsIn))")
                 .font(.headline.monospacedDigit())
-                .foregroundStyle(Color.brandPrimary)
+                .foregroundStyle(Color.brandAccent)
 
             Picker("View", selection: $tab) {
                 ForEach(ResultsTab.allCases) { Text($0.rawValue).tag($0) }
@@ -257,7 +257,7 @@ private struct GridResultsView: View {
             VStack(spacing: 4) {
                 Text("\(viewModel.score)")
                     .font(.system(size: 52, weight: .heavy, design: .rounded))
-                    .foregroundStyle(Color.brandPrimary)
+                    .foregroundStyle(Color.brandAccent)
                 Text("points this round").font(.subheadline).foregroundStyle(.secondary)
             }
 
@@ -325,7 +325,7 @@ private struct GridResultsView: View {
                     Spacer()
                     Text("\(solution.points)")
                         .font(.subheadline.bold().monospacedDigit())
-                        .foregroundStyle(Color.brandPrimary)
+                        .foregroundStyle(Color.brandAccent)
                 }
                 .padding(.vertical, 2)
             }

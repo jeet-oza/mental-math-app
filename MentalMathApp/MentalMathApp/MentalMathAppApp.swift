@@ -26,6 +26,8 @@ struct MentalMathAppApp: App {
                 }
             }
             .environmentObject(auth)
+            .tint(Color.brandAccent)
+            .preferredColorScheme(.dark)
         }
     }
 }
