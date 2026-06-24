@@ -8,6 +8,14 @@
 
 import SwiftUI
 
+/// Reports the laid-out grid width so drag locations map to tiles.
+private struct GridWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
 struct GridArenaView: View {
     @EnvironmentObject var viewModel: GridArenaViewModel
     @EnvironmentObject var stats: GridStatsStore
@@ -109,36 +117,42 @@ private struct GridPlayingView: View {
     }
 
     private let spacing: CGFloat = 8
+    @State private var gridWidth: CGFloat = 0
 
     private var grid: some View {
-        GeometryReader { geo in
-            let tile = (geo.size.width - spacing * CGFloat(GridBoard.size - 1)) / CGFloat(GridBoard.size)
-            ZStack(alignment: .topLeading) {
-                ForEach(0..<(GridBoard.size * GridBoard.size), id: \.self) { idx in
-                    let pos = GridPosition(row: idx / GridBoard.size, col: idx % GridBoard.size)
-                    GridTileView(
-                        value: viewModel.board.value(at: pos),
-                        selectionIndex: viewModel.currentPath.firstIndex(of: pos)
-                    )
-                    .frame(width: tile, height: tile)
-                    .offset(x: CGFloat(pos.col) * (tile + spacing),
-                            y: CGFloat(pos.row) * (tile + spacing))
+        VStack(spacing: spacing) {
+            ForEach(0..<GridBoard.size, id: \.self) { row in
+                HStack(spacing: spacing) {
+                    ForEach(0..<GridBoard.size, id: \.self) { col in
+                        let pos = GridPosition(row: row, col: col)
+                        GridTileView(
+                            value: viewModel.board.value(at: pos),
+                            selectionIndex: viewModel.currentPath.firstIndex(of: pos)
+                        )
+                    }
                 }
             }
-            .frame(width: geo.size.width, height: geo.size.width)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        let col = Int(value.location.x / (tile + spacing))
-                        let row = Int(value.location.y / (tile + spacing))
-                        let pos = GridPosition(row: row, col: col)
-                        if GridBoard.isInBounds(pos) { viewModel.dragEntered(pos) }
-                    }
-                    .onEnded { _ in viewModel.endDrag() }
-            )
         }
-        .aspectRatio(1, contentMode: .fit)
+        .background(
+            GeometryReader { proxy in
+                Color.clear.preference(key: GridWidthKey.self, value: proxy.size.width)
+            }
+        )
+        .onPreferenceChange(GridWidthKey.self) { gridWidth = $0 }
+        .coordinateSpace(name: "grid")
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0, coordinateSpace: .named("grid"))
+                .onChanged { value in
+                    guard gridWidth > 0 else { return }
+                    let tile = (gridWidth - spacing * CGFloat(GridBoard.size - 1)) / CGFloat(GridBoard.size)
+                    let col = Int(value.location.x / (tile + spacing))
+                    let row = Int(value.location.y / (tile + spacing))
+                    let pos = GridPosition(row: row, col: col)
+                    if GridBoard.isInBounds(pos) { viewModel.dragEntered(pos) }
+                }
+                .onEnded { _ in viewModel.endDrag() }
+        )
     }
 
     private var selectionBar: some View {
@@ -207,58 +221,67 @@ private struct GridTileView: View {
 private struct GridResultsView: View {
     @EnvironmentObject var viewModel: GridArenaViewModel
     @EnvironmentObject var stats: GridStatsStore
+    @State private var tab: ResultsTab = .results
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("Round Complete!").font(.largeTitle.bold())
+        VStack(spacing: 12) {
+            Text("Next game in 0:\(String(format: "%02d", viewModel.nextRoundStartsIn))")
+                .font(.headline.monospacedDigit())
+                .foregroundStyle(Color.brandPrimary)
 
+            Picker("View", selection: $tab) {
+                ForEach(ResultsTab.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+
+            ScrollView {
+                VStack(spacing: 20) {
+                    switch tab {
+                    case .results:
+                        resultsContent
+                    case .leaderboards:
+                        LeaderboardTableView(
+                            entries: viewModel.leaderboard,
+                            playerId: viewModel.currentPlayerId
+                        )
+                    }
+                }
+                .padding()
+            }
+        }
+    }
+
+    private var resultsContent: some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 4) {
                 Text("\(viewModel.score)")
                     .font(.system(size: 52, weight: .heavy, design: .rounded))
                     .foregroundStyle(Color.brandPrimary)
                 Text("points this round").font(.subheadline).foregroundStyle(.secondary)
-
-                statsCard(title: "This Round", rows: [
-                    ("Paths found", "\(viewModel.foundPaths.count)"),
-                    ("Longest path", "\(viewModel.foundPaths.map(\.positions.count).max() ?? 0)"),
-                    ("Multiples of 100", "\(viewModel.foundPaths.filter(\.isHundred).count)")
-                ])
-
-                statsCard(title: "Lifetime", rows: [
-                    ("Games played", "\(stats.stats.gamesPlayed)"),
-                    ("Total score", "\(stats.stats.totalScore)"),
-                    ("Best game", "\(stats.stats.bestGameScore)"),
-                    ("Avg / game", "\(stats.stats.averageScore)"),
-                    ("Paths found", "\(stats.stats.totalPathsFound)"),
-                    ("Longest ever", "\(stats.stats.longestPath)")
-                ])
-
-                if !viewModel.leaderboard.isEmpty {
-                    leaderboardCard
-                }
-
-                if !viewModel.solutionsHundreds.isEmpty {
-                    solutionsCard(
-                        title: "Multiples of 100",
-                        solutions: viewModel.solutionsHundreds
-                    )
-                }
-                if !viewModel.solutionsTens.isEmpty {
-                    solutionsCard(
-                        title: "Multiples of 10",
-                        solutions: viewModel.solutionsTens
-                    )
-                }
-
-                VStack(spacing: 4) {
-                    Text("Next round starts in").font(.subheadline).foregroundStyle(.secondary)
-                    Text("\(viewModel.nextRoundStartsIn)s")
-                        .font(.title.bold().monospacedDigit())
-                        .foregroundStyle(Color.brandPrimary)
-                        .contentTransition(.numericText())
-                }
             }
-            .padding()
+
+            statsCard(title: "This Round", rows: [
+                ("Paths found", "\(viewModel.foundPaths.count)"),
+                ("Longest path", "\(viewModel.foundPaths.map(\.positions.count).max() ?? 0)"),
+                ("Multiples of 100", "\(viewModel.foundPaths.filter(\.isHundred).count)")
+            ])
+
+            statsCard(title: "Lifetime", rows: [
+                ("Games played", "\(stats.stats.gamesPlayed)"),
+                ("Total score", "\(stats.stats.totalScore)"),
+                ("Best game", "\(stats.stats.bestGameScore)"),
+                ("Avg / game", "\(stats.stats.averageScore)"),
+                ("Paths found", "\(stats.stats.totalPathsFound)"),
+                ("Longest ever", "\(stats.stats.longestPath)")
+            ])
+
+            if !viewModel.solutionsHundreds.isEmpty {
+                solutionsCard(title: "Multiples of 100", solutions: viewModel.solutionsHundreds)
+            }
+            if !viewModel.solutionsTens.isEmpty {
+                solutionsCard(title: "Multiples of 10", solutions: viewModel.solutionsTens)
+            }
         }
     }
 
@@ -317,26 +340,4 @@ private struct GridResultsView: View {
             .shadow(color: .black.opacity(0.05), radius: 6, y: 3))
     }
 
-    private var leaderboardCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Leaderboard").font(.headline)
-            ForEach(viewModel.leaderboard) { entry in
-                let isYou = entry.id == viewModel.currentPlayerId
-                HStack {
-                    Text("#\(entry.rank)").font(.headline.monospacedDigit()).frame(width: 40)
-                    Text(entry.username).font(isYou ? .body.bold() : .body)
-                    Spacer()
-                    Text("\(entry.score) pts").font(.headline.monospacedDigit())
-                        .foregroundStyle(Color.brandPrimary)
-                }
-                .padding(.vertical, 6).padding(.horizontal, 8)
-                .background(RoundedRectangle(cornerRadius: 8)
-                    .fill(isYou ? Color.brandPrimary.opacity(0.12) : .clear))
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color.appBackground)
-            .shadow(color: .black.opacity(0.05), radius: 6, y: 3))
-    }
 }

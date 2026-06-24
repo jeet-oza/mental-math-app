@@ -263,94 +263,66 @@ struct ArenaPlayingView: View {
 
 // MARK: - Leaderboard Phase
 
-/// Post-match leaderboard and results.
+/// Post-match results: Wordament-style Results | Leaderboards tabs.
 struct ArenaLeaderboardView: View {
     @EnvironmentObject var viewModel: ArenaViewModel
+    @State private var tab: ResultsTab = .results
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-            // Result title
-            Text("Round Complete!")
-                .font(.largeTitle.bold())
+        VStack(spacing: 12) {
+            // Countdown to the next global round (Wordament header).
+            Text("Next game in 0:\(String(format: "%02d", viewModel.nextRoundStartsIn))")
+                .font(.headline.monospacedDigit())
+                .foregroundStyle(Color.brandPrimary)
 
-            // Score
-            VStack(spacing: 8) {
+            Picker("View", selection: $tab) {
+                ForEach(ResultsTab.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+
+            ScrollView {
+                VStack(spacing: 20) {
+                    switch tab {
+                    case .results:
+                        resultsContent
+                    case .leaderboards:
+                        LeaderboardTableView(
+                            entries: viewModel.leaderboard,
+                            playerId: viewModel.currentPlayerId
+                        )
+                    }
+                }
+                .padding()
+            }
+        }
+    }
+
+    private var resultsContent: some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 4) {
                 Text("\(viewModel.totalScore)")
-                    .font(.system(size: 56, weight: .heavy, design: .rounded))
+                    .font(.system(size: 52, weight: .heavy, design: .rounded))
                     .foregroundStyle(Color.brandPrimary)
-                Text("points")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
+                Text("points").font(.subheadline).foregroundStyle(.secondary)
             }
 
-            // Stats
             HStack(spacing: 32) {
                 statColumn(label: "Correct", value: "\(viewModel.correctCount)")
                 statColumn(label: "Answered", value: "\(viewModel.questionsAnswered)")
                 statColumn(label: "Accuracy", value: viewModel.accuracyText)
             }
             .padding()
+            .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color.appBackground)
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
             )
 
-            // Leaderboard
-            if !viewModel.leaderboard.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Leaderboard")
-                        .font(.headline)
-
-                    ForEach(viewModel.leaderboard) { entry in
-                        let isYou = entry.id == viewModel.currentPlayerId
-                        HStack {
-                            Text("#\(entry.rank)")
-                                .font(.headline.monospacedDigit())
-                                .frame(width: 40)
-                            Text(entry.username)
-                                .font(isYou ? .body.bold() : .body)
-                            Spacer()
-                            Text("\(entry.score) pts")
-                                .font(.headline.monospacedDigit())
-                                .foregroundStyle(Color.brandPrimary)
-                        }
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(isYou ? Color.brandPrimary.opacity(0.12) : .clear)
-                        )
-                    }
-                }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.appBackground)
-                        .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
-                )
-            }
-
-            Spacer()
-
-            // Attempted equations review
             if !viewModel.attempts.isEmpty {
                 attemptsCard
             }
-
-            // Auto-advance: the next global round starts on the shared clock.
-            VStack(spacing: 4) {
-                Text("Next round starts in")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text("\(viewModel.nextRoundStartsIn)s")
-                    .font(.title.bold().monospacedDigit())
-                    .foregroundStyle(Color.brandPrimary)
-                    .contentTransition(.numericText())
-            }
-            }
-            .padding()
         }
     }
 
