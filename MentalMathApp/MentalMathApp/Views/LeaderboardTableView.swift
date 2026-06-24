@@ -60,6 +60,13 @@ struct LeaderboardTableView: View {
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(isYou ? Color.brandAccent.opacity(0.15) : Color.clear)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(
+            "Rank \(entry.rank), \(entry.username)"
+            + (isBot ? ", computer player" : "")
+            + (isYou ? ", you" : "")
+            + ", \(entry.score) points"
+        ))
     }
 
     var body: some View {

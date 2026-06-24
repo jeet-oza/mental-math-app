@@ -220,6 +220,9 @@ private struct GridTileView: View {
             }
         }
         .aspectRatio(1, contentMode: .fit)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(value)"))
+        .accessibilityValue(Text(selectionIndex.map { "Selected, position \($0 + 1)" } ?? "Not selected"))
     }
 }
 

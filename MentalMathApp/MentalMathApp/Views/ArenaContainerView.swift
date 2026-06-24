@@ -129,6 +129,7 @@ private struct ArenaLandingView: View {
                     .foregroundStyle(.white)
                     .background(RoundedRectangle(cornerRadius: 16).fill(.accentGradient))
             }
+            .accessibilityHint(Text("Joins the next live round"))
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("Your Stats").font(.headline)

@@ -120,6 +120,13 @@ struct LessonGroupCard: View {
         }
         .buttonStyle(.plain)
         .disabled(!isUnlocked)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(
+            "\(group.title). "
+            + (isUnlocked
+               ? "\(Int(completionPercentage * 100)) percent complete"
+               : "Locked. Complete the previous group to unlock.")
+        ))
     }
 }
 
