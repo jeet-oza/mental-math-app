@@ -37,12 +37,21 @@ struct LeaderboardTableView: View {
     @ViewBuilder
     private func row(for entry: LeaderboardEntry) -> some View {
         let isYou = entry.id == playerId
+        let isBot = entry.id.hasPrefix("bot_")
         HStack {
             Text("\(entry.rank)")
                 .font(.subheadline.monospacedDigit())
                 .frame(width: 52, alignment: .leading)
             Text(entry.username)
                 .font(isYou ? .subheadline.bold() : .subheadline)
+            if isBot {
+                Text("CPU")
+                    .font(.caption2.bold())
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(Capsule().stroke(Color.secondary.opacity(0.5), lineWidth: 1))
+            }
             Spacer()
             Text("\(entry.score)")
                 .font(.subheadline.bold().monospacedDigit())
