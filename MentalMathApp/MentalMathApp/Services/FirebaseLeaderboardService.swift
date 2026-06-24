@@ -19,9 +19,6 @@ struct FirebaseLeaderboardService: LeaderboardService {
     /// "gridRounds" for the grid mode) so the two arenas keep separate boards.
     let collection: String
 
-    /// Minimum number of rows to show; real entries are padded with bots up to this.
-    private let minimumRows = 8
-
     init(collection: String = "rounds") {
         self.collection = collection
     }
@@ -67,14 +64,11 @@ struct FirebaseLeaderboardService: LeaderboardService {
             entries.append(player)
         }
 
-        // Pad sparse rounds with deterministic opponents (same on every device).
-        if entries.count < minimumRows {
-            for bot in ArenaSchedule.opponents(forRound: index) {
-                guard entries.count < minimumRows else { break }
-                if !entries.contains(where: { $0.id == bot.id }) {
-                    entries.append(bot)
-                }
-            }
+        // Always include the deterministic computer opponents so the board is
+        // populated alongside any real players (same bots on every device).
+        for bot in ArenaSchedule.opponents(forRound: index) where
+            !entries.contains(where: { $0.id == bot.id }) {
+            entries.append(bot)
         }
 
         return rankedLeaderboard(entries)
