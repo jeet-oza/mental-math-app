@@ -15,12 +15,22 @@ import Foundation
 /// Computes the globally-synchronized Arena round state from the current time.
 nonisolated enum ArenaSchedule {
 
+    /// Fast-round mode for testing: launch the app with `-arenaFastMode` to use
+    /// short rounds so results/leaderboard are reachable in seconds. Off by
+    /// default (and in tests, which don't pass the argument).
+    static let fastMode = ProcessInfo.processInfo.arguments.contains("-arenaFastMode")
+
     /// Seconds of active gameplay per round.
-    static let playDuration = 90
+    static var playDuration: Int { fastMode ? 25 : 90 }
     /// Seconds of results/intermission between rounds.
-    static let intermission = 30
+    static var intermission: Int { fastMode ? 20 : 30 }
     /// Full cycle length: a new round starts every `cycle` seconds.
-    static var cycle: Int { playDuration + intermission } // 120
+    static var cycle: Int { playDuration + intermission }
+
+    /// Seconds to wait after a round ends before reading the *final* leaderboard,
+    /// so every player's score has time to reach the server. A local ranking is
+    /// shown immediately; the networked board replaces it after this delay.
+    static var leaderboardDelaySeconds: Int { fastMode ? 6 : 15 }
 
     /// Fixed reference instant all devices agree on (2024-01-01 00:00:00 UTC).
     static let epoch = Date(timeIntervalSince1970: 1_704_067_200)
@@ -65,15 +75,25 @@ nonisolated enum ArenaSchedule {
     /// score is merged and ranked in by the view model.
     static func opponents(forRound index: Int) -> [LeaderboardEntry] {
         var rng = SeededRandomNumberGenerator(seed: "leaderboard_\(index)")
-        let names = ["Ava", "Liam", "Noah", "Mia", "Kai", "Zoe", "Leo", "Ivy"]
+        let stems = [
+            "Ava", "Liam", "Noah", "Mia", "Kai", "Zoe", "Leo", "Ivy",
+            "Max", "Nova", "Finn", "Luna", "Eli", "Ruby", "Jax", "Sky",
+            "Cody", "Pippa", "Theo", "Wren", "Otis", "Hazel", "Reed", "Lola"
+        ]
+        let suffixes = ["", "", "07", "22", "_x", "99", "42", "z", "777", "_pro"]
         let difficulty = difficulty(forRound: index)
-        let ceiling = Int(2200 * ScoreCalculator.difficultyBonus(for: difficulty))
+        let ceiling = Int(2400 * ScoreCalculator.difficultyBonus(for: difficulty))
 
-        return names.map { name in
-            let score = Int.random(in: 200...ceiling, using: &rng)
-            let accuracy = Double.random(in: 0.55...0.98, using: &rng)
+        // ~40 computer accounts so the board has a real distribution and the
+        // "near your rank" window is meaningful.
+        let count = 40
+        return (0..<count).map { i in
+            let name = stems[Int.random(in: 0..<stems.count, using: &rng)]
+                + suffixes[Int.random(in: 0..<suffixes.count, using: &rng)]
+            let score = Int.random(in: 150...ceiling, using: &rng)
+            let accuracy = Double.random(in: 0.45...0.98, using: &rng)
             return LeaderboardEntry(
-                id: "bot_\(name)_\(index)",
+                id: "bot_\(index)_\(i)",
                 username: name,
                 score: score,
                 accuracy: accuracy,

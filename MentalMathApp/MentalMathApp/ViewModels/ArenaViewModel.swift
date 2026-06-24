@@ -395,14 +395,19 @@ final class ArenaViewModel: ObservableObject {
             rank: 0
         )
 
+        // Show a provisional ranking immediately (local opponents + you), so the
+        // board is never blank while scores are still being collected.
+        leaderboard = rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+
+        // Submit now, wait for the collection window so every player's score has
+        // landed, then read the final networked board and replace.
         let service = leaderboardService
         Task { [weak self] in
             try? await service.submit(player, forRound: index)
-            // Always show a ranking: fall back to local opponents if the
-            // networked read fails (e.g. before Firestore rules are set).
-            let entries = (try? await service.leaderboard(forRound: index, including: player))
-                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
-            self?.leaderboard = entries
+            try? await Task.sleep(for: .seconds(Double(ArenaSchedule.leaderboardDelaySeconds)))
+            if let entries = try? await service.leaderboard(forRound: index, including: player) {
+                self?.leaderboard = entries
+            }
         }
     }
 

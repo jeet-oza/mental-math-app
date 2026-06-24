@@ -19,6 +19,40 @@ struct LeaderboardTableView: View {
     let entries: [LeaderboardEntry]
     let playerId: String
 
+    /// The top 10 entries.
+    private var topRows: [LeaderboardEntry] {
+        Array(entries.sorted { $0.rank < $1.rank }.prefix(10))
+    }
+
+    /// Entries within ±5 ranks of the player, excluding the top 10 already shown.
+    private var nearRows: [LeaderboardEntry] {
+        guard let myRank = entries.first(where: { $0.id == playerId })?.rank else { return [] }
+        let lower = max(11, myRank - 5)
+        let upper = myRank + 5
+        return entries
+            .filter { $0.rank >= lower && $0.rank <= upper }
+            .sorted { $0.rank < $1.rank }
+    }
+
+    @ViewBuilder
+    private func row(for entry: LeaderboardEntry) -> some View {
+        let isYou = entry.id == playerId
+        HStack {
+            Text("\(entry.rank)")
+                .font(.subheadline.monospacedDigit())
+                .frame(width: 52, alignment: .leading)
+            Text(entry.username)
+                .font(isYou ? .subheadline.bold() : .subheadline)
+            Spacer()
+            Text("\(entry.score)")
+                .font(.subheadline.bold().monospacedDigit())
+                .foregroundStyle(isYou ? Color.brandAccent : .primary)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(isYou ? Color.brandAccent.opacity(0.15) : Color.clear)
+    }
+
     var body: some View {
         let me = entries.first { $0.id == playerId }
 
@@ -64,23 +98,18 @@ struct LeaderboardTableView: View {
 
             Divider()
 
-            // Ranked rows
-            ForEach(entries) { entry in
-                let isYou = entry.id == playerId
-                HStack {
-                    Text("\(entry.rank)")
-                        .font(.subheadline.monospacedDigit())
-                        .frame(width: 52, alignment: .leading)
-                    Text(entry.username)
-                        .font(isYou ? .subheadline.bold() : .subheadline)
-                    Spacer()
-                    Text("\(entry.score)")
-                        .font(.subheadline.bold().monospacedDigit())
-                        .foregroundStyle(isYou ? Color.brandAccent : .primary)
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-                .background(isYou ? Color.brandAccent.opacity(0.15) : Color.clear)
+            // Top 10
+            ForEach(topRows) { row(for: $0) }
+
+            // Window of ±5 around the player's rank (when below the top 10).
+            if !nearRows.isEmpty {
+                Text("Results near your rank")
+                    .font(.caption.bold())
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background(Color.brandMaroon)
+                ForEach(nearRows) { row(for: $0) }
             }
         }
         .background(
