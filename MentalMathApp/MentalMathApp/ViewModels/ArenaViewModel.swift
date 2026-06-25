@@ -58,7 +58,7 @@ final class ArenaViewModel: ObservableObject {
 
     // MARK: - Properties
 
-    private var engine: MathEngine?
+    private var engine: ArenaProblemGenerator?
     private var currentRound: ArenaRound?
     private var timer: AnyCancellable?
     private var syncTimer: AnyCancellable?
@@ -209,10 +209,7 @@ final class ArenaViewModel: ObservableObject {
     /// changing phase or starting a timer. Shared by manual and scheduled play.
     private func configureRound(_ round: ArenaRound) {
         currentRound = round
-        engine = MathEngine(
-            seed: round.seed,
-            difficulty: round.difficulty
-        )
+        engine = ArenaProblemGenerator(seed: round.seed)
 
         answers.removeAll()
         attempts.removeAll()
@@ -257,12 +254,8 @@ final class ArenaViewModel: ObservableObject {
 
         let elapsed = Date().timeIntervalSince(problemStartTime)
         let isCorrect = userAnswer == problem.correctAnswer
-        let difficulty = currentRound?.difficulty ?? .easy
-        let points = ScoreCalculator.calculatePoints(
-            isCorrect: isCorrect,
-            timeElapsed: elapsed,
-            difficulty: difficulty
-        )
+        // Type-based Arena scoring: ×=10, 3-digit ±=5, 2-digit ±=2.
+        let points = isCorrect ? ScoreCalculator.arenaPoints(for: problem) : 0
 
         recordAnswer(
             isCorrect: isCorrect,
@@ -370,7 +363,7 @@ final class ArenaViewModel: ObservableObject {
 
     /// Advances to the next problem in the deterministic sequence.
     private func advanceToNextProblem() {
-        currentProblem = engine?.nextProblem()
+        currentProblem = engine?.next()
         userInput = ""
         problemStartTime = Date()
         feedbackMessage = nil

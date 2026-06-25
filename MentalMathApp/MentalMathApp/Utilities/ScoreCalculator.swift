@@ -66,6 +66,30 @@ nonisolated enum ScoreCalculator {
     static func totalScore(from answers: [AnswerResult]) -> Int {
         answers.reduce(0) { $0 + $1.pointsEarned }
     }
+
+    // MARK: - Arena Scoring
+
+    /// Points awarded for a correct multiplication answer in the Arena.
+    static let arenaMultiplicationPoints = 10
+    /// Points for a correct 3-digit addition/subtraction answer.
+    static let arenaThreeDigitPoints = 5
+    /// Points for a correct 2-digit addition/subtraction answer.
+    static let arenaTwoDigitPoints = 2
+
+    /// Points a problem is worth in the Equation Arena, by type:
+    /// multiplication = 10; addition/subtraction = 5 if any operand is 3-digit,
+    /// otherwise 2.
+    static func arenaPoints(for problem: MathProblem) -> Int {
+        switch problem.operation {
+        case .multiplication:
+            return arenaMultiplicationPoints
+        case .addition, .subtraction:
+            let largest = max(problem.operandA, problem.operandB)
+            return largest >= 100 ? arenaThreeDigitPoints : arenaTwoDigitPoints
+        case .division, .percentage:
+            return 0 // not used in the Arena
+        }
+    }
 }
 
 /// Records the result of answering a single problem.

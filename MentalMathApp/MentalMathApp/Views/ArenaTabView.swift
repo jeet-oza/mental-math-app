@@ -89,9 +89,9 @@ struct ArenaWaitingView: View {
             // How it works
             VStack(alignment: .leading, spacing: 12) {
                 infoRow(icon: "clock.fill", text: "90 seconds per round")
-                infoRow(icon: "bolt.fill", text: "Faster answers = bonus points")
+                infoRow(icon: "multiply.circle.fill", text: "Multiplication = 10 pts")
+                infoRow(icon: "plusminus.circle.fill", text: "3-digit ± = 5 pts · 2-digit ± = 2 pts")
                 infoRow(icon: "forward.fill", text: "Skip questions with no penalty")
-                infoRow(icon: "chart.bar.fill", text: "Compete on the leaderboard")
             }
             .padding()
             .background(
