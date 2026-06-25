@@ -91,7 +91,7 @@ struct ArenaWaitingView: View {
                 infoRow(icon: "clock.fill", text: "90 seconds per round")
                 infoRow(icon: "multiply.circle.fill", text: "Multiplication = 10 pts")
                 infoRow(icon: "plusminus.circle.fill", text: "3-digit ± = 5 pts · 2-digit ± = 2 pts")
-                infoRow(icon: "forward.fill", text: "Skip questions with no penalty")
+                infoRow(icon: "bolt.fill", text: "Answer fast for up to +10 bonus")
             }
             .padding()
             .background(

@@ -70,4 +70,17 @@ final class ArenaProblemGeneratorTests: XCTestCase {
         let sub2 = MathProblem(operandA: 90, operandB: 30, operation: .subtraction)
         XCTAssertEqual(ScoreCalculator.arenaPoints(for: sub2), 2)
     }
+
+    func testArenaTimeBonus() {
+        XCTAssertEqual(ScoreCalculator.arenaTimeBonus(secondsTaken: 0), 10)
+        XCTAssertEqual(ScoreCalculator.arenaTimeBonus(secondsTaken: 3.9), 6)   // floor(6.1)
+        XCTAssertEqual(ScoreCalculator.arenaTimeBonus(secondsTaken: 10), 0)
+        XCTAssertEqual(ScoreCalculator.arenaTimeBonus(secondsTaken: 25), 0)
+    }
+
+    func testArenaScoreCombinesTypeAndBonus() {
+        let mult = MathProblem(operandA: 47, operandB: 6, operation: .multiplication)
+        // 10 (type) + max(10 - 2, 0) = 18
+        XCTAssertEqual(ScoreCalculator.arenaScore(for: mult, secondsTaken: 2), 18)
+    }
 }

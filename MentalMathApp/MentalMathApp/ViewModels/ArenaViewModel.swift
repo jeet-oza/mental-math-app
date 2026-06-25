@@ -254,8 +254,8 @@ final class ArenaViewModel: ObservableObject {
 
         let elapsed = Date().timeIntervalSince(problemStartTime)
         let isCorrect = userAnswer == problem.correctAnswer
-        // Type-based Arena scoring: ×=10, 3-digit ±=5, 2-digit ±=2.
-        let points = isCorrect ? ScoreCalculator.arenaPoints(for: problem) : 0
+        // Type points (×=10, 3-digit ±=5, 2-digit ±=2) plus a speed bonus.
+        let points = isCorrect ? ScoreCalculator.arenaScore(for: problem, secondsTaken: elapsed) : 0
 
         recordAnswer(
             isCorrect: isCorrect,

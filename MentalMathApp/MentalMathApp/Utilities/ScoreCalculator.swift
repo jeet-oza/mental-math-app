@@ -90,6 +90,16 @@ nonisolated enum ScoreCalculator {
             return 0 // not used in the Arena
         }
     }
+
+    /// Speed bonus for a fast correct answer: `max(10 - secondsTaken, 0)`.
+    static func arenaTimeBonus(secondsTaken: Double) -> Int {
+        Int(max(0, 10 - secondsTaken))
+    }
+
+    /// Total Arena points for a correct answer: type value plus the time bonus.
+    static func arenaScore(for problem: MathProblem, secondsTaken: Double) -> Int {
+        arenaPoints(for: problem) + arenaTimeBonus(secondsTaken: secondsTaken)
+    }
 }
 
 /// Records the result of answering a single problem.
