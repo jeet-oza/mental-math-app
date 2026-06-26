@@ -95,7 +95,14 @@ final class AuthService: ObservableObject {
 
     private func signIn(with credential: AuthCredential, appleName: PersonNameComponents?) async {
         do {
-            let result = try await Auth.auth().signIn(with: credential)
+            let result: AuthDataResult
+            if let current = Auth.auth().currentUser, current.isAnonymous {
+                // Upgrade the guest in place so progress/stats keep the same uid.
+                result = try await linkOrSignIn(current: current, credential: credential)
+            } else {
+                result = try await Auth.auth().signIn(with: credential)
+            }
+
             // Apple only returns the name on first sign-in; persist it if present.
             if let appleName, let formatted = Self.formattedName(appleName) {
                 let change = result.user.createProfileChangeRequest()
@@ -105,6 +112,22 @@ final class AuthService: ObservableObject {
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Links the Apple credential to the anonymous account (keeping its uid and
+    /// data). If that Apple account already exists, signs in to it instead —
+    /// the guest's local data is left behind in that case.
+    private func linkOrSignIn(
+        current: FirebaseAuth.User,
+        credential: AuthCredential
+    ) async throws -> AuthDataResult {
+        do {
+            return try await current.link(with: credential)
+        } catch let error as NSError
+            where error.code == AuthErrorCode.credentialAlreadyInUse.rawValue {
+            let updated = error.userInfo[AuthErrorUserInfoUpdatedCredentialKey] as? AuthCredential
+            return try await Auth.auth().signIn(with: updated ?? credential)
         }
     }
 
