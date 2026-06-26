@@ -277,6 +277,19 @@ final class ArenaViewModel: ObservableObject {
         advanceToNextProblem()
     }
 
+    /// Appends a digit from the on-screen keypad (answers are non-negative,
+    /// so digits only). Capped to avoid runaway input.
+    func inputDigit(_ digit: Int) {
+        guard phase == .playing, (0...9).contains(digit) else { return }
+        if userInput.count < 7 { userInput.append("\(digit)") }
+    }
+
+    /// Removes the last entered digit.
+    func deleteInput() {
+        guard !userInput.isEmpty else { return }
+        userInput.removeLast()
+    }
+
     /// Skips the current problem and moves to the next one immediately.
     func skipProblem() {
         guard phase == .playing, let problem = currentProblem else { return }

@@ -124,31 +124,49 @@ struct ArenaPlayingView: View {
     @EnvironmentObject var viewModel: ArenaViewModel
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 14) {
             // Timer and stats
             arenaHeader
 
-            Spacer()
+            Spacer(minLength: 4)
 
             // Problem
             if let problem = viewModel.currentProblem {
                 problemDisplay(problem)
             }
 
+            // Answer being typed
+            answerDisplay
+
             // Feedback
             if let feedback = viewModel.feedbackMessage {
                 feedbackBanner(feedback)
             }
 
-            Spacer()
+            Spacer(minLength: 4)
 
-            // Input
+            // Skip + custom keypad
             inputSection
 
             // Live stats
             liveStats
         }
         .padding()
+    }
+
+    private var answerDisplay: some View {
+        Text(viewModel.userInput.isEmpty ? "?" : viewModel.userInput)
+            .font(.system(size: 40, weight: .bold, design: .rounded).monospacedDigit())
+            .foregroundStyle(viewModel.userInput.isEmpty ? .secondary : Color.brandAccent)
+            .frame(maxWidth: .infinity)
+            .frame(height: 64)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.appBackground)
+                    .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
+            )
+            .accessibilityLabel(Text("Your answer"))
+            .accessibilityValue(Text(viewModel.userInput.isEmpty ? "empty" : viewModel.userInput))
     }
 
     private var arenaHeader: some View {
@@ -205,45 +223,24 @@ struct ArenaPlayingView: View {
 
     private var inputSection: some View {
         VStack(spacing: 12) {
-            TextField("Answer", text: $viewModel.userInput)
-                .font(.title2)
-                #if os(iOS)
-                .keyboardType(.numberPad)
-                #endif
-                .multilineTextAlignment(.center)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.appBackground)
-                        .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
-                )
-
-            HStack(spacing: 16) {
-                Button(action: viewModel.skipProblem) {
-                    Label("Skip", systemImage: "forward.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .foregroundStyle(Color.brandAccent)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.brandPrimary, lineWidth: 2)
-                        )
-                }
-
-                Button(action: viewModel.submitAnswer) {
-                    Label("Submit", systemImage: "arrow.right.circle.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .foregroundStyle(.white)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.accentGradient)
-                        )
-                }
-                .disabled(viewModel.userInput.trimmingCharacters(in: .whitespaces).isEmpty)
+            Button(action: viewModel.skipProblem) {
+                Label("Skip", systemImage: "forward.fill")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .foregroundStyle(Color.brandAccent)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.brandAccent, lineWidth: 2)
+                    )
             }
+
+            NumberPad(
+                onDigit: { viewModel.inputDigit($0) },
+                onDelete: { viewModel.deleteInput() },
+                onSubmit: { viewModel.submitAnswer() },
+                submitDisabled: viewModel.userInput.isEmpty
+            )
         }
     }
 

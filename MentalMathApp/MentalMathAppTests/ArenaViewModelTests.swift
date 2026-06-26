@@ -71,6 +71,28 @@ final class ArenaViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.answers.isEmpty)
     }
 
+    // MARK: - Keypad Input Tests
+
+    func testInputDigitsBuildAnswer() {
+        viewModel.startLocalRound(seed: "input")
+        viewModel.inputDigit(4)
+        viewModel.inputDigit(2)
+        XCTAssertEqual(viewModel.userInput, "42")
+    }
+
+    func testDeleteInputRemovesLastDigit() {
+        viewModel.startLocalRound(seed: "input")
+        viewModel.inputDigit(4)
+        viewModel.inputDigit(2)
+        viewModel.deleteInput()
+        XCTAssertEqual(viewModel.userInput, "4")
+    }
+
+    func testInputIgnoredWhenNotPlaying() {
+        viewModel.inputDigit(5) // still waiting
+        XCTAssertEqual(viewModel.userInput, "")
+    }
+
     // MARK: - Answer Submission Tests
 
     func testCorrectAnswerIncrementsScore() {
