@@ -20,8 +20,8 @@ struct SignInView: View {
             VStack(spacing: 24) {
                 Spacer()
 
-                // Hero: a mini board motif + title
-                boardMotif
+                // Hero: the brand mark (matches the app icon) + title
+                HiveMark(size: 150)
                     .padding(.bottom, 8)
 
                 VStack(spacing: 8) {
@@ -77,22 +77,4 @@ struct SignInView: View {
         }
     }
 
-    /// A small 2x2 board of orange tiles echoing the Grid Arena.
-    private var boardMotif: some View {
-        let values = ["M", "A", "T", "H"]
-        return VStack(spacing: 8) {
-            ForEach(0..<2, id: \.self) { row in
-                HStack(spacing: 8) {
-                    ForEach(0..<2, id: \.self) { col in
-                        Text(values[row * 2 + col])
-                            .font(.system(size: 34, weight: .heavy, design: .rounded))
-                            .foregroundStyle(.white)
-                            .frame(width: 64, height: 64)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(.accentGradient))
-                            .shadow(color: .black.opacity(0.3), radius: 4, y: 2)
-                    }
-                }
-            }
-        }
-    }
 }

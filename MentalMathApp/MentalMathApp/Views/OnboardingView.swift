@@ -66,9 +66,13 @@ struct OnboardingView: View {
     private func pageView(_ item: Page) -> some View {
         VStack(spacing: 24) {
             Spacer()
-            Image(systemName: item.icon)
-                .font(.system(size: 80))
-                .foregroundStyle(Color.brandAccent)
+            if item.icon == "hexagon.fill" {
+                HiveMark(size: 130)
+            } else {
+                Image(systemName: item.icon)
+                    .font(.system(size: 80))
+                    .foregroundStyle(Color.brandAccent)
+            }
             Text(item.title)
                 .font(.system(size: 34, weight: .heavy, design: .rounded))
                 .foregroundStyle(.white)
