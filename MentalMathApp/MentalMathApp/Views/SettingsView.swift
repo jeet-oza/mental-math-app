@@ -20,8 +20,8 @@ struct SettingsView: View {
 
     @State private var showDeleteConfirm = false
 
-    /// Replace with your hosted policy before launch.
-    private let privacyPolicyURL = URL(string: "https://mathhive.app/privacy")!
+    /// Hosted from /docs via GitHub Pages (enable Pages on the repo).
+    private let privacyPolicyURL = URL(string: "https://jeet-oza.github.io/mental-math-app/privacy.html")!
 
     var body: some View {
         NavigationStack {
