@@ -114,23 +114,24 @@ nonisolated enum ArenaSchedule {
     ) -> Int {
         switch mode {
         case .equation:
-            // Solve 3–20 equations; each worth type points (2/5/10) + a time bonus.
+            // Solve 3–20 equations; each worth type points (3/6/12, ×/÷ weighted
+            // ~50%) scaled by a streak-like multiplier.
             let solved = Int.random(in: 3...20, using: &rng)
             return (0..<solved).reduce(0) { total, _ in
-                let typePoints = [2, 5, 10][Int.random(in: 0..<3, using: &rng)]
-                let timeBonus = Int.random(in: 2...9, using: &rng)
-                return total + typePoints + timeBonus
+                let base = [3, 6, 12, 12][Int.random(in: 0..<4, using: &rng)]
+                let multiplier = Double.random(in: 1.0...1.6, using: &rng)
+                return total + Int((Double(base) * multiplier).rounded())
             }
 
         case .grid:
             // Find 5–35 sequences; each scores n(n+1)/2 (mostly short paths),
-            // occasionally with the multiple-of-100 bonus.
+            // doubled occasionally for a multiple of 100.
             let solved = Int.random(in: 5...35, using: &rng)
             return (0..<solved).reduce(0) { total, _ in
                 let roll = Int.random(in: 0..<100, using: &rng)
                 let length = roll < 50 ? 2 : (roll < 80 ? 3 : (roll < 95 ? 4 : 5))
                 var points = length * (length + 1) / 2
-                if Int.random(in: 0..<100, using: &rng) < 15 { points += GridScoring.hundredBonus }
+                if Int.random(in: 0..<100, using: &rng) < 15 { points *= GridScoring.hundredMultiplier }
                 return total + points
             }
         }

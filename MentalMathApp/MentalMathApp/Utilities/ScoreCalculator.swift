@@ -70,15 +70,15 @@ nonisolated enum ScoreCalculator {
     // MARK: - Arena Scoring
 
     /// Points for a correct multiplication or division answer (the "hard" tier).
-    static let arenaHardPoints = 10
+    static let arenaHardPoints = 12
     /// Points for a correct 3-digit addition/subtraction answer.
-    static let arenaThreeDigitPoints = 5
+    static let arenaThreeDigitPoints = 6
     /// Points for a correct 2-digit addition/subtraction answer.
-    static let arenaTwoDigitPoints = 2
+    static let arenaTwoDigitPoints = 3
 
-    /// Points a problem is worth in the Equation Arena, by type:
-    /// multiplication and division = 10; addition/subtraction = 5 if any operand
-    /// is 3-digit, otherwise 2.
+    /// Base points a problem is worth in the Equation Arena, by type:
+    /// multiplication and division = 12; addition/subtraction = 6 if any operand
+    /// is 3-digit, otherwise 3. (Speed is rewarded implicitly via throughput.)
     static func arenaPoints(for problem: MathProblem) -> Int {
         switch problem.operation {
         case .multiplication, .division:
@@ -91,14 +91,16 @@ nonisolated enum ScoreCalculator {
         }
     }
 
-    /// Speed bonus for a fast correct answer: `max(10 - secondsTaken, 0)`.
-    static func arenaTimeBonus(secondsTaken: Double) -> Int {
-        Int(max(0, 10 - secondsTaken))
+    /// Streak multiplier for consecutive correct answers: 1× → 1.25× → 1.5× →
+    /// 1.75× → 2× (capped). A wrong answer or skip resets the streak to 0.
+    static func arenaStreakMultiplier(streak: Int) -> Double {
+        guard streak > 1 else { return 1.0 }
+        return min(2.0, 1.0 + 0.25 * Double(streak - 1))
     }
 
-    /// Total Arena points for a correct answer: type value plus the time bonus.
-    static func arenaScore(for problem: MathProblem, secondsTaken: Double) -> Int {
-        arenaPoints(for: problem) + arenaTimeBonus(secondsTaken: secondsTaken)
+    /// Total Arena points for a correct answer: type points × streak multiplier.
+    static func arenaScore(for problem: MathProblem, streak: Int) -> Int {
+        Int((Double(arenaPoints(for: problem)) * arenaStreakMultiplier(streak: streak)).rounded())
     }
 }
 

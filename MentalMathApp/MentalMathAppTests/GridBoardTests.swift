@@ -62,7 +62,7 @@ final class GridBoardTests: XCTestCase {
     }
 
     func testPointsFormulaAndHundredBonus() {
-        // Path of 4 tiles summing to 100 → 4*5/2 = 10, + 20 bonus = 30
+        // Path of 4 tiles summing to 100 → 4*5/2 = 10, doubled = 20
         let board = GridBoard(values: [
             25, 25, 1, 1,
             25, 25, 1, 1,
@@ -72,7 +72,7 @@ final class GridBoardTests: XCTestCase {
         let square = [pos(0, 0), pos(0, 1), pos(1, 1), pos(1, 0)]
         XCTAssertTrue(GridScoring.isValid(square, on: board))
         XCTAssertEqual(GridScoring.sum(of: square, on: board), 100)
-        XCTAssertEqual(GridScoring.points(for: square, on: board), 10 + 20)
+        XCTAssertEqual(GridScoring.points(for: square, on: board), 10 * 2)
 
         // Path of 3 tiles summing to 30 (mult of 10, not 100) → 3*4/2 = 6
         let board2 = GridBoard(values: [

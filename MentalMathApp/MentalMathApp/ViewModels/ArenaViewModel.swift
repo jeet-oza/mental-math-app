@@ -51,6 +51,13 @@ final class ArenaViewModel: ObservableObject {
     @Published var userInput: String = ""
     @Published private(set) var feedbackMessage: String?
     @Published private(set) var isCorrectFeedback: Bool?
+    /// Consecutive correct answers; drives the streak score multiplier.
+    @Published private(set) var currentStreak: Int = 0
+
+    /// Current streak score multiplier (1.0–2.0).
+    var streakMultiplier: Double {
+        ScoreCalculator.arenaStreakMultiplier(streak: currentStreak)
+    }
     /// Seconds until the next global round begins (used during intermission).
     @Published private(set) var nextRoundStartsIn: Int = 0
     /// The globally-synchronized index of the active or upcoming round.
@@ -216,6 +223,7 @@ final class ArenaViewModel: ObservableObject {
         questionsAnswered = 0
         correctCount = 0
         totalScore = 0
+        currentStreak = 0
         remainingSeconds = round.durationSeconds
         userInput = ""
         feedbackMessage = nil
@@ -254,9 +262,17 @@ final class ArenaViewModel: ObservableObject {
 
         let elapsed = Date().timeIntervalSince(problemStartTime)
         let isCorrect = userAnswer == problem.correctAnswer
-        if isCorrect { Feedback.correct() } else { Feedback.incorrect() }
-        // Type points (×=10, 3-digit ±=5, 2-digit ±=2) plus a speed bonus.
-        let points = isCorrect ? ScoreCalculator.arenaScore(for: problem, secondsTaken: elapsed) : 0
+        // Type points (×/÷ = 12, 3-digit ± = 6, 2-digit ± = 3) × streak multiplier.
+        let points: Int
+        if isCorrect {
+            currentStreak += 1
+            points = ScoreCalculator.arenaScore(for: problem, streak: currentStreak)
+            Feedback.correct()
+        } else {
+            currentStreak = 0
+            points = 0
+            Feedback.incorrect()
+        }
 
         recordAnswer(
             isCorrect: isCorrect,
@@ -298,6 +314,7 @@ final class ArenaViewModel: ObservableObject {
     func skipProblem() {
         guard phase == .playing, let problem = currentProblem else { return }
 
+        currentStreak = 0 // skipping breaks the streak
         let elapsed = Date().timeIntervalSince(problemStartTime)
         recordAnswer(
             isCorrect: false,
@@ -444,6 +461,7 @@ final class ArenaViewModel: ObservableObject {
         leaderboard.removeAll()
         leaderboardReady = false
         attempts.removeAll()
+        currentStreak = 0
         playedRoundIndex = nil
         finalizedRoundIndex = nil
         nextRoundStartsIn = 0

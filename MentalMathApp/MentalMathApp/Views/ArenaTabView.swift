@@ -89,9 +89,9 @@ struct ArenaWaitingView: View {
             // How it works
             VStack(alignment: .leading, spacing: 12) {
                 infoRow(icon: "clock.fill", text: "90 seconds per round")
-                infoRow(icon: "multiply.circle.fill", text: "× and ÷ = 10 pts")
-                infoRow(icon: "plusminus.circle.fill", text: "3-digit ± = 5 pts · 2-digit ± = 2 pts")
-                infoRow(icon: "bolt.fill", text: "Answer fast for up to +10 bonus")
+                infoRow(icon: "multiply.circle.fill", text: "× and ÷ = 12 pts")
+                infoRow(icon: "plusminus.circle.fill", text: "3-digit ± = 6 pts · 2-digit ± = 3 pts")
+                infoRow(icon: "flame.fill", text: "Build a streak for up to 2× points")
             }
             .padding()
             .background(
@@ -182,10 +182,16 @@ struct ArenaPlayingView: View {
 
             Spacer()
 
-            // Questions answered
-            Text("Q: \(viewModel.questionsAnswered)")
-                .font(.headline.monospacedDigit())
-                .foregroundStyle(.secondary)
+            // Streak multiplier (shown once it's boosting)
+            if viewModel.currentStreak >= 2 {
+                Text("🔥 ×\(String(format: "%g", viewModel.streakMultiplier))")
+                    .font(.headline.monospacedDigit())
+                    .foregroundStyle(Color.brandAccent)
+            } else {
+                Text("Q: \(viewModel.questionsAnswered)")
+                    .font(.headline.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
 
             Spacer()
 

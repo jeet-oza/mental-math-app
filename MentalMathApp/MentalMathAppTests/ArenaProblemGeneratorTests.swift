@@ -64,34 +64,37 @@ final class ArenaProblemGeneratorTests: XCTestCase {
 
     func testArenaPointsByType() {
         let mult = MathProblem(operandA: 47, operandB: 6, operation: .multiplication)
-        XCTAssertEqual(ScoreCalculator.arenaPoints(for: mult), 10)
+        XCTAssertEqual(ScoreCalculator.arenaPoints(for: mult), 12)
 
         let div = MathProblem(operandA: 72, operandB: 6, operation: .division)
-        XCTAssertEqual(ScoreCalculator.arenaPoints(for: div), 10) // same tier as ×
+        XCTAssertEqual(ScoreCalculator.arenaPoints(for: div), 12) // same tier as ×
 
         let add3 = MathProblem(operandA: 540, operandB: 120, operation: .addition)
-        XCTAssertEqual(ScoreCalculator.arenaPoints(for: add3), 5)
+        XCTAssertEqual(ScoreCalculator.arenaPoints(for: add3), 6)
 
         let sub3 = MathProblem(operandA: 800, operandB: 250, operation: .subtraction)
-        XCTAssertEqual(ScoreCalculator.arenaPoints(for: sub3), 5)
+        XCTAssertEqual(ScoreCalculator.arenaPoints(for: sub3), 6)
 
         let add2 = MathProblem(operandA: 40, operandB: 55, operation: .addition)
-        XCTAssertEqual(ScoreCalculator.arenaPoints(for: add2), 2)
+        XCTAssertEqual(ScoreCalculator.arenaPoints(for: add2), 3)
 
         let sub2 = MathProblem(operandA: 90, operandB: 30, operation: .subtraction)
-        XCTAssertEqual(ScoreCalculator.arenaPoints(for: sub2), 2)
+        XCTAssertEqual(ScoreCalculator.arenaPoints(for: sub2), 3)
     }
 
-    func testArenaTimeBonus() {
-        XCTAssertEqual(ScoreCalculator.arenaTimeBonus(secondsTaken: 0), 10)
-        XCTAssertEqual(ScoreCalculator.arenaTimeBonus(secondsTaken: 3.9), 6)   // floor(6.1)
-        XCTAssertEqual(ScoreCalculator.arenaTimeBonus(secondsTaken: 10), 0)
-        XCTAssertEqual(ScoreCalculator.arenaTimeBonus(secondsTaken: 25), 0)
+    func testArenaStreakMultiplier() {
+        XCTAssertEqual(ScoreCalculator.arenaStreakMultiplier(streak: 0), 1.0)
+        XCTAssertEqual(ScoreCalculator.arenaStreakMultiplier(streak: 1), 1.0)
+        XCTAssertEqual(ScoreCalculator.arenaStreakMultiplier(streak: 2), 1.25)
+        XCTAssertEqual(ScoreCalculator.arenaStreakMultiplier(streak: 3), 1.5)
+        XCTAssertEqual(ScoreCalculator.arenaStreakMultiplier(streak: 5), 2.0)
+        XCTAssertEqual(ScoreCalculator.arenaStreakMultiplier(streak: 9), 2.0) // capped
     }
 
-    func testArenaScoreCombinesTypeAndBonus() {
+    func testArenaScoreAppliesStreak() {
         let mult = MathProblem(operandA: 47, operandB: 6, operation: .multiplication)
-        // 10 (type) + max(10 - 2, 0) = 18
-        XCTAssertEqual(ScoreCalculator.arenaScore(for: mult, secondsTaken: 2), 18)
+        XCTAssertEqual(ScoreCalculator.arenaScore(for: mult, streak: 1), 12) // 12 × 1.0
+        XCTAssertEqual(ScoreCalculator.arenaScore(for: mult, streak: 3), 18) // 12 × 1.5
+        XCTAssertEqual(ScoreCalculator.arenaScore(for: mult, streak: 5), 24) // 12 × 2.0
     }
 }

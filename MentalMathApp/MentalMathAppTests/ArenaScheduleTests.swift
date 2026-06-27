@@ -63,15 +63,15 @@ final class ArenaScheduleTests: XCTestCase {
     }
 
     func testBotScoresAreInRealisticRanges() {
-        // Equation: 3–20 solves, each 2..10 (type) + 2..9 (bonus) → 12...380.
+        // Equation: 3–20 solves, each base 3..12 × up to 1.6 → ≤ 19 per solve.
         for bot in ArenaSchedule.opponents(forRound: 1, mode: .equation) {
-            XCTAssertGreaterThanOrEqual(bot.score, 3 * (2 + 2))
-            XCTAssertLessThanOrEqual(bot.score, 20 * (10 + 9))
+            XCTAssertGreaterThanOrEqual(bot.score, 3 * 3)
+            XCTAssertLessThanOrEqual(bot.score, 20 * 19)
         }
-        // Grid: 5–35 solves, each at most 15 (len 5) + 20 (bonus) → up to 1225.
+        // Grid: 5–35 solves, each ≤ 15 (len 5), doubled → ≤ 30 per solve.
         for bot in ArenaSchedule.opponents(forRound: 1, mode: .grid) {
             XCTAssertGreaterThanOrEqual(bot.score, 5 * 3)
-            XCTAssertLessThanOrEqual(bot.score, 35 * (15 + 20))
+            XCTAssertLessThanOrEqual(bot.score, 35 * 30)
         }
     }
 }
