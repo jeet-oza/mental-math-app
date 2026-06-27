@@ -22,7 +22,7 @@ struct OnboardingView: View {
 
     private let pages: [Page] = [
         Page(icon: "hexagon.fill",
-             title: "Calcathon",
+             title: "",
              body: "Learn the tricks, then race the clock against players worldwide."),
         Page(icon: "book.fill",
              title: "Learn",
@@ -73,9 +73,11 @@ struct OnboardingView: View {
                     .font(.system(size: 80))
                     .foregroundStyle(Color.brandAccent)
             }
-            Text(item.title)
-                .font(.system(size: 34, weight: .heavy, design: .rounded))
-                .foregroundStyle(.white)
+            if !item.title.isEmpty {
+                Text(item.title)
+                    .font(.system(size: 34, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white)
+            }
             Text(item.body)
                 .font(.body)
                 .foregroundStyle(.white.opacity(0.85))

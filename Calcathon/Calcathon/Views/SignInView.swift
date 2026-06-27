@@ -20,19 +20,14 @@ struct SignInView: View {
             VStack(spacing: 24) {
                 Spacer()
 
-                // Hero: the brand mark (matches the app icon) + title
-                BrandMark(size: 150)
-                    .padding(.bottom, 8)
+                // Hero: the app-icon logo (carries the name) + tagline
+                BrandMark(size: 160)
+                    .padding(.bottom, 12)
 
-                VStack(spacing: 8) {
-                    Text("Calcathon")
-                        .font(.system(size: 40, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
-                    Text("Learn the tricks. Race the Arena.")
-                        .font(.headline)
-                        .foregroundStyle(.white.opacity(0.85))
-                        .multilineTextAlignment(.center)
-                }
+                Text("Learn the tricks. Race the Arena.")
+                    .font(.headline)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .multilineTextAlignment(.center)
 
                 Spacer()
 
