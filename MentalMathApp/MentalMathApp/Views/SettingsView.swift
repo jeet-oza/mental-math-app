@@ -60,11 +60,11 @@ struct SettingsView: View {
     private var profileSection: some View {
         Section {
             HStack(spacing: 16) {
-                HiveMark(size: 56)
+                BrandMark(size: 56)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(auth.user?.displayName ?? "Player")
                         .font(.headline)
-                    Text("MathHive player")
+                    Text("Calcathon player")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

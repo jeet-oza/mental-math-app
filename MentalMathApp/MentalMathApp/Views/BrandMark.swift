@@ -1,9 +1,9 @@
 //
-//  HiveMark.swift
+//  BrandMark.swift
 //  MentalMathApp
 //
-//  The MathHive logo mark — a white "M" in an orange honeycomb hexagon,
-//  matching the app icon. Reused on the splash and onboarding.
+//  The Calcathon logo mark — a white "C" in an orange hexagon, matching the
+//  app icon. Reused on the splash and onboarding.
 //
 
 import SwiftUI
@@ -28,7 +28,7 @@ struct Hexagon: Shape {
 }
 
 /// The brand mark: an "M" inside an orange hexagon.
-struct HiveMark: View {
+struct BrandMark: View {
     var size: CGFloat = 140
 
     var body: some View {
@@ -37,7 +37,7 @@ struct HiveMark: View {
                 .fill(.accentGradient)
                 .frame(width: size, height: size)
                 .shadow(color: .black.opacity(0.35), radius: size * 0.06, y: size * 0.03)
-            Text("M")
+            Text("C")
                 .font(.system(size: size * 0.55, weight: .heavy, design: .rounded))
                 .foregroundStyle(.white)
         }

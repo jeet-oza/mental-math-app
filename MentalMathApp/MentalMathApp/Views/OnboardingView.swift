@@ -22,14 +22,14 @@ struct OnboardingView: View {
 
     private let pages: [Page] = [
         Page(icon: "hexagon.fill",
-             title: "MathHive",
+             title: "Calcathon",
              body: "Learn the tricks, then race the clock against players worldwide."),
         Page(icon: "book.fill",
              title: "Learn",
              body: "Bite-size lessons teach shortcuts for addition, multiplication, squaring, division, and percentages."),
         Page(icon: "flame.fill",
              title: "Equation Arena",
-             body: "Answer as many as you can in 90 seconds. Multiplication is worth 10 points, and fast answers earn a time bonus."),
+             body: "Answer as many as you can in 90 seconds. Multiplication and division are worth the most; a correct streak multiplies your score."),
         Page(icon: "square.grid.3x3.fill",
              title: "Number Grid",
              body: "Drag across adjacent tiles so they add up to a multiple of 10. Longer paths score more — and multiples of 100 earn a bonus.")
@@ -67,7 +67,7 @@ struct OnboardingView: View {
         VStack(spacing: 24) {
             Spacer()
             if item.icon == "hexagon.fill" {
-                HiveMark(size: 130)
+                BrandMark(size: 130)
             } else {
                 Image(systemName: item.icon)
                     .font(.system(size: 80))

@@ -21,11 +21,11 @@ struct SignInView: View {
                 Spacer()
 
                 // Hero: the brand mark (matches the app icon) + title
-                HiveMark(size: 150)
+                BrandMark(size: 150)
                     .padding(.bottom, 8)
 
                 VStack(spacing: 8) {
-                    Text("MathHive")
+                    Text("Calcathon")
                         .font(.system(size: 40, weight: .heavy, design: .rounded))
                         .foregroundStyle(.white)
                     Text("Learn the tricks. Race the Arena.")
