@@ -11,6 +11,7 @@ import FirebaseCore
 @main
 struct MentalMathAppApp: App {
     @StateObject private var auth = AuthService()
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
 
     init() {
         FirebaseApp.configure()
@@ -19,7 +20,9 @@ struct MentalMathAppApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if auth.isSignedIn {
+                if !hasSeenOnboarding {
+                    OnboardingView { hasSeenOnboarding = true }
+                } else if auth.isSignedIn {
                     ContentView()
                 } else {
                     SignInView()
