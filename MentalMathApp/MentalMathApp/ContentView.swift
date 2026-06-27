@@ -40,7 +40,11 @@ struct ContentView: View {
                     Label("Arena", systemImage: "flame.fill")
                 }
         }
-        .tint(Color.brandPrimary)
+        // Shared with all tabs (and the Settings sheet opened from Learn).
+        .environmentObject(curriculumVM)
+        .environmentObject(equationStats)
+        .environmentObject(gridStats)
+        .tint(Color.brandAccent)
         .task(id: auth.user?.uid) {
             gridArenaVM.onRoundComplete { score, paths, longest, hundreds in
                 gridStats.record(

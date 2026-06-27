@@ -16,6 +16,10 @@ import AudioToolbox
 
 enum Feedback {
 
+    /// User preferences (default on); toggled from Settings.
+    static var hapticsEnabled: Bool { UserDefaults.standard.object(forKey: "hapticsEnabled") as? Bool ?? true }
+    static var soundEnabled: Bool { UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true }
+
     /// A correct answer / banked path.
     static func correct() {
         notify(.success)
@@ -30,6 +34,7 @@ enum Feedback {
 
     /// A key press on the number pad.
     static func tap() {
+        guard hapticsEnabled else { return }
         #if canImport(UIKit)
         UISelectionFeedbackGenerator().selectionChanged()
         #endif
@@ -39,6 +44,7 @@ enum Feedback {
 
     #if canImport(UIKit)
     private static func notify(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+        guard hapticsEnabled else { return }
         UINotificationFeedbackGenerator().notificationOccurred(type)
     }
     #else
@@ -47,6 +53,7 @@ enum Feedback {
     #endif
 
     private static func play(_ id: UInt32) {
+        guard soundEnabled else { return }
         #if os(iOS)
         AudioServicesPlaySystemSound(SystemSoundID(id))
         #endif

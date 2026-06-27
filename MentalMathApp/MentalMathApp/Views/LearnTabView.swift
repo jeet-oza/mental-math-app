@@ -10,8 +10,7 @@ import SwiftUI
 /// The Learn Mode tab showing grouped lessons with progress tracking.
 struct LearnTabView: View {
     @EnvironmentObject var viewModel: CurriculumViewModel
-    @EnvironmentObject var auth: AuthService
-    @State private var showDeleteConfirm = false
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
@@ -31,34 +30,14 @@ struct LearnTabView: View {
             .background(Color.groupedBackground)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        if let name = auth.user?.displayName {
-                            Text("Signed in as \(name)")
-                        }
-                        Button(role: .destructive) {
-                            viewModel.disableCloudSync()
-                            auth.signOut()
-                        } label: {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                        }
-                        Button(role: .destructive) {
-                            showDeleteConfirm = true
-                        } label: {
-                            Label("Delete Account", systemImage: "trash")
-                        }
-                    } label: {
+                    Button { showSettings = true } label: {
                         Image(systemName: "person.crop.circle")
                     }
+                    .accessibilityLabel(Text("Profile and settings"))
                 }
             }
-            .alert("Delete Account?", isPresented: $showDeleteConfirm) {
-                Button("Delete", role: .destructive) {
-                    viewModel.disableCloudSync()
-                    Task { await auth.deleteAccount() }
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This permanently deletes your account and all saved progress. This can't be undone.")
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
             }
         }
     }
