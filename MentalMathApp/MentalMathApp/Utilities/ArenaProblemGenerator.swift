@@ -4,8 +4,8 @@
 //
 //  Deterministic problem generator for the Equation Arena. Produces a fixed
 //  mix (same sequence for everyone via the round seed):
-//   - Multiplication: 2-digit × 1-digit            (worth 10 points)
-//   - Division: 2-digit quotient ÷ 1-digit, exact  (worth 10 points)
+//   - Multiplication: 2-digit × 1-digit              (worth 10 points)
+//   - Division: 3-digit dividend ÷ 1–2 digit, exact  (worth 10 points)
 //   - Addition / Subtraction: up to 3-digit operands (5 pts if 3-digit, else 2)
 //  Subtraction never yields a negative result; division is always exact.
 //
@@ -34,10 +34,12 @@ struct ArenaProblemGenerator {
             return MathProblem(operandA: a, operandB: b, operation: .multiplication)
 
         case .division:
-            // (2–3 digit) ÷ (1-digit), always exact: dividend = quotient × divisor.
-            let quotient = Int.random(in: 10...99, using: &rng)
-            let divisor = Int.random(in: 2...9, using: &rng)
-            return MathProblem(operandA: quotient * divisor, operandB: divisor, operation: .division)
+            // 3-digit dividend ÷ 1–2 digit divisor, always exact.
+            let divisor = Int.random(in: 2...20, using: &rng)
+            let minQuotient = (100 + divisor - 1) / divisor // ceil(100 / divisor)
+            let maxQuotient = 999 / divisor                  // floor(999 / divisor)
+            let quotient = Int.random(in: minQuotient...maxQuotient, using: &rng)
+            return MathProblem(operandA: divisor * quotient, operandB: divisor, operation: .division)
 
         case .addition:
             let (a, b) = additivePair()

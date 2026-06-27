@@ -29,11 +29,11 @@ final class ArenaProblemGeneratorTests: XCTestCase {
         }
     }
 
-    func testDivisionIsExactWithOneDigitDivisor() {
+    func testDivisionIsExactThreeDigitDividend() {
         for p in batch(seed: "arena_div", count: 400) where p.operation == .division {
-            XCTAssertTrue((2...9).contains(p.operandB), "divisor should be 1-digit")
+            XCTAssertTrue((2...20).contains(p.operandB), "divisor should be 1–2 digit")
             XCTAssertEqual(p.operandA % p.operandB, 0, "division must be exact")
-            XCTAssertTrue((10...99).contains(p.correctAnswer), "quotient should be 2-digit")
+            XCTAssertTrue((100...999).contains(p.operandA), "dividend should be 3-digit")
         }
     }
 
