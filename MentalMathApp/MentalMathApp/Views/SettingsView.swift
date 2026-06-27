@@ -31,6 +31,9 @@ struct SettingsView: View {
                 preferencesSection
                 aboutSection
                 accountSection
+                #if DEBUG
+                debugSection
+                #endif
             }
             .navigationTitle("Profile")
             #if os(iOS)
@@ -112,6 +115,17 @@ struct SettingsView: View {
             }
         }
     }
+
+    #if DEBUG
+    private var debugSection: some View {
+        Section("Debug") {
+            // Verifies Crashlytics: crash, then relaunch to upload the report.
+            Button("Trigger Test Crash", role: .destructive) {
+                fatalError("Test crash from Settings")
+            }
+        }
+    }
+    #endif
 
     // MARK: - Helpers
 
