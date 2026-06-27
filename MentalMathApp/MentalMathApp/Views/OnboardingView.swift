@@ -21,8 +21,8 @@ struct OnboardingView: View {
     }
 
     private let pages: [Page] = [
-        Page(icon: "function",
-             title: "Mental Math",
+        Page(icon: "hexagon.fill",
+             title: "MathHive",
              body: "Learn the tricks, then race the clock against players worldwide."),
         Page(icon: "book.fill",
              title: "Learn",

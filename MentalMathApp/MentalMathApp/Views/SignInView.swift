@@ -25,7 +25,7 @@ struct SignInView: View {
                     .padding(.bottom, 8)
 
                 VStack(spacing: 8) {
-                    Text("Mental Math")
+                    Text("MathHive")
                         .font(.system(size: 40, weight: .heavy, design: .rounded))
                         .foregroundStyle(.white)
                     Text("Learn the tricks. Race the Arena.")
@@ -79,7 +79,7 @@ struct SignInView: View {
 
     /// A small 2x2 board of orange tiles echoing the Grid Arena.
     private var boardMotif: some View {
-        let values = ["f", "(", "x", ")"]
+        let values = ["M", "A", "T", "H"]
         return VStack(spacing: 8) {
             ForEach(0..<2, id: \.self) { row in
                 HStack(spacing: 8) {
