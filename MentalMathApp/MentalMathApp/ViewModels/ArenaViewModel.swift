@@ -254,6 +254,7 @@ final class ArenaViewModel: ObservableObject {
 
         let elapsed = Date().timeIntervalSince(problemStartTime)
         let isCorrect = userAnswer == problem.correctAnswer
+        if isCorrect { Feedback.correct() } else { Feedback.incorrect() }
         // Type points (×=10, 3-digit ±=5, 2-digit ±=2) plus a speed bonus.
         let points = isCorrect ? ScoreCalculator.arenaScore(for: problem, secondsTaken: elapsed) : 0
 
@@ -281,7 +282,10 @@ final class ArenaViewModel: ObservableObject {
     /// so digits only). Capped to avoid runaway input.
     func inputDigit(_ digit: Int) {
         guard phase == .playing, (0...9).contains(digit) else { return }
-        if userInput.count < 7 { userInput.append("\(digit)") }
+        if userInput.count < 7 {
+            userInput.append("\(digit)")
+            Feedback.tap()
+        }
     }
 
     /// Removes the last entered digit.

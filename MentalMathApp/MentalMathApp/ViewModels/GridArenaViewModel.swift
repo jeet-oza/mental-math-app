@@ -240,6 +240,7 @@ final class GridArenaViewModel: ObservableObject {
         score += points
         message = found.isHundred ? "+\(points) — multiple of 100!" : "+\(points)"
         currentPath.removeAll()
+        Feedback.correct()
     }
 
     // MARK: - Leaderboard
