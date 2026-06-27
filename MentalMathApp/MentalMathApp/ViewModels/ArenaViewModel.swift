@@ -77,7 +77,7 @@ final class ArenaViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(leaderboardService: LeaderboardService = LocalLeaderboardService()) {
+    init(leaderboardService: LeaderboardService = LocalLeaderboardService(mode: .equation)) {
         self.leaderboardService = leaderboardService
     }
 
@@ -88,7 +88,7 @@ final class ArenaViewModel: ObservableObject {
     func configureOnlinePlay(userId: String, displayName: String) {
         playerId = userId
         playerName = displayName
-        leaderboardService = FirebaseLeaderboardService()
+        leaderboardService = FirebaseLeaderboardService(mode: .equation)
     }
 
     /// Called once when a round the player played ends: (score, correct, answered).
@@ -421,7 +421,7 @@ final class ArenaViewModel: ObservableObject {
             try? await service.submit(player, forRound: index)
             try? await Task.sleep(for: .seconds(Double(ArenaSchedule.leaderboardDelaySeconds)))
             let entries = (try? await service.leaderboard(forRound: index, including: player))
-                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index, mode: .equation) + [player])
             self?.leaderboard = entries
             self?.leaderboardReady = true
         }

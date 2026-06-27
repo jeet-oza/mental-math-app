@@ -50,9 +50,28 @@ final class ArenaScheduleTests: XCTestCase {
     }
 
     func testOpponentsDeterministicPerRound() {
-        let a = ArenaSchedule.opponents(forRound: 3)
-        let b = ArenaSchedule.opponents(forRound: 3)
+        let a = ArenaSchedule.opponents(forRound: 3, mode: .equation)
+        let b = ArenaSchedule.opponents(forRound: 3, mode: .equation)
         XCTAssertEqual(a, b)
         XCTAssertFalse(a.isEmpty)
+    }
+
+    func testEquationAndGridBotsDiffer() {
+        let eq = ArenaSchedule.opponents(forRound: 5, mode: .equation)
+        let grid = ArenaSchedule.opponents(forRound: 5, mode: .grid)
+        XCTAssertNotEqual(eq.map(\.score), grid.map(\.score))
+    }
+
+    func testBotScoresAreInRealisticRanges() {
+        // Equation: 3–20 solves, each 2..10 (type) + 2..9 (bonus) → 12...380.
+        for bot in ArenaSchedule.opponents(forRound: 1, mode: .equation) {
+            XCTAssertGreaterThanOrEqual(bot.score, 3 * (2 + 2))
+            XCTAssertLessThanOrEqual(bot.score, 20 * (10 + 9))
+        }
+        // Grid: 5–35 solves, each at most 15 (len 5) + 20 (bonus) → up to 1225.
+        for bot in ArenaSchedule.opponents(forRound: 1, mode: .grid) {
+            XCTAssertGreaterThanOrEqual(bot.score, 5 * 3)
+            XCTAssertLessThanOrEqual(bot.score, 35 * (15 + 20))
+        }
     }
 }

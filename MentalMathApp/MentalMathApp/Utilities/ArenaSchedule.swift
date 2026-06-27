@@ -12,6 +12,12 @@
 
 import Foundation
 
+/// Which Arena a leaderboard belongs to (affects bot score simulation).
+enum ArenaMode: String, Sendable {
+    case equation
+    case grid
+}
+
 /// Computes the globally-synchronized Arena round state from the current time.
 nonisolated enum ArenaSchedule {
 
@@ -73,16 +79,14 @@ nonisolated enum ArenaSchedule {
     /// Generates a deterministic set of computer opponents for a round so the
     /// leaderboard is populated identically on every device. The player's own
     /// score is merged and ranked in by the view model.
-    static func opponents(forRound index: Int) -> [LeaderboardEntry] {
-        var rng = SeededRandomNumberGenerator(seed: "leaderboard_\(index)")
+    static func opponents(forRound index: Int, mode: ArenaMode) -> [LeaderboardEntry] {
+        var rng = SeededRandomNumberGenerator(seed: "leaderboard_\(mode.rawValue)_\(index)")
         let stems = [
             "Ava", "Liam", "Noah", "Mia", "Kai", "Zoe", "Leo", "Ivy",
             "Max", "Nova", "Finn", "Luna", "Eli", "Ruby", "Jax", "Sky",
             "Cody", "Pippa", "Theo", "Wren", "Otis", "Hazel", "Reed", "Lola"
         ]
         let suffixes = ["", "", "07", "22", "_x", "99", "42", "z", "777", "_pro"]
-        let difficulty = difficulty(forRound: index)
-        let ceiling = Int(2400 * ScoreCalculator.difficultyBonus(for: difficulty))
 
         // ~40 computer accounts so the board has a real distribution and the
         // "near your rank" window is meaningful.
@@ -90,7 +94,7 @@ nonisolated enum ArenaSchedule {
         return (0..<count).map { i in
             let name = stems[Int.random(in: 0..<stems.count, using: &rng)]
                 + suffixes[Int.random(in: 0..<suffixes.count, using: &rng)]
-            let score = Int.random(in: 150...ceiling, using: &rng)
+            let score = simulatedScore(mode: mode, using: &rng)
             let accuracy = Double.random(in: 0.45...0.98, using: &rng)
             return LeaderboardEntry(
                 id: "bot_\(index)_\(i)",
@@ -99,6 +103,36 @@ nonisolated enum ArenaSchedule {
                 accuracy: accuracy,
                 rank: 0 // assigned after merging with the player
             )
+        }
+    }
+
+    /// Simulates a bot's round score by "solving" a realistic number of problems
+    /// and earning points per solve using the same scoring as real players.
+    private static func simulatedScore(
+        mode: ArenaMode,
+        using rng: inout SeededRandomNumberGenerator
+    ) -> Int {
+        switch mode {
+        case .equation:
+            // Solve 3–20 equations; each worth type points (2/5/10) + a time bonus.
+            let solved = Int.random(in: 3...20, using: &rng)
+            return (0..<solved).reduce(0) { total, _ in
+                let typePoints = [2, 5, 10][Int.random(in: 0..<3, using: &rng)]
+                let timeBonus = Int.random(in: 2...9, using: &rng)
+                return total + typePoints + timeBonus
+            }
+
+        case .grid:
+            // Find 5–35 sequences; each scores n(n+1)/2 (mostly short paths),
+            // occasionally with the multiple-of-100 bonus.
+            let solved = Int.random(in: 5...35, using: &rng)
+            return (0..<solved).reduce(0) { total, _ in
+                let roll = Int.random(in: 0..<100, using: &rng)
+                let length = roll < 50 ? 2 : (roll < 80 ? 3 : (roll < 95 ? 4 : 5))
+                var points = length * (length + 1) / 2
+                if Int.random(in: 0..<100, using: &rng) < 15 { points += GridScoring.hundredBonus }
+                return total + points
+            }
         }
     }
 }

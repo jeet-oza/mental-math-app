@@ -56,7 +56,7 @@ final class GridArenaViewModel: ObservableObject {
     private var playedRoundIndex: Int?
     private var finalizedRoundIndex: Int?
 
-    init(leaderboardService: LeaderboardService = LocalLeaderboardService()) {
+    init(leaderboardService: LeaderboardService = LocalLeaderboardService(mode: .grid)) {
         self.leaderboardService = leaderboardService
     }
 
@@ -64,7 +64,7 @@ final class GridArenaViewModel: ObservableObject {
     func configureOnlinePlay(userId: String, displayName: String) {
         playerId = userId
         playerName = displayName
-        leaderboardService = FirebaseLeaderboardService(collection: "gridRounds")
+        leaderboardService = FirebaseLeaderboardService(collection: "gridRounds", mode: .grid)
     }
 
     /// Registers a handler invoked once when a round the player played ends.
@@ -264,7 +264,7 @@ final class GridArenaViewModel: ObservableObject {
             try? await service.submit(player, forRound: index)
             try? await Task.sleep(for: .seconds(Double(ArenaSchedule.leaderboardDelaySeconds)))
             let entries = (try? await service.leaderboard(forRound: index, including: player))
-                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+                ?? rankedLeaderboard(ArenaSchedule.opponents(forRound: index, mode: .grid) + [player])
             self?.leaderboard = entries
             self?.leaderboardReady = true
         }

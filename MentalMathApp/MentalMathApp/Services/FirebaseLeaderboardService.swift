@@ -18,9 +18,12 @@ struct FirebaseLeaderboardService: LeaderboardService {
     /// Top-level collection of rounds (e.g. "rounds" for equations,
     /// "gridRounds" for the grid mode) so the two arenas keep separate boards.
     let collection: String
+    /// Which arena's bots to pad with.
+    let mode: ArenaMode
 
-    init(collection: String = "rounds") {
+    init(collection: String = "rounds", mode: ArenaMode = .equation) {
         self.collection = collection
+        self.mode = mode
     }
 
     private var db: Firestore { Firestore.firestore() }
@@ -66,7 +69,7 @@ struct FirebaseLeaderboardService: LeaderboardService {
 
         // Always include the deterministic computer opponents so the board is
         // populated alongside any real players (same bots on every device).
-        for bot in ArenaSchedule.opponents(forRound: index) where
+        for bot in ArenaSchedule.opponents(forRound: index, mode: mode) where
             !entries.contains(where: { $0.id == bot.id }) {
             entries.append(bot)
         }

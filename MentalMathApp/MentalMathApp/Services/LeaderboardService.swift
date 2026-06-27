@@ -40,6 +40,11 @@ func rankedLeaderboard(_ entries: [LeaderboardEntry]) -> [LeaderboardEntry] {
 /// Offline implementation: deterministic computer opponents seeded per round,
 /// merged with the local player. Identical output on every device.
 struct LocalLeaderboardService: LeaderboardService {
+    let mode: ArenaMode
+
+    init(mode: ArenaMode) {
+        self.mode = mode
+    }
 
     func submit(_ entry: LeaderboardEntry, forRound index: Int) async throws {
         // No-op offline. A networked service persists the entry here.
@@ -49,6 +54,6 @@ struct LocalLeaderboardService: LeaderboardService {
         forRound index: Int,
         including player: LeaderboardEntry
     ) async throws -> [LeaderboardEntry] {
-        rankedLeaderboard(ArenaSchedule.opponents(forRound: index) + [player])
+        rankedLeaderboard(ArenaSchedule.opponents(forRound: index, mode: mode) + [player])
     }
 }
