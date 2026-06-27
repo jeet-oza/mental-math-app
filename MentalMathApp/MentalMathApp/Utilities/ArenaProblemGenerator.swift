@@ -5,8 +5,9 @@
 //  Deterministic problem generator for the Equation Arena. Produces a fixed
 //  mix (same sequence for everyone via the round seed):
 //   - Multiplication: 2-digit × 1-digit            (worth 10 points)
+//   - Division: 2-digit quotient ÷ 1-digit, exact  (worth 10 points)
 //   - Addition / Subtraction: up to 3-digit operands (5 pts if 3-digit, else 2)
-//  Subtraction never yields a negative result. Division is not used in the Arena.
+//  Subtraction never yields a negative result; division is always exact.
 //
 
 import Foundation
@@ -21,8 +22,8 @@ struct ArenaProblemGenerator {
 
     /// The next problem in the deterministic sequence.
     mutating func next() -> MathProblem {
-        let operation = [MathOperation.addition, .subtraction, .multiplication][
-            Int.random(in: 0..<3, using: &rng)
+        let operation = [MathOperation.addition, .subtraction, .multiplication, .division][
+            Int.random(in: 0..<4, using: &rng)
         ]
 
         switch operation {
@@ -31,6 +32,12 @@ struct ArenaProblemGenerator {
             let a = Int.random(in: 10...99, using: &rng)
             let b = Int.random(in: 2...9, using: &rng)
             return MathProblem(operandA: a, operandB: b, operation: .multiplication)
+
+        case .division:
+            // (2–3 digit) ÷ (1-digit), always exact: dividend = quotient × divisor.
+            let quotient = Int.random(in: 10...99, using: &rng)
+            let divisor = Int.random(in: 2...9, using: &rng)
+            return MathProblem(operandA: quotient * divisor, operandB: divisor, operation: .division)
 
         case .addition:
             let (a, b) = additivePair()

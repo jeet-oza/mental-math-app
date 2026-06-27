@@ -15,9 +15,9 @@ final class ArenaProblemGeneratorTests: XCTestCase {
         return (0..<count).map { _ in gen.next() }
     }
 
-    func testOperationsAreOnlyAddSubMultiply() {
+    func testOperationsAreAddSubMultiplyDivide() {
         for p in batch(seed: "arena_ops", count: 400) {
-            XCTAssertTrue([.addition, .subtraction, .multiplication].contains(p.operation),
+            XCTAssertTrue([.addition, .subtraction, .multiplication, .division].contains(p.operation),
                           "Arena must not generate \(p.operation)")
         }
     }
@@ -26,6 +26,14 @@ final class ArenaProblemGeneratorTests: XCTestCase {
         for p in batch(seed: "arena_mult", count: 400) where p.operation == .multiplication {
             XCTAssertTrue((10...99).contains(p.operandA), "left should be 2-digit")
             XCTAssertTrue((2...9).contains(p.operandB), "right should be 1-digit")
+        }
+    }
+
+    func testDivisionIsExactWithOneDigitDivisor() {
+        for p in batch(seed: "arena_div", count: 400) where p.operation == .division {
+            XCTAssertTrue((2...9).contains(p.operandB), "divisor should be 1-digit")
+            XCTAssertEqual(p.operandA % p.operandB, 0, "division must be exact")
+            XCTAssertTrue((10...99).contains(p.correctAnswer), "quotient should be 2-digit")
         }
     }
 
@@ -57,6 +65,9 @@ final class ArenaProblemGeneratorTests: XCTestCase {
     func testArenaPointsByType() {
         let mult = MathProblem(operandA: 47, operandB: 6, operation: .multiplication)
         XCTAssertEqual(ScoreCalculator.arenaPoints(for: mult), 10)
+
+        let div = MathProblem(operandA: 72, operandB: 6, operation: .division)
+        XCTAssertEqual(ScoreCalculator.arenaPoints(for: div), 10) // same tier as ×
 
         let add3 = MathProblem(operandA: 540, operandB: 120, operation: .addition)
         XCTAssertEqual(ScoreCalculator.arenaPoints(for: add3), 5)
