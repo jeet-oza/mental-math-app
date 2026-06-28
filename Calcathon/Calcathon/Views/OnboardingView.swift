@@ -32,7 +32,7 @@ struct OnboardingView: View {
              body: "Answer as many as you can in 90 seconds. Multiplication and division are worth the most; a correct streak multiplies your score."),
         Page(icon: "square.grid.3x3.fill",
              title: "Number Grid",
-             body: "Drag across adjacent tiles so they add up to a multiple of 10. Longer paths score more — and multiples of 100 earn a bonus.")
+             body: "Drag across adjacent tiles so they add up to a multiple of 10. Longer paths score more — and multiples of 50 (×2) or 100 (×5) score big.")
     ]
 
     var body: some View {

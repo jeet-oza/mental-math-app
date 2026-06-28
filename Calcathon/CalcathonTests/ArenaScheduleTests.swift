@@ -68,10 +68,10 @@ final class ArenaScheduleTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(bot.score, 3 * 3)
             XCTAssertLessThanOrEqual(bot.score, 20 * 19)
         }
-        // Grid: 5–35 solves, each ≤ 15 (len 5), doubled → ≤ 30 per solve.
+        // Grid: 5–35 solves, each ≤ 15 (len 5), ×5 for a 100 → ≤ 75 per solve.
         for bot in ArenaSchedule.opponents(forRound: 1, mode: .grid) {
             XCTAssertGreaterThanOrEqual(bot.score, 5 * 3)
-            XCTAssertLessThanOrEqual(bot.score, 35 * 30)
+            XCTAssertLessThanOrEqual(bot.score, 35 * 75)
         }
     }
 }

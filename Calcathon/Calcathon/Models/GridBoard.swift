@@ -51,8 +51,10 @@ struct GridBoard: Equatable, Sendable {
 
 /// Validation and scoring rules for Grid Arena paths.
 enum GridScoring {
-    /// Multiplier applied to a path's points when its sum is a multiple of 100.
-    static let hundredMultiplier = 2
+    /// Multiplier when the sum is a multiple of 100.
+    static let hundredMultiplier = 5
+    /// Multiplier when the sum is a multiple of 50 (but not 100).
+    static let fiftyMultiplier = 2
     /// Minimum number of tiles a path must contain.
     static let minimumLength = 2
 
@@ -78,12 +80,14 @@ enum GridScoring {
         return sum(of: path, on: board) % 10 == 0
     }
 
-    /// Points for a valid path: n(n+1)/2, doubled when the sum is a multiple of 100
-    /// (effort-scaled, so longer multiple-of-100 paths are worth more).
+    /// Points for a valid path: n(n+1)/2, scaled by the sum's tier —
+    /// ×5 for a multiple of 100, ×2 for a multiple of 50, otherwise ×1.
     static func points(for path: [GridPosition], on board: GridBoard) -> Int {
         let n = path.count
         let base = n * (n + 1) / 2
-        return sum(of: path, on: board) % 100 == 0 ? base * hundredMultiplier : base
+        let s = sum(of: path, on: board)
+        let multiplier = s % 100 == 0 ? hundredMultiplier : (s % 50 == 0 ? fiftyMultiplier : 1)
+        return base * multiplier
     }
 
     /// A canonical key for a path's tile set, so the same tiles can't be farmed

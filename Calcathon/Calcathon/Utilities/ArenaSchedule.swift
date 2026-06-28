@@ -125,13 +125,15 @@ nonisolated enum ArenaSchedule {
 
         case .grid:
             // Find 5–35 sequences; each scores n(n+1)/2 (mostly short paths),
-            // doubled occasionally for a multiple of 100.
+            // occasionally boosted for a multiple of 50 (×2) or 100 (×5).
             let solved = Int.random(in: 5...35, using: &rng)
             return (0..<solved).reduce(0) { total, _ in
                 let roll = Int.random(in: 0..<100, using: &rng)
                 let length = roll < 50 ? 2 : (roll < 80 ? 3 : (roll < 95 ? 4 : 5))
                 var points = length * (length + 1) / 2
-                if Int.random(in: 0..<100, using: &rng) < 15 { points *= GridScoring.hundredMultiplier }
+                let tier = Int.random(in: 0..<100, using: &rng)
+                if tier < 10 { points *= GridScoring.hundredMultiplier }      // ×5
+                else if tier < 25 { points *= GridScoring.fiftyMultiplier }   // ×2
                 return total + points
             }
         }

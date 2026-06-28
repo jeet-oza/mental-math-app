@@ -61,8 +61,8 @@ final class GridBoardTests: XCTestCase {
         XCTAssertFalse(GridScoring.isValid([pos(0, 0)], on: board2))
     }
 
-    func testPointsFormulaAndHundredBonus() {
-        // Path of 4 tiles summing to 100 → 4*5/2 = 10, doubled = 20
+    func testPointsFormulaAndMultipliers() {
+        // Path of 4 tiles summing to 100 → 4*5/2 = 10, ×5 = 50
         let board = GridBoard(values: [
             25, 25, 1, 1,
             25, 25, 1, 1,
@@ -72,9 +72,20 @@ final class GridBoardTests: XCTestCase {
         let square = [pos(0, 0), pos(0, 1), pos(1, 1), pos(1, 0)]
         XCTAssertTrue(GridScoring.isValid(square, on: board))
         XCTAssertEqual(GridScoring.sum(of: square, on: board), 100)
-        XCTAssertEqual(GridScoring.points(for: square, on: board), 10 * 2)
+        XCTAssertEqual(GridScoring.points(for: square, on: board), 10 * 5)
 
-        // Path of 3 tiles summing to 30 (mult of 10, not 100) → 3*4/2 = 6
+        // Path summing to 50 (not 100) → ×2: 20 + 30, base 3 → 6
+        let board50 = GridBoard(values: [
+            20, 30, 1, 1,
+            1,  1,  1, 1,
+            1,  1,  1, 1,
+            1,  1,  1, 1
+        ])
+        let pair = [pos(0, 0), pos(0, 1)]
+        XCTAssertEqual(GridScoring.sum(of: pair, on: board50), 50)
+        XCTAssertEqual(GridScoring.points(for: pair, on: board50), 3 * 2)
+
+        // Path of 3 tiles summing to 30 (mult of 10, not 50/100) → 3*4/2 = 6
         let board2 = GridBoard(values: [
             10, 10, 10, 1,
             1,  1,  1,  1,
