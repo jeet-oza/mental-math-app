@@ -132,8 +132,8 @@ nonisolated enum ArenaSchedule {
                 let length = roll < 50 ? 2 : (roll < 80 ? 3 : (roll < 95 ? 4 : 5))
                 var points = length * (length + 1) / 2
                 let tier = Int.random(in: 0..<100, using: &rng)
-                if tier < 10 { points *= GridScoring.hundredMultiplier }      // ×5
-                else if tier < 25 { points *= GridScoring.fiftyMultiplier }   // ×2
+                if tier < 10 { points *= GridRule.highMultiplier }      // ×5
+                else if tier < 25 { points *= GridRule.midMultiplier }  // ×2
                 return total + points
             }
         }

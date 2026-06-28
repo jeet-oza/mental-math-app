@@ -57,7 +57,7 @@ private struct GridWaitingView: View {
                 .foregroundStyle(Color.brandAccent)
             Text("Number Grid")
                 .font(.largeTitle.bold())
-            Text("Trace tiles that add up to a multiple of 10.\nLonger paths score more.")
+            Text("Each round picks a new rule.\nTrace tiles whose sum satisfies it.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -83,9 +83,7 @@ private struct GridPlayingView: View {
     var body: some View {
         VStack(spacing: 16) {
             header
-            Text("Drag across tiles that sum to a multiple of 10")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            ruleBanner
             grid
             selectionBar
             if let message = viewModel.message {
@@ -114,6 +112,23 @@ private struct GridPlayingView: View {
                 .foregroundStyle(Color.brandAccent)
         }
         .padding(.horizontal, 4)
+    }
+
+    /// The round's rule, shown above the grid each round.
+    private var ruleBanner: some View {
+        VStack(spacing: 2) {
+            Text(viewModel.rule.headline)
+                .font(.headline)
+                .foregroundStyle(.white)
+            if let bonus = viewModel.rule.bonusNote {
+                Text(bonus)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.brandPrimary.opacity(0.25)))
     }
 
     private let spacing: CGFloat = 8
@@ -288,9 +303,10 @@ private struct GridResultsView: View {
             }
 
             statsCard(title: "This Round", rows: [
+                ("Rule", viewModel.rule.headline),
                 ("Paths found", "\(viewModel.foundPaths.count)"),
                 ("Longest path", "\(viewModel.foundPaths.map(\.positions.count).max() ?? 0)"),
-                ("Multiples of 100", "\(viewModel.foundPaths.filter(\.isHundred).count)")
+                ("×5 bonuses", "\(viewModel.foundPaths.filter(\.isBigBonus).count)")
             ])
 
             statsCard(title: "Lifetime", rows: [
@@ -302,11 +318,8 @@ private struct GridResultsView: View {
                 ("Longest ever", "\(stats.stats.longestPath)")
             ])
 
-            if !viewModel.solutionsHundreds.isEmpty {
-                solutionsCard(title: "Multiples of 100", solutions: viewModel.solutionsHundreds)
-            }
-            if !viewModel.solutionsTens.isEmpty {
-                solutionsCard(title: "Multiples of 10", solutions: viewModel.solutionsTens)
+            if !viewModel.solutions.isEmpty {
+                solutionsCard(title: "All Solutions", solutions: viewModel.solutions)
             }
         }
     }

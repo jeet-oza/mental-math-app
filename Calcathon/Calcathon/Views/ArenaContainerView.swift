@@ -56,7 +56,7 @@ struct ArenaContainerView: View {
         case .grid:
             ArenaLandingView(
                 title: "Number Grid",
-                subtitle: "Trace tiles that add up to a multiple of 10.",
+                subtitle: "Each round picks a new rule — multiples, targets, and more.",
                 icon: "square.grid.3x3.fill",
                 statRows: gridRows,
                 onPlay: { isPlaying = true }

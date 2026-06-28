@@ -55,10 +55,10 @@ final class GridBoardTests: XCTestCase {
             1, 1, 1, 1
         ])
         // 4 + 6 = 10 → valid, adjacent
-        XCTAssertTrue(GridScoring.isValid([pos(0, 0), pos(0, 1)], on: board))
+        XCTAssertTrue(GridScoring.isValid([pos(0, 0), pos(0, 1)], on: board, rule: .multiple(of: 10)))
         // single tile (10) — below min length
         let board2 = GridBoard(values: Array(repeating: 10, count: 16))
-        XCTAssertFalse(GridScoring.isValid([pos(0, 0)], on: board2))
+        XCTAssertFalse(GridScoring.isValid([pos(0, 0)], on: board2, rule: .multiple(of: 10)))
     }
 
     func testPointsFormulaAndMultipliers() {
@@ -70,9 +70,9 @@ final class GridBoardTests: XCTestCase {
             1,  1,  1, 1
         ])
         let square = [pos(0, 0), pos(0, 1), pos(1, 1), pos(1, 0)]
-        XCTAssertTrue(GridScoring.isValid(square, on: board))
+        XCTAssertTrue(GridScoring.isValid(square, on: board, rule: .multiple(of: 10)))
         XCTAssertEqual(GridScoring.sum(of: square, on: board), 100)
-        XCTAssertEqual(GridScoring.points(for: square, on: board), 10 * 5)
+        XCTAssertEqual(GridScoring.points(for: square, on: board, rule: .multiple(of: 10)), 10 * 5)
 
         // Path summing to 50 (not 100) → ×2: 20 + 30, base 3 → 6
         let board50 = GridBoard(values: [
@@ -83,7 +83,7 @@ final class GridBoardTests: XCTestCase {
         ])
         let pair = [pos(0, 0), pos(0, 1)]
         XCTAssertEqual(GridScoring.sum(of: pair, on: board50), 50)
-        XCTAssertEqual(GridScoring.points(for: pair, on: board50), 3 * 2)
+        XCTAssertEqual(GridScoring.points(for: pair, on: board50, rule: .multiple(of: 10)), 3 * 2)
 
         // Path of 3 tiles summing to 30 (mult of 10, not 50/100) → 3*4/2 = 6
         let board2 = GridBoard(values: [
@@ -93,7 +93,7 @@ final class GridBoardTests: XCTestCase {
             1,  1,  1,  1
         ])
         let line = [pos(0, 0), pos(0, 1), pos(0, 2)]
-        XCTAssertEqual(GridScoring.points(for: line, on: board2), 6)
+        XCTAssertEqual(GridScoring.points(for: line, on: board2, rule: .multiple(of: 10)), 6)
     }
 
     func testKeyIsOrderIndependent() {

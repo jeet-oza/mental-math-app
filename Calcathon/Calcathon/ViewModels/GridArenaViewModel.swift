@@ -17,7 +17,9 @@ struct FoundGridPath: Identifiable, Equatable {
     let positions: [GridPosition]
     let sum: Int
     let points: Int
-    var isHundred: Bool { sum % 100 == 0 }
+    let multiplier: Int
+    /// A high-tier (×5) find — earns the "big bonus" feedback and stat.
+    var isBigBonus: Bool { multiplier >= GridRule.highMultiplier }
 }
 
 @MainActor
@@ -37,10 +39,10 @@ final class GridArenaViewModel: ObservableObject {
     /// False during the post-round collection window; true once the final board is ready.
     @Published private(set) var leaderboardReady = false
     @Published private(set) var message: String?
-    /// All multiple-of-100 combinations on the board (post-round), by points desc.
-    @Published private(set) var solutionsHundreds: [GridSolution] = []
-    /// All multiple-of-10 (not 100) combinations on the board, by points desc.
-    @Published private(set) var solutionsTens: [GridSolution] = []
+    /// The round's rule (rotates each round); shown above the grid.
+    @Published private(set) var rule: GridRule = .multiple(of: 10)
+    /// All combinations satisfying the rule (post-round), sorted by points desc.
+    @Published private(set) var solutions: [GridSolution] = []
 
     // MARK: - Dependencies
 
@@ -80,9 +82,9 @@ final class GridArenaViewModel: ObservableObject {
     // MARK: - Computed (current selection)
 
     var currentSum: Int { GridScoring.sum(of: currentPath, on: board) }
-    var currentIsValid: Bool { GridScoring.isValid(currentPath, on: board) }
+    var currentIsValid: Bool { GridScoring.isValid(currentPath, on: board, rule: rule) }
     var currentPotentialPoints: Int {
-        currentIsValid ? GridScoring.points(for: currentPath, on: board) : 0
+        currentIsValid ? GridScoring.points(for: currentPath, on: board, rule: rule) : 0
     }
 
     // MARK: - Global Schedule
@@ -123,11 +125,11 @@ final class GridArenaViewModel: ObservableObject {
 
     private func beginRound(index: Int) {
         board = GridBoard.generate(seed: "grid_arena_round_\(index)")
+        rule = GridRule.rule(forRound: index, board: board)
         currentPath.removeAll()
         foundPaths.removeAll()
         foundKeys.removeAll()
-        solutionsHundreds.removeAll()
-        solutionsTens.removeAll()
+        solutions.removeAll()
         leaderboard = []
         leaderboardReady = false
         score = 0
@@ -139,24 +141,20 @@ final class GridArenaViewModel: ObservableObject {
     private func finalize(roundIndex: Int) {
         finalizedRoundIndex = roundIndex
         let longest = foundPaths.map(\.positions.count).max() ?? 0
-        let hundreds = foundPaths.filter(\.isHundred).count
-        onRoundFinished?(score, foundPaths.count, longest, hundreds)
+        let bigBonuses = foundPaths.filter(\.isBigBonus).count
+        onRoundFinished?(score, foundPaths.count, longest, bigBonuses)
         loadLeaderboard(forRound: roundIndex)
         computeSolutions()
         phase = .leaderboard
     }
 
-    /// Enumerates every scoring combination on the board for the results screen.
+    /// Enumerates every combination satisfying the rule for the results screen.
     private func computeSolutions() {
         let board = self.board
+        let rule = self.rule
         Task { [weak self] in
-            let all = GridSolver.solutions(on: board)
-            let hundreds = all.filter(\.isHundred).sorted { $0.points > $1.points }
-            let tens = all.filter { !$0.isHundred }.sorted { $0.points > $1.points }
-            await MainActor.run {
-                self?.solutionsHundreds = hundreds
-                self?.solutionsTens = tens
-            }
+            let all = GridSolver.solutions(on: board, rule: rule).sorted { $0.points > $1.points }
+            await MainActor.run { self?.solutions = all }
         }
     }
 
@@ -223,7 +221,7 @@ final class GridArenaViewModel: ObservableObject {
             return
         }
         guard currentIsValid else {
-            message = "Sum \(currentSum) isn't a multiple of 10"
+            message = "\(currentSum) doesn't satisfy the rule"
             return
         }
         let key = GridScoring.key(for: currentPath)
@@ -233,12 +231,14 @@ final class GridArenaViewModel: ObservableObject {
             return
         }
 
-        let points = GridScoring.points(for: currentPath, on: board)
-        let found = FoundGridPath(positions: currentPath, sum: currentSum, points: points)
+        let points = GridScoring.points(for: currentPath, on: board, rule: rule)
+        let multiplier = rule.multiplier(forSum: currentSum)
+        let found = FoundGridPath(positions: currentPath, sum: currentSum,
+                                  points: points, multiplier: multiplier)
         foundKeys.insert(key)
         foundPaths.insert(found, at: 0)
         score += points
-        message = found.isHundred ? "+\(points) — multiple of 100!" : "+\(points)"
+        message = multiplier > 1 ? "+\(points) — ×\(multiplier) bonus!" : "+\(points)"
         currentPath.removeAll()
         Feedback.correct()
     }

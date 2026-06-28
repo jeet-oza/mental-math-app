@@ -51,10 +51,6 @@ struct GridBoard: Equatable, Sendable {
 
 /// Validation and scoring rules for Grid Arena paths.
 enum GridScoring {
-    /// Multiplier when the sum is a multiple of 100.
-    static let hundredMultiplier = 5
-    /// Multiplier when the sum is a multiple of 50 (but not 100).
-    static let fiftyMultiplier = 2
     /// Minimum number of tiles a path must contain.
     static let minimumLength = 2
 
@@ -74,20 +70,18 @@ enum GridScoring {
         path.reduce(0) { $0 + board.value(at: $1) }
     }
 
-    /// Whether a path is a valid scoring path (connected, ≥ min length, sum % 10 == 0).
-    static func isValid(_ path: [GridPosition], on board: GridBoard) -> Bool {
+    /// Whether a path is valid under the round's rule (connected, ≥ min length,
+    /// and its sum satisfies the rule).
+    static func isValid(_ path: [GridPosition], on board: GridBoard, rule: GridRule) -> Bool {
         guard path.count >= minimumLength, isConnected(path) else { return false }
-        return sum(of: path, on: board) % 10 == 0
+        return rule.isSatisfied(by: sum(of: path, on: board))
     }
 
-    /// Points for a valid path: n(n+1)/2, scaled by the sum's tier —
-    /// ×5 for a multiple of 100, ×2 for a multiple of 50, otherwise ×1.
-    static func points(for path: [GridPosition], on board: GridBoard) -> Int {
+    /// Points for a valid path: n(n+1)/2, scaled by the rule's tier multiplier.
+    static func points(for path: [GridPosition], on board: GridBoard, rule: GridRule) -> Int {
         let n = path.count
         let base = n * (n + 1) / 2
-        let s = sum(of: path, on: board)
-        let multiplier = s % 100 == 0 ? hundredMultiplier : (s % 50 == 0 ? fiftyMultiplier : 1)
-        return base * multiplier
+        return base * rule.multiplier(forSum: sum(of: path, on: board))
     }
 
     /// A canonical key for a path's tile set, so the same tiles can't be farmed

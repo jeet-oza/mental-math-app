@@ -3,8 +3,7 @@
 //  Calcathon
 //
 //  Enumerates all scoring paths on a board (like Wordament's post-round
-//  "solutions" list), so results can show every multiple-of-10 and
-//  multiple-of-100 combination available.
+//  "solutions" list), filtered by the round's rule.
 //
 
 import Foundation
@@ -17,8 +16,6 @@ struct GridSolution: Identifiable, Equatable, Sendable {
     let sum: Int
     let points: Int
 
-    var isHundred: Bool { sum % 100 == 0 }
-
     /// e.g. "25 + 25 + 50 = 100"
     var expression: String {
         values.map(String.init).joined(separator: " + ") + " = \(sum)"
@@ -27,9 +24,9 @@ struct GridSolution: Identifiable, Equatable, Sendable {
 
 enum GridSolver {
 
-    /// All distinct scoring paths (sum % 10 == 0) up to `maxLength` tiles,
+    /// All distinct paths satisfying the rule up to `maxLength` tiles,
     /// deduplicated by tile set. Bounded length keeps enumeration tractable.
-    static func solutions(on board: GridBoard, maxLength: Int = 5) -> [GridSolution] {
+    static func solutions(on board: GridBoard, rule: GridRule, maxLength: Int = 5) -> [GridSolution] {
         var byKey: [String: GridSolution] = [:]
         var path: [GridPosition] = []
 
@@ -39,7 +36,7 @@ enum GridSolver {
 
             if path.count >= GridScoring.minimumLength {
                 let sum = GridScoring.sum(of: path, on: board)
-                if sum % 10 == 0 {
+                if rule.isSatisfied(by: sum) {
                     let key = GridScoring.key(for: path)
                     if byKey[key] == nil {
                         byKey[key] = GridSolution(
@@ -47,7 +44,7 @@ enum GridSolver {
                             positions: path,
                             values: path.map { board.value(at: $0) },
                             sum: sum,
-                            points: GridScoring.points(for: path, on: board)
+                            points: GridScoring.points(for: path, on: board, rule: rule)
                         )
                     }
                 }
