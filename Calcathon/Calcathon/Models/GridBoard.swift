@@ -30,9 +30,11 @@ struct GridBoard: Equatable, Sendable {
     }
 
     /// Deterministic board for a seed (same seed → same board for everyone).
-    static func generate(seed: String) -> GridBoard {
+    /// `range` controls the tile values (smaller ranges yield more combinations
+    /// that reach a given target sum).
+    static func generate(seed: String, range: ClosedRange<Int> = 1...99) -> GridBoard {
         var rng = SeededRandomNumberGenerator(seed: seed)
-        let values = (0..<(size * size)).map { _ in Int.random(in: 1...99, using: &rng) }
+        let values = (0..<(size * size)).map { _ in Int.random(in: range, using: &rng) }
         return GridBoard(values: values)
     }
 

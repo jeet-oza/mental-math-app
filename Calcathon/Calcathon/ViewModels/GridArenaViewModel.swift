@@ -124,8 +124,9 @@ final class GridArenaViewModel: ObservableObject {
     }
 
     private func beginRound(index: Int) {
-        board = GridBoard.generate(seed: "grid_arena_round_\(index)")
-        rule = GridRule.rule(forRound: index, board: board)
+        let setup = GridRule.makeRound(index: index)
+        board = setup.board
+        rule = setup.rule
         currentPath.removeAll()
         foundPaths.removeAll()
         foundKeys.removeAll()
@@ -153,7 +154,8 @@ final class GridArenaViewModel: ObservableObject {
         let board = self.board
         let rule = self.rule
         Task { [weak self] in
-            let all = GridSolver.solutions(on: board, rule: rule).sorted { $0.points > $1.points }
+            let all = GridSolver.solutions(on: board, rule: rule, maxLength: GridRule.solverMaxLength)
+                .sorted { $0.points > $1.points }
             await MainActor.run { self?.solutions = all }
         }
     }

@@ -27,8 +27,7 @@ final class GridRuleTests: XCTestCase {
     func testRotatesAndNeverPicksTrivialDivisors() {
         var sawMultiple10 = false, sawDivisor = false, sawTarget = false
         for index in 0..<30 {
-            let board = GridBoard.generate(seed: "grid_arena_round_\(index)")
-            switch GridRule.rule(forRound: index, board: board) {
+            switch GridRule.makeRound(index: index).rule {
             case .multiple(let n) where n == 10: sawMultiple10 = true
             case .multiple(let n):
                 sawDivisor = true
@@ -40,12 +39,17 @@ final class GridRuleTests: XCTestCase {
         XCTAssertTrue(sawMultiple10 && sawDivisor && sawTarget, "all strategies should appear")
     }
 
-    func testTargetIsReachableOnBoard() {
+    func testTargetRoundsAreSolvableWithManySolutions() {
         for index in stride(from: 2, through: 32, by: 3) { // target rounds (index % 3 == 2)
-            let board = GridBoard.generate(seed: "grid_arena_round_\(index)")
-            guard case let .target(t) = GridRule.rule(forRound: index, board: board) else { continue }
-            let solutions = GridSolver.solutions(on: board, rule: .target(t), maxLength: 5)
-            XCTAssertFalse(solutions.isEmpty, "target \(t) (round \(index)) should be reachable")
+            let (board, rule) = GridRule.makeRound(index: index)
+            guard case let .target(t) = rule else { continue }
+            XCTAssertTrue((50...100).contains(t), "round \(index): target \(t) should be in 50–100")
+            XCTAssertTrue(board.values.allSatisfy { (1...20).contains($0) },
+                          "round \(index): target board should use 1–20 tiles")
+            let count = GridSolver.solutions(on: board, rule: rule,
+                                             maxLength: GridRule.solverMaxLength).count
+            XCTAssertGreaterThanOrEqual(count, GridRule.targetMinSolutions,
+                                        "round \(index): target \(t) has only \(count) solutions")
         }
     }
 }

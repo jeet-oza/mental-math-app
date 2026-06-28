@@ -65,6 +65,37 @@ enum GridSolver {
         return Array(byKey.values)
     }
 
+    /// Count of distinct tile-set paths (deduped) for each achievable sum,
+    /// up to `maxLength` tiles. Used to choose a target with enough solutions.
+    static func sumHistogram(on board: GridBoard, maxLength: Int) -> [Int: Int] {
+        var counted = Set<String>()
+        var histogram: [Int: Int] = [:]
+        var path: [GridPosition] = []
+
+        func dfs(_ current: GridPosition) {
+            path.append(current)
+            defer { path.removeLast() }
+
+            if path.count >= GridScoring.minimumLength {
+                let key = GridScoring.key(for: path)
+                if counted.insert(key).inserted {
+                    histogram[GridScoring.sum(of: path, on: board), default: 0] += 1
+                }
+            }
+            guard path.count < maxLength else { return }
+            for neighbor in neighbors(of: current) where !path.contains(neighbor) {
+                dfs(neighbor)
+            }
+        }
+
+        for row in 0..<GridBoard.size {
+            for col in 0..<GridBoard.size {
+                dfs(GridPosition(row: row, col: col))
+            }
+        }
+        return histogram
+    }
+
     private static func neighbors(of p: GridPosition) -> [GridPosition] {
         var result: [GridPosition] = []
         for dr in -1...1 {

@@ -63,41 +63,54 @@ enum GridRule: Equatable, Sendable {
 
     // MARK: - Generation
 
-    /// The rule for a round, rotating strategy by index. Target rounds derive a
-    /// reachable target from the board so there's always at least one solution.
-    static func rule(forRound index: Int, board: GridBoard) -> GridRule {
+    /// Path length the solver enumerates (also used for solution display).
+    static let solverMaxLength = 6
+    /// Target rounds aim for at least this many distinct solutions.
+    static let targetMinSolutions = 20
+
+    /// Builds the board and rule for a round together (deterministic per index).
+    /// Strategy rotates: multiple-of-10, divisible-by-N, then target sum — and
+    /// target rounds use a small-number board engineered to have many solutions.
+    static func makeRound(index: Int) -> (board: GridBoard, rule: GridRule) {
         var rng = SeededRandomNumberGenerator(seed: "grid_rule_\(index)")
         switch index % 3 {
         case 0:
-            return .multiple(of: 10)
+            return (GridBoard.generate(seed: "grid_arena_round_\(index)"), .multiple(of: 10))
         case 1:
+            let board = GridBoard.generate(seed: "grid_arena_round_\(index)")
             let n = funDivisors[Int.random(in: 0..<funDivisors.count, using: &rng)]
-            return .multiple(of: n)
+            return (board, .multiple(of: n))
         default:
-            return .target(reachableTarget(on: board, using: &rng))
+            return makeTargetRound(index: index)
         }
     }
 
-    /// Sum of a short, deterministic connected walk — guaranteed achievable.
-    private static func reachableTarget(
-        on board: GridBoard,
-        using rng: inout SeededRandomNumberGenerator
-    ) -> Int {
-        let size = GridBoard.size
-        var current = GridPosition(row: Int.random(in: 0..<size, using: &rng),
-                                   col: Int.random(in: 0..<size, using: &rng))
-        var path = [current]
-        let length = Int.random(in: 2...3, using: &rng)
-        while path.count < length {
-            let neighbors = (-1...1).flatMap { dr in (-1...1).compactMap { dc -> GridPosition? in
-                guard !(dr == 0 && dc == 0) else { return nil }
-                let p = GridPosition(row: current.row + dr, col: current.col + dc)
-                return GridBoard.isInBounds(p) && !path.contains(p) ? p : nil
-            } }
-            guard let next = neighbors.randomElement(using: &rng) else { break }
-            path.append(next)
-            current = next
+    /// A target round: tiles 1–20, with a target in 50–100 that has the most
+    /// solutions (and at least `targetMinSolutions`). Retries the board until a
+    /// well-stocked target is found, falling back to the best available.
+    private static func makeTargetRound(index: Int) -> (board: GridBoard, rule: GridRule) {
+        var best: (board: GridBoard, target: Int, count: Int)?
+
+        for attempt in 0..<6 {
+            let board = GridBoard.generate(seed: "grid_target_\(index)_\(attempt)", range: 1...20)
+            let histogram = GridSolver.sumHistogram(on: board, maxLength: solverMaxLength)
+
+            // Pick the in-range sum with the most solutions (tiebreak: smaller).
+            if let target = (50...100).sorted(by: {
+                let c0 = histogram[$0] ?? 0, c1 = histogram[$1] ?? 0
+                return c0 != c1 ? c0 > c1 : $0 < $1
+            }).first {
+                let count = histogram[target] ?? 0
+                if count >= targetMinSolutions {
+                    return (board, .target(target))
+                }
+                if best == nil || count > best!.count {
+                    best = (board, target, count)
+                }
+            }
         }
-        return path.reduce(0) { $0 + board.value(at: $1) }
+
+        let fallback = best ?? (GridBoard.generate(seed: "grid_target_\(index)_0", range: 1...20), 60, 0)
+        return (fallback.board, .target(fallback.target))
     }
 }
