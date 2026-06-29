@@ -10,7 +10,12 @@ import SwiftUI
 /// Shows the trick name, step-by-step instructions, and a worked example.
 /// User taps "Start Practice" to begin the quiz.
 struct TrickView: View {
+    @EnvironmentObject private var curriculumVM: CurriculumViewModel
+    @Environment(\.dismiss) private var dismiss
+
     let lesson: Lesson
+
+    @State private var showSkipConfirmation = false
 
     var body: some View {
         ScrollView {
@@ -26,11 +31,42 @@ struct TrickView: View {
 
                 // Start practice button
                 startPracticeButton
+
+                // Skip option for players who already know the trick
+                if !isLessonCompleted {
+                    skipButton
+                }
             }
             .padding()
         }
         .navigationTitle(lesson.title)
         .background(Color.groupedBackground)
+    }
+
+    // MARK: - Skip Support
+
+    /// The group that contains this lesson, used to record progress.
+    private var enclosingGroup: LessonGroup? {
+        curriculumVM.lessonGroups.first { group in
+            group.lessons.contains { $0.id == lesson.id }
+        }
+    }
+
+    /// Whether this lesson is already marked complete.
+    private var isLessonCompleted: Bool {
+        guard let groupId = enclosingGroup?.id else { return false }
+        return curriculumVM.lessonProgress(
+            lessonId: lesson.id,
+            groupId: groupId
+        )?.isCompleted ?? false
+    }
+
+    /// Marks the lesson complete and returns to the lesson list. Skipping every
+    /// lesson in a group unlocks the next category, same as practicing them.
+    private func skipLesson() {
+        guard let groupId = enclosingGroup?.id else { return }
+        curriculumVM.skipLesson(lessonId: lesson.id, groupId: groupId)
+        dismiss()
     }
 
     // MARK: - Subviews
@@ -128,10 +164,38 @@ struct TrickView: View {
         }
         .padding(.top, 8)
     }
+
+    private var skipButton: some View {
+        Button {
+            showSkipConfirmation = true
+        } label: {
+            Text("I already know this — Skip")
+                .font(.subheadline.bold())
+                .frame(maxWidth: .infinity)
+                .padding()
+                .foregroundStyle(Color.brandAccent)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.brandPrimary, lineWidth: 2)
+                )
+        }
+        .confirmationDialog(
+            "Skip practice for this lesson?",
+            isPresented: $showSkipConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Mark as Known") { skipLesson() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This marks the lesson complete so you can move on. "
+                 + "Finish every lesson in this group to unlock the next category.")
+        }
+    }
 }
 
 #Preview {
     NavigationStack {
         TrickView(lesson: LessonCatalog.basicAdditionGroup.lessons[0])
     }
+    .environmentObject(CurriculumViewModel())
 }

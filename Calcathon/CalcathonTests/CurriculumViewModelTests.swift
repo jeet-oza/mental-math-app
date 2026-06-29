@@ -124,6 +124,46 @@ final class CurriculumViewModelTests: XCTestCase {
         XCTAssertFalse(progress?.isCompleted ?? true)
     }
 
+    // MARK: - Skip Lesson Tests
+
+    func testSkipLessonMarksCompleted() {
+        let group = viewModel.lessonGroups[0]
+        let lesson = group.lessons[0]
+
+        viewModel.skipLesson(lessonId: lesson.id, groupId: group.id)
+
+        let progress = viewModel.lessonProgress(
+            lessonId: lesson.id,
+            groupId: group.id
+        )
+        XCTAssertTrue(progress?.isCompleted ?? false)
+    }
+
+    func testSkipLessonDoesNotCountAsAttempt() {
+        let group = viewModel.lessonGroups[0]
+        let lesson = group.lessons[0]
+
+        viewModel.skipLesson(lessonId: lesson.id, groupId: group.id)
+
+        let progress = viewModel.lessonProgress(
+            lessonId: lesson.id,
+            groupId: group.id
+        )
+        XCTAssertEqual(progress?.attemptsCount, 0)
+        XCTAssertEqual(progress?.bestScore, 0)
+    }
+
+    func testSkippingAllLessonsUnlocksNextGroup() {
+        let firstGroup = viewModel.lessonGroups[0]
+
+        for lesson in firstGroup.lessons {
+            viewModel.skipLesson(lessonId: lesson.id, groupId: firstGroup.id)
+        }
+
+        let secondGroup = viewModel.lessonGroups[1]
+        XCTAssertTrue(viewModel.isGroupUnlocked(secondGroup))
+    }
+
     // MARK: - Passing Score Threshold Tests
 
     func testIsPassingScoreAt70Percent() {

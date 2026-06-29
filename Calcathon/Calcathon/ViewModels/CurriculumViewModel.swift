@@ -114,6 +114,27 @@ final class CurriculumViewModel: ObservableObject {
         saveProgress()
     }
 
+    /// Marks a lesson complete without a practice session, for players who
+    /// already know the trick. This counts toward group completion exactly
+    /// like a passing score, so skipping every lesson in a group unlocks the
+    /// next category. Leaves `bestScore` and `attemptsCount` untouched —
+    /// a skip isn't a practice attempt.
+    /// - Parameters:
+    ///   - lessonId: The lesson the user chose to skip.
+    ///   - groupId: The group containing the lesson.
+    func skipLesson(lessonId: String, groupId: String) {
+        ensureGroupProgress(groupId: groupId)
+
+        guard var groupProgress = progressMap[groupId],
+              let index = groupProgress.lessonProgresses.firstIndex(
+                  where: { $0.lessonId == lessonId }
+              ) else { return }
+
+        groupProgress.lessonProgresses[index].markCompleted()
+        progressMap[groupId] = groupProgress
+        saveProgress()
+    }
+
     /// Determines if a score qualifies as passing (≥ 70%).
     /// - Parameters:
     ///   - score: Correct answers.
