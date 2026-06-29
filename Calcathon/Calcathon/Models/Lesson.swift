@@ -47,7 +47,19 @@ struct Lesson: Identifiable, Codable, Equatable, Sendable {
 struct MathTrick: Codable, Equatable, Sendable {
     let name: String
     let steps: [String]
-    let example: TrickExample
+    /// One or more worked examples. Always contains at least one.
+    let examples: [TrickExample]
+
+    init(name: String, steps: [String], examples: [TrickExample]) {
+        self.name = name
+        self.steps = steps
+        self.examples = examples
+    }
+
+    /// Convenience for the common single-example trick.
+    init(name: String, steps: [String], example: TrickExample) {
+        self.init(name: name, steps: steps, examples: [example])
+    }
 }
 
 /// A worked example showing a trick applied to a specific problem.

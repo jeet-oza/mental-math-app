@@ -21,8 +21,8 @@ struct TrickView: View {
                 // Steps
                 stepsSection
 
-                // Worked example
-                exampleSection
+                // Worked example(s)
+                examplesSection
 
                 // Start practice button
                 startPracticeButton
@@ -73,18 +73,26 @@ struct TrickView: View {
         )
     }
 
-    private var exampleSection: some View {
+    private var examplesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Example")
+            Text(lesson.trick.examples.count > 1 ? "Examples" : "Example")
                 .font(.headline)
 
+            ForEach(Array(lesson.trick.examples.enumerated()), id: \.offset) { _, example in
+                exampleCard(example)
+            }
+        }
+    }
+
+    private func exampleCard(_ example: TrickExample) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
             // Problem
-            Text(lesson.trick.example.problem)
+            Text(example.problem)
                 .font(.title.monospaced())
                 .foregroundStyle(Color.brandAccent)
 
             // Step-by-step
-            ForEach(lesson.trick.example.stepByStepExplanation, id: \.self) { step in
+            ForEach(example.stepByStepExplanation, id: \.self) { step in
                 Text(step)
                     .font(.body.monospaced())
                     .foregroundStyle(.secondary)
@@ -92,11 +100,12 @@ struct TrickView: View {
 
             // Answer
             HStack {
-                Text("= \(lesson.trick.example.solution)")
+                Text("= \(example.solution)")
                     .font(.title2.bold().monospaced())
                     .foregroundStyle(.green)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)

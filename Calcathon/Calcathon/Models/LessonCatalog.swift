@@ -367,16 +367,28 @@ nonisolated enum LessonCatalog {
                 "Both below 100: subtract the distances from 100 instead.",
                 "Put the two parts side by side."
             ],
-            example: TrickExample(
-                problem: "102 × 106",
-                solution: "10812",
-                stepByStepExplanation: [
-                    "Step 1: 102 = 100 + 2 and 106 = 100 + 6",
-                    "Step 2: Distances 2 × 6 = 12 → last two digits",
-                    "Step 3: 100 + 2 + 6 = 108 → leading digits",
-                    "Answer: 10812  (below 100 works the same: 98 × 97 → 95 | 06 = 9506)"
-                ]
-            )
+            examples: [
+                TrickExample(
+                    problem: "102 × 106",
+                    solution: "10812",
+                    stepByStepExplanation: [
+                        "Step 1: 102 = 100 + 2 and 106 = 100 + 6",
+                        "Step 2: Distances 2 × 6 = 12 → last two digits",
+                        "Step 3: 100 + 2 + 6 = 108 → leading digits",
+                        "Answer: 10812"
+                    ]
+                ),
+                TrickExample(
+                    problem: "98 × 97",
+                    solution: "9506",
+                    stepByStepExplanation: [
+                        "Step 1: 98 = 100 − 2 and 97 = 100 − 3",
+                        "Step 2: Distances 2 × 3 = 6 → 06 (last two digits)",
+                        "Step 3: 100 − 2 − 3 = 95 → leading digits",
+                        "Answer: 9506"
+                    ]
+                )
+            ]
         ),
         operations: [.multiplication],
         difficulty: .hard,
@@ -396,17 +408,30 @@ nonisolated enum LessonCatalog {
                 "Write the base, then the tail. If the tail is ≥ 100, carry its hundreds into the base.",
                 "If the tail is negative, drop the base by 1 and add 100 to the tail."
             ],
-            example: TrickExample(
-                problem: "112 × 113",
-                solution: "12656",
-                stepByStepExplanation: [
-                    "Step 1: 112 → +12 and 113 → +13",
-                    "Step 2: Base = 112 + 13 = 125",
-                    "Step 3: Tail = 12 × 13 = 156 (≥ 100, carry 1)",
-                    "Step 4: 125 + 1 = 126, tail 56 → 12656",
-                    "Cross example: 103 × 98 → base 101, tail −6 → 100 | 94 = 10094"
-                ]
-            )
+            examples: [
+                TrickExample(
+                    problem: "112 × 113",
+                    solution: "12656",
+                    stepByStepExplanation: [
+                        "Step 1: 112 → +12 and 113 → +13",
+                        "Step 2: Base = 112 + 13 = 125",
+                        "Step 3: Tail = 12 × 13 = 156 (≥ 100, carry 1)",
+                        "Step 4: 125 + 1 = 126, tail 56 → 12656",
+                        "Answer: 12656"
+                    ]
+                ),
+                TrickExample(
+                    problem: "103 × 98",
+                    solution: "10094",
+                    stepByStepExplanation: [
+                        "Step 1: 103 → +3 and 98 → −2",
+                        "Step 2: Base = 103 + (−2) = 101",
+                        "Step 3: Tail = 3 × (−2) = −6 (negative → borrow)",
+                        "Step 4: 101 − 1 = 100, tail = 100 − 6 = 94 → 10094",
+                        "Answer: 10094"
+                    ]
+                )
+            ]
         ),
         operations: [.multiplication],
         difficulty: .hard,
