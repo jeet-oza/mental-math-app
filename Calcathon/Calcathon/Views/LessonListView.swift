@@ -10,7 +10,10 @@ import SwiftUI
 /// Shows all lessons in a group with completion status and navigation to trick/practice.
 struct LessonListView: View {
     @EnvironmentObject var curriculumVM: CurriculumViewModel
+    @Environment(\.dismiss) private var dismiss
     let group: LessonGroup
+
+    @State private var showSkipConfirmation = false
 
     var body: some View {
         ScrollView {
@@ -24,11 +27,53 @@ struct LessonListView: View {
                         )
                     )
                 }
+
+                // Skip the whole category for players who know every trick.
+                if !isGroupCompleted {
+                    skipGroupButton
+                }
             }
             .padding()
         }
         .navigationTitle(group.title)
         .background(Color.groupedBackground)
+    }
+
+    // MARK: - Skip Category
+
+    /// Whether every lesson in this group is already complete.
+    private var isGroupCompleted: Bool {
+        curriculumVM.completionPercentage(for: group.id) >= 1.0
+    }
+
+    private var skipGroupButton: some View {
+        Button {
+            showSkipConfirmation = true
+        } label: {
+            Label("I know all these — Skip category", systemImage: "checkmark.circle")
+                .font(.subheadline.bold())
+                .frame(maxWidth: .infinity)
+                .padding()
+                .foregroundStyle(Color.brandAccent)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.brandPrimary, lineWidth: 2)
+                )
+        }
+        .padding(.top, 4)
+        .confirmationDialog(
+            "Skip practice for this category?",
+            isPresented: $showSkipConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Mark All as Known") {
+                curriculumVM.skipGroup(groupId: group.id)
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This marks every lesson here complete and unlocks the next category.")
+        }
     }
 }
 
