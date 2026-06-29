@@ -192,7 +192,8 @@ nonisolated enum LessonCatalog {
             multiplyByFourLesson,
             multiplyByTwentyFiveLesson,
             twoDigitByOneDigitLesson,
-            multiplyNearHundredLesson
+            multiplyNearHundredLesson,
+            multiplyNearHundredCarryLesson
         ],
         requiredGroupId: "basic_subtraction"
     )
@@ -356,13 +357,14 @@ nonisolated enum LessonCatalog {
     private static let multiplyNearHundredLesson = Lesson(
         id: "mult_near100",
         title: "Multiply Near 100",
-        description: "Multiply two numbers just above 100 using 100 as a base.",
+        description: "Multiply two numbers near 100 — both above or both below — using 100 as a base.",
         trick: MathTrick(
             name: "Base 100",
             steps: [
-                "Write each number as 100 plus a little extra (102 = 100 + 2).",
-                "Multiply the two extras for the last two digits (pad to two digits, e.g. 6 → 06).",
-                "Add both extras onto 100 for the leading digits.",
+                "Measure how far each number is from 100 (102 → 2 above, 97 → 3 below).",
+                "Multiply those two distances for the last two digits (pad to two, e.g. 6 → 06).",
+                "Both above 100: add the distances to 100 for the leading digits.",
+                "Both below 100: subtract the distances from 100 instead.",
                 "Put the two parts side by side."
             ],
             example: TrickExample(
@@ -370,15 +372,45 @@ nonisolated enum LessonCatalog {
                 solution: "10812",
                 stepByStepExplanation: [
                     "Step 1: 102 = 100 + 2 and 106 = 100 + 6",
-                    "Step 2: Extras 2 × 6 = 12 → last two digits",
+                    "Step 2: Distances 2 × 6 = 12 → last two digits",
                     "Step 3: 100 + 2 + 6 = 108 → leading digits",
-                    "Answer: 10812"
+                    "Answer: 10812  (below 100 works the same: 98 × 97 → 95 | 06 = 9506)"
                 ]
             )
         ),
         operations: [.multiplication],
         difficulty: .hard,
-        pattern: ProblemPattern.nearHundred(excessRange: 1...9)
+        pattern: ProblemPattern.nearHundred(kinds: [.bothAbove, .bothBelow])
+    )
+
+    private static let multiplyNearHundredCarryLesson = Lesson(
+        id: "mult_near100_carry",
+        title: "Near 100: Carry & Cross",
+        description: "Near-100 products where the tail carries (112 × 113) or crosses 100 (103 × 98).",
+        trick: MathTrick(
+            name: "Base 100 — Adjust",
+            steps: [
+                "Take each number's signed distance from 100 (above is +, below is −).",
+                "Base = either number plus the other's signed distance.",
+                "Tail = the two distances multiplied, keeping the sign.",
+                "Write the base, then the tail. If the tail is ≥ 100, carry its hundreds into the base.",
+                "If the tail is negative, drop the base by 1 and add 100 to the tail."
+            ],
+            example: TrickExample(
+                problem: "112 × 113",
+                solution: "12656",
+                stepByStepExplanation: [
+                    "Step 1: 112 → +12 and 113 → +13",
+                    "Step 2: Base = 112 + 13 = 125",
+                    "Step 3: Tail = 12 × 13 = 156 (≥ 100, carry 1)",
+                    "Step 4: 125 + 1 = 126, tail 56 → 12656",
+                    "Cross example: 103 × 98 → base 101, tail −6 → 100 | 94 = 10094"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.nearHundred(kinds: [.mixed, .carry])
     )
 
     // MARK: - Squaring Shortcuts

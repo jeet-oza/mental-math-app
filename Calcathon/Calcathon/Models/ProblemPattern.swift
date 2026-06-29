@@ -46,11 +46,25 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// Squares of numbers ending in 5: `(10t + 5)²`, with `t` from `tensRange`.
     case squareEndingInFive(tensRange: ClosedRange<Int>)
 
-    /// Products of two numbers just above 100: `(100 + a) × (100 + b)`,
-    /// with `a` and `b` each drawn from `excessRange`. The range is kept
-    /// small enough that `a × b < 100`, so the trick's "last two digits"
-    /// rule holds without an extra carry into the leading part.
-    case nearHundred(excessRange: ClosedRange<Int>)
+    /// Which "base 100" situation a near-100 product falls into.
+    enum NearHundredKind: String, Codable, Equatable, Sendable {
+        /// `(100 + a) × (100 + b)` with small `a, b` → clean, no carry.
+        case bothAbove
+        /// `(100 − a) × (100 − b)` with small `a, b` → clean, no carry.
+        case bothBelow
+        /// One number above 100, one below → the cross term is negative,
+        /// so the base has to borrow.
+        case mixed
+        /// Both far enough above 100 that the cross term reaches 100,
+        /// so its hundreds carry into the base.
+        case carry
+    }
+
+    /// Products of two numbers near 100, solved with the base-100 method.
+    /// Each problem picks one kind from `kinds` (uniformly) and builds its
+    /// operands accordingly. Same-side kinds keep the cross term in
+    /// `0..<100` (no carry); `mixed` and `carry` deliberately break that.
+    case nearHundred(kinds: [NearHundredKind])
 
     /// Clean division `a ÷ d` where `d` is a chosen divisor and `a = d × q`.
     case divisor(divisors: [Int], quotientRange: ClosedRange<Int>)
@@ -85,10 +99,26 @@ enum ProblemPattern: Codable, Equatable, Sendable {
             let n = t * 10 + 5
             return MathProblem(operandA: n, operandB: n, operation: .multiplication)
 
-        case let .nearHundred(excessRange):
-            let a = Int.random(in: excessRange, using: &rng)
-            let b = Int.random(in: excessRange, using: &rng)
-            return MathProblem(operandA: 100 + a, operandB: 100 + b, operation: .multiplication)
+        case let .nearHundred(kinds):
+            let kind = kinds[Int.random(in: 0..<kinds.count, using: &rng)]
+            switch kind {
+            case .bothAbove:
+                let a = Int.random(in: 1...9, using: &rng)
+                let b = Int.random(in: 1...9, using: &rng)
+                return MathProblem(operandA: 100 + a, operandB: 100 + b, operation: .multiplication)
+            case .bothBelow:
+                let a = Int.random(in: 1...9, using: &rng)
+                let b = Int.random(in: 1...9, using: &rng)
+                return MathProblem(operandA: 100 - a, operandB: 100 - b, operation: .multiplication)
+            case .mixed:
+                let a = Int.random(in: 1...9, using: &rng)   // distance above 100
+                let b = Int.random(in: 1...9, using: &rng)   // distance below 100
+                return MathProblem(operandA: 100 + a, operandB: 100 - b, operation: .multiplication)
+            case .carry:
+                let a = Int.random(in: 11...19, using: &rng)
+                let b = Int.random(in: 11...19, using: &rng)
+                return MathProblem(operandA: 100 + a, operandB: 100 + b, operation: .multiplication)
+            }
 
         case let .divisor(divisors, quotientRange):
             let d = divisors[Int.random(in: 0..<divisors.count, using: &rng)]

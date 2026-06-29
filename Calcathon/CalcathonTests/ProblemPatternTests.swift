@@ -73,21 +73,40 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
-    func testNearHundredProducesTwoNumbersAbove100() {
-        let pattern = ProblemPattern.nearHundred(excessRange: 1...9)
+    func testNearHundredSameSideStaysClean() {
+        let pattern = ProblemPattern.nearHundred(kinds: [.bothAbove, .bothBelow])
         let engine = MathEngine(seed: "near100", pattern: pattern)
-        for problem in engine.generateBatch(count: 200) {
+        for problem in engine.generateBatch(count: 300) {
             XCTAssertEqual(problem.operation, .multiplication)
-            XCTAssertTrue((101...109).contains(problem.operandA))
-            XCTAssertTrue((101...109).contains(problem.operandB))
+            XCTAssertTrue((91...109).contains(problem.operandA))
+            XCTAssertTrue((91...109).contains(problem.operandB))
+            XCTAssertNotEqual(problem.operandA, 100)
+            XCTAssertNotEqual(problem.operandB, 100)
 
-            // The "Base 100" trick: last two digits = product of the extras,
-            // leading digits = 100 + sum of the extras. Verify it reconstructs
-            // the true product, which also confirms the extras' product < 100.
-            let a = problem.operandA - 100
-            let b = problem.operandB - 100
-            XCTAssertLessThan(a * b, 100, "Extras' product must stay two digits")
-            XCTAssertEqual(problem.correctAnswer, (100 + a + b) * 100 + a * b)
+            let d1 = problem.operandA - 100
+            let d2 = problem.operandB - 100
+            // Both numbers sit on the same side of 100, and the cross term
+            // stays a clean two digits (0..<100), so the "last two digits"
+            // rule needs no carry or borrow.
+            XCTAssertEqual(d1 > 0, d2 > 0, "Both numbers must be on the same side of 100")
+            XCTAssertTrue((0..<100).contains(d1 * d2))
+        }
+    }
+
+    func testNearHundredHardAlwaysCarriesOrCrosses() {
+        let pattern = ProblemPattern.nearHundred(kinds: [.mixed, .carry])
+        let engine = MathEngine(seed: "near100hard", pattern: pattern)
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .multiplication)
+            XCTAssertTrue((91...119).contains(problem.operandA))
+            XCTAssertTrue((91...119).contains(problem.operandB))
+
+            // Every problem is genuinely "tricky": either a crossover
+            // (negative cross term → borrow) or a large cross term
+            // (≥ 100 → carry into the base).
+            let cross = (problem.operandA - 100) * (problem.operandB - 100)
+            XCTAssertTrue(cross < 0 || cross >= 100,
+                          "Hard lesson must require a borrow or a carry")
         }
     }
 
