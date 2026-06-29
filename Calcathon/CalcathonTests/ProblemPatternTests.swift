@@ -73,6 +73,24 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    func testNearHundredProducesTwoNumbersAbove100() {
+        let pattern = ProblemPattern.nearHundred(excessRange: 1...9)
+        let engine = MathEngine(seed: "near100", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .multiplication)
+            XCTAssertTrue((101...109).contains(problem.operandA))
+            XCTAssertTrue((101...109).contains(problem.operandB))
+
+            // The "Base 100" trick: last two digits = product of the extras,
+            // leading digits = 100 + sum of the extras. Verify it reconstructs
+            // the true product, which also confirms the extras' product < 100.
+            let a = problem.operandA - 100
+            let b = problem.operandB - 100
+            XCTAssertLessThan(a * b, 100, "Extras' product must stay two digits")
+            XCTAssertEqual(problem.correctAnswer, (100 + a + b) * 100 + a * b)
+        }
+    }
+
     func testDivisorAlwaysDividesCleanly() {
         let pattern = ProblemPattern.divisor(divisors: [4, 5], quotientRange: 2...40)
         let engine = MathEngine(seed: "div", pattern: pattern)

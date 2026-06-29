@@ -191,7 +191,8 @@ nonisolated enum LessonCatalog {
             multiplyByNineLesson,
             multiplyByFourLesson,
             multiplyByTwentyFiveLesson,
-            twoDigitByOneDigitLesson
+            twoDigitByOneDigitLesson,
+            multiplyNearHundredLesson
         ],
         requiredGroupId: "basic_subtraction"
     )
@@ -350,6 +351,34 @@ nonisolated enum LessonCatalog {
         operations: [.multiplication],
         difficulty: .medium,
         pattern: ProblemPattern.twoOperand(operation: .multiplication, leftRange: 11...99, rightRange: 3...9)
+    )
+
+    private static let multiplyNearHundredLesson = Lesson(
+        id: "mult_near100",
+        title: "Multiply Near 100",
+        description: "Multiply two numbers just above 100 using 100 as a base.",
+        trick: MathTrick(
+            name: "Base 100",
+            steps: [
+                "Write each number as 100 plus a little extra (102 = 100 + 2).",
+                "Multiply the two extras for the last two digits (pad to two digits, e.g. 6 → 06).",
+                "Add both extras onto 100 for the leading digits.",
+                "Put the two parts side by side."
+            ],
+            example: TrickExample(
+                problem: "102 × 106",
+                solution: "10812",
+                stepByStepExplanation: [
+                    "Step 1: 102 = 100 + 2 and 106 = 100 + 6",
+                    "Step 2: Extras 2 × 6 = 12 → last two digits",
+                    "Step 3: 100 + 2 + 6 = 108 → leading digits",
+                    "Answer: 10812"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.nearHundred(excessRange: 1...9)
     )
 
     // MARK: - Squaring Shortcuts

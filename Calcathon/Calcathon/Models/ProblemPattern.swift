@@ -46,6 +46,12 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// Squares of numbers ending in 5: `(10t + 5)²`, with `t` from `tensRange`.
     case squareEndingInFive(tensRange: ClosedRange<Int>)
 
+    /// Products of two numbers just above 100: `(100 + a) × (100 + b)`,
+    /// with `a` and `b` each drawn from `excessRange`. The range is kept
+    /// small enough that `a × b < 100`, so the trick's "last two digits"
+    /// rule holds without an extra carry into the leading part.
+    case nearHundred(excessRange: ClosedRange<Int>)
+
     /// Clean division `a ÷ d` where `d` is a chosen divisor and `a = d × q`.
     case divisor(divisors: [Int], quotientRange: ClosedRange<Int>)
 
@@ -78,6 +84,11 @@ enum ProblemPattern: Codable, Equatable, Sendable {
             let t = Int.random(in: tensRange, using: &rng)
             let n = t * 10 + 5
             return MathProblem(operandA: n, operandB: n, operation: .multiplication)
+
+        case let .nearHundred(excessRange):
+            let a = Int.random(in: excessRange, using: &rng)
+            let b = Int.random(in: excessRange, using: &rng)
+            return MathProblem(operandA: 100 + a, operandB: 100 + b, operation: .multiplication)
 
         case let .divisor(divisors, quotientRange):
             let d = divisors[Int.random(in: 0..<divisors.count, using: &rng)]
