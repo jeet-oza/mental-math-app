@@ -31,7 +31,8 @@ final class PracticeViewModel: ObservableObject {
     // MARK: - Properties
 
     let lesson: Lesson
-    private let engine: MathEngine
+    /// The session's problems, pre-generated with no duplicate expressions.
+    private let problems: [MathProblem]
     private var problemStartTime: Date = Date()
     private let difficulty: MathEngine.Difficulty
 
@@ -72,15 +73,36 @@ final class PracticeViewModel: ObservableObject {
     /// - Parameter lesson: The lesson to practice.
     init(lesson: Lesson) {
         self.lesson = lesson
-        self.totalProblems = lesson.practiceCount
         self.difficulty = lesson.difficulty
-        self.engine = MathEngine(
+        let engine = MathEngine(
             seed: "\(lesson.id)_practice_\(UUID().uuidString)",
             difficulty: lesson.difficulty,
             operations: lesson.operations,
             pattern: lesson.pattern
         )
+        let generated = Self.distinctProblems(count: lesson.practiceCount, from: engine)
+        self.problems = generated
+        // A concept with fewer distinct problems than `practiceCount` yields a
+        // shorter (but repeat-free) session rather than showing the same one twice.
+        self.totalProblems = generated.count
         advanceToNextProblem()
+    }
+
+    /// Draws up to `count` problems with no duplicate expressions from the engine.
+    /// Bounded attempts keep it safe when the concept's pool is small.
+    private static func distinctProblems(count: Int, from engine: MathEngine) -> [MathProblem] {
+        var result: [MathProblem] = []
+        var seen: Set<String> = []
+        let maxAttempts = max(count * 20, 40)
+        var attempts = 0
+        while result.count < count && attempts < maxAttempts {
+            attempts += 1
+            let problem = engine.nextProblem()
+            if seen.insert(problem.displayText).inserted {
+                result.append(problem)
+            }
+        }
+        return result
     }
 
     // MARK: - Actions
@@ -154,7 +176,7 @@ final class PracticeViewModel: ObservableObject {
             return
         }
 
-        currentProblem = engine.nextProblem()
+        currentProblem = problems[problemNumber]
         problemNumber += 1
         userInput = ""
         problemStartTime = Date()

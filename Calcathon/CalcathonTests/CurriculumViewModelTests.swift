@@ -124,6 +124,75 @@ final class CurriculumViewModelTests: XCTestCase {
         XCTAssertFalse(progress?.isCompleted ?? true)
     }
 
+    // MARK: - Catalog Reconciliation Tests
+
+    /// Persists a progress map to the same key CurriculumViewModel loads from.
+    private func persist(_ map: [String: GroupProgress]) {
+        let data = try! JSONEncoder().encode(map)
+        UserDefaults.standard.set(data, forKey: "curriculum_progress")
+    }
+
+    private func completed(_ lessonId: String) -> LessonProgress {
+        var p = LessonProgress(lessonId: lessonId)
+        p.markCompleted()
+        return p
+    }
+
+    func testLoadAddsProgressEntriesForNewLessons() {
+        // Simulate a save from an older app version that only knew one lesson
+        // of the first group. The lesson added since must get an entry so it
+        // can be completed (and gate the next group correctly).
+        let group = LessonCatalog.basicAdditionGroup
+        let firstLessonId = group.lessons[0].id
+        persist([group.id: GroupProgress(
+            groupId: group.id,
+            lessonProgresses: [completed(firstLessonId)]
+        )])
+
+        let vm = CurriculumViewModel()
+
+        for lesson in group.lessons {
+            XCTAssertNotNil(
+                vm.lessonProgress(lessonId: lesson.id, groupId: group.id),
+                "\(lesson.id) should have a progress entry after reconciliation"
+            )
+        }
+        // Only one of the group's lessons was complete, so the group is not
+        // finished and the next group stays locked.
+        XCTAssertFalse(vm.isGroupUnlocked(vm.lessonGroups[1]))
+    }
+
+    func testNewLessonCanBeCompletedAfterReconciliation() {
+        let group = LessonCatalog.basicAdditionGroup
+        persist([group.id: GroupProgress(
+            groupId: group.id,
+            lessonProgresses: [completed(group.lessons[0].id)]
+        )])
+
+        let vm = CurriculumViewModel()
+        let newLesson = group.lessons[1]
+        vm.recordLessonAttempt(lessonId: newLesson.id, groupId: group.id, score: 10, total: 10)
+
+        XCTAssertTrue(
+            vm.lessonProgress(lessonId: newLesson.id, groupId: group.id)?.isCompleted ?? false
+        )
+    }
+
+    func testLoadPrunesOrphanedLessonProgress() {
+        // An older save had an extra lesson that no longer exists and was never
+        // completed. It must be dropped so it can't block group completion.
+        let group = LessonCatalog.basicAdditionGroup
+        var lessons = group.lessons.map { completed($0.id) }
+        lessons.append(LessonProgress(lessonId: "removed_lesson")) // incomplete orphan
+        persist([group.id: GroupProgress(groupId: group.id, lessonProgresses: lessons)])
+
+        let vm = CurriculumViewModel()
+
+        XCTAssertNil(vm.lessonProgress(lessonId: "removed_lesson", groupId: group.id))
+        // With the orphan gone and all real lessons complete, the next group unlocks.
+        XCTAssertTrue(vm.isGroupUnlocked(vm.lessonGroups[1]))
+    }
+
     // MARK: - Skip Lesson Tests
 
     func testSkipLessonMarksCompleted() {

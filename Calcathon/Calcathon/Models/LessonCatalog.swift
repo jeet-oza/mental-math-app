@@ -30,8 +30,7 @@ nonisolated enum LessonCatalog {
         iconName: "plus.circle.fill",
         lessons: [
             addingNineLesson,
-            addingElevenLesson,
-            doublingNumbersLesson
+            addingElevenLesson
         ]
     )
 
@@ -85,34 +84,6 @@ nonisolated enum LessonCatalog {
         pattern: ProblemPattern.fixedOperand(operation: .addition, fixedValues: [11], position: .right, variableRange: 10...99)
     )
 
-    private static let doublingNumbersLesson = Lesson(
-        id: "doubling",
-        title: "Doubling Numbers",
-        description: "Break numbers into easy parts to double them.",
-        trick: MathTrick(
-            name: "Split and Double",
-            steps: [
-                "Break the number into tens and ones.",
-                "Double each part separately.",
-                "Add the doubled parts together."
-            ],
-            example: TrickExample(
-                problem: "36 × 2",
-                solution: "72",
-                stepByStepExplanation: [
-                    "Step 1: Split 36 into 30 + 6",
-                    "Step 2: Double 30 → 60",
-                    "Step 3: Double 6 → 12",
-                    "Step 4: 60 + 12 = 72",
-                    "Answer: 72"
-                ]
-            )
-        ),
-        operations: [.multiplication],
-        difficulty: .easy,
-        pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [2], position: .right, variableRange: 11...99)
-    )
-
     // MARK: - Basic Subtraction
 
     static let basicSubtractionGroup = LessonGroup(
@@ -154,21 +125,21 @@ nonisolated enum LessonCatalog {
 
     private static let subtractingFromRoundNumbersLesson = Lesson(
         id: "sub_round",
-        title: "Subtract from Round Numbers",
-        description: "Use complements to subtract from 100, 1000, etc.",
+        title: "Subtract Around Multiples of 10",
+        description: "Subtract from 100 or 1000 by taking each digit from 9, then adding 1.",
         trick: MathTrick(
-            name: "Complement Method",
+            name: "Nines, Then Plus 1",
             steps: [
-                "For each digit except the last, subtract from 9.",
-                "For the last digit, subtract from 10.",
-                "This gives you the answer directly."
+                "Subtract each digit of the number from 9.",
+                "Add 1 to that result — and you're done.",
+                "Taking every digit from 9 keeps it simple; the +1 handles the last place, so you never have to subtract from 10."
             ],
             example: TrickExample(
                 problem: "100 - 37",
                 solution: "63",
                 stepByStepExplanation: [
-                    "Step 1: First digit of 37 → 9 - 3 = 6",
-                    "Step 2: Last digit of 37 → 10 - 7 = 3",
+                    "Step 1: 9 - 3 = 6 and 9 - 7 = 2 → 62",
+                    "Step 2: 62 + 1 = 63",
                     "Answer: 63"
                 ]
             )
@@ -191,7 +162,6 @@ nonisolated enum LessonCatalog {
             multiplyByNineLesson,
             multiplyByFourLesson,
             multiplyByTwentyFiveLesson,
-            twoDigitByOneDigitLesson,
             multiplyNearHundredLesson,
             multiplyNearHundredCarryLesson
         ],
@@ -325,33 +295,6 @@ nonisolated enum LessonCatalog {
         operations: [.multiplication],
         difficulty: .medium,
         pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [25], position: .right, variableRange: 4...40)
-    )
-
-    private static let twoDigitByOneDigitLesson = Lesson(
-        id: "mult_2x1",
-        title: "Two-Digit × One-Digit",
-        description: "Split the big number into tens and ones.",
-        trick: MathTrick(
-            name: "Split and Add",
-            steps: [
-                "Break the two-digit number into tens and ones.",
-                "Multiply each part by the single digit.",
-                "Add the two products together."
-            ],
-            example: TrickExample(
-                problem: "23 × 6",
-                solution: "138",
-                stepByStepExplanation: [
-                    "Step 1: 20 × 6 = 120",
-                    "Step 2: 3 × 6 = 18",
-                    "Step 3: 120 + 18 = 138",
-                    "Answer: 138"
-                ]
-            )
-        ),
-        operations: [.multiplication],
-        difficulty: .medium,
-        pattern: ProblemPattern.twoOperand(operation: .multiplication, leftRange: 11...99, rightRange: 3...9)
     )
 
     private static let multiplyNearHundredLesson = Lesson(
@@ -514,39 +457,10 @@ nonisolated enum LessonCatalog {
         description: "Shortcuts for dividing numbers mentally.",
         iconName: "divide.circle.fill",
         lessons: [
-            halvingLesson,
             divideByFourLesson,
-            divideByFiveLesson,
-            divideByTenLesson
+            divideByFiveLesson
         ],
         requiredGroupId: "squaring_shortcuts"
-    )
-
-    private static let halvingLesson = Lesson(
-        id: "div_2",
-        title: "Halving Numbers",
-        description: "Split into tens and ones, then halve each.",
-        trick: MathTrick(
-            name: "Split and Halve",
-            steps: [
-                "Break the number into tens and ones.",
-                "Halve each part.",
-                "Add the halves back together."
-            ],
-            example: TrickExample(
-                problem: "84 ÷ 2",
-                solution: "42",
-                stepByStepExplanation: [
-                    "Step 1: 80 ÷ 2 = 40",
-                    "Step 2: 4 ÷ 2 = 2",
-                    "Step 3: 40 + 2 = 42",
-                    "Answer: 42"
-                ]
-            )
-        ),
-        operations: [.division],
-        difficulty: .easy,
-        pattern: ProblemPattern.divisor(divisors: [2], quotientRange: 10...99)
     )
 
     private static let divideByFourLesson = Lesson(
@@ -597,30 +511,6 @@ nonisolated enum LessonCatalog {
         operations: [.division],
         difficulty: .medium,
         pattern: ProblemPattern.divisor(divisors: [5], quotientRange: 2...40)
-    )
-
-    private static let divideByTenLesson = Lesson(
-        id: "div_10",
-        title: "Divide by 10",
-        description: "Just shift the digits one place down.",
-        trick: MathTrick(
-            name: "Drop a Zero",
-            steps: [
-                "For multiples of 10, remove one trailing zero.",
-                "The remaining number is your answer."
-            ],
-            example: TrickExample(
-                problem: "230 ÷ 10",
-                solution: "23",
-                stepByStepExplanation: [
-                    "Step 1: Remove the trailing zero from 230",
-                    "Answer: 23"
-                ]
-            )
-        ),
-        operations: [.division],
-        difficulty: .easy,
-        pattern: ProblemPattern.divisor(divisors: [10], quotientRange: 2...99)
     )
 
     // MARK: - Percentage Tricks

@@ -50,6 +50,7 @@ final class CurriculumViewModel: ObservableObject {
         do {
             if let remote = try await sync.fetch() {
                 progressMap = ProgressMerger.merge(local: progressMap, remote: remote)
+                reconcileWithCatalog() // merge can reintroduce lessons the catalog dropped
                 saveProgress() // persists locally and pushes the merged result
             } else {
                 // First time on the cloud — seed it with whatever we have locally.
@@ -184,41 +185,50 @@ final class CurriculumViewModel: ObservableObject {
         Task { try? await sync.push(snapshot) }
     }
 
-    /// Loads progress from UserDefaults.
+    /// Loads progress from UserDefaults, then reconciles it with the current
+    /// catalog so newly-added lessons appear and removed ones don't linger.
     private func loadProgress() {
-        guard let data = UserDefaults.standard.data(forKey: progressKey),
-              let decoded = try? JSONDecoder().decode(
-                  [String: GroupProgress].self, from: data
-              ) else {
-            initializeDefaultProgress()
-            return
+        if let data = UserDefaults.standard.data(forKey: progressKey),
+           let decoded = try? JSONDecoder().decode(
+               [String: GroupProgress].self, from: data
+           ) {
+            progressMap = decoded
         }
-        progressMap = decoded
+        reconcileWithCatalog()
     }
 
-    /// Creates default (empty) progress entries for all groups/lessons.
-    private func initializeDefaultProgress() {
+    /// Brings every group's progress in line with the current catalog. Safe to
+    /// run against an empty map (creates defaults) or a stale one (adds/prunes).
+    private func reconcileWithCatalog() {
         for group in lessonGroups {
             ensureGroupProgress(groupId: group.id)
         }
     }
 
-    /// Ensures a GroupProgress entry exists for the given group.
+    /// Ensures the group's progress matches the current catalog: adds entries
+    /// for lessons that don't have one yet and drops entries for lessons that no
+    /// longer exist, while preserving progress for lessons that carry over.
+    ///
+    /// This keeps completion (and therefore unlock gating) correct when the
+    /// catalog changes between app versions — e.g. a lesson added to a group the
+    /// user already had saved progress for would otherwise never get a progress
+    /// entry, so finishing it could never mark it (or the group) complete.
     private func ensureGroupProgress(groupId: String) {
-        guard progressMap[groupId] == nil,
-              let group = lessonGroups.first(where: { $0.id == groupId }) else { return }
+        guard let group = lessonGroups.first(where: { $0.id == groupId }) else { return }
 
-        let lessonProgresses = group.lessons.map { LessonProgress(lessonId: $0.id) }
-        progressMap[groupId] = GroupProgress(
-            groupId: groupId,
-            lessonProgresses: lessonProgresses
-        )
+        let existing = progressMap[groupId]?.lessonProgresses ?? []
+        let byId = Dictionary(existing.map { ($0.lessonId, $0) }, uniquingKeysWith: { first, _ in first })
+        let reconciled = group.lessons.map { byId[$0.id] ?? LessonProgress(lessonId: $0.id) }
+
+        if progressMap[groupId]?.lessonProgresses != reconciled {
+            progressMap[groupId] = GroupProgress(groupId: groupId, lessonProgresses: reconciled)
+        }
     }
 
     /// Resets all progress (useful for testing or user request).
     func resetAllProgress() {
         progressMap.removeAll()
         UserDefaults.standard.removeObject(forKey: progressKey)
-        initializeDefaultProgress()
+        reconcileWithCatalog()
     }
 }

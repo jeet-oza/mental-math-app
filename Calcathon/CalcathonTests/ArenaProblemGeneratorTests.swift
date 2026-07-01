@@ -54,6 +54,12 @@ final class ArenaProblemGeneratorTests: XCTestCase {
         }
     }
 
+    func testEquationsDoNotRepeatWithinRound() {
+        let expressions = batch(seed: "no_repeats", count: 50).map(\.displayText)
+        XCTAssertEqual(Set(expressions).count, expressions.count,
+                       "arena must not hand out the same equation twice in a round")
+    }
+
     func testGenerationIsDeterministic() {
         let a = batch(seed: "same", count: 50).map { [$0.operandA, $0.operandB, $0.operation.hashValue] }
         let b = batch(seed: "same", count: 50).map { [$0.operandA, $0.operandB, $0.operation.hashValue] }

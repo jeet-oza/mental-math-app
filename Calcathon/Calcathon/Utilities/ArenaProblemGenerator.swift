@@ -15,13 +15,30 @@ import Foundation
 struct ArenaProblemGenerator {
 
     private var rng: SeededRandomNumberGenerator
+    /// Expressions already handed out this round, so no equation repeats.
+    private var seen: Set<String> = []
 
     init(seed: String) {
         self.rng = SeededRandomNumberGenerator(seed: seed)
     }
 
-    /// The next problem in the deterministic sequence.
+    /// The next problem in the deterministic sequence, skipping any equation
+    /// already produced this round. Re-rolling stays deterministic (same seed →
+    /// same sequence). Bounded attempts guard against a shrinking pool.
     mutating func next() -> MathProblem {
+        let maxAttempts = 40
+        var candidate = generateOne()
+        var attempts = 0
+        while seen.contains(candidate.displayText) && attempts < maxAttempts {
+            candidate = generateOne()
+            attempts += 1
+        }
+        seen.insert(candidate.displayText)
+        return candidate
+    }
+
+    /// Generates one problem from the deterministic mix, without dedup.
+    private mutating func generateOne() -> MathProblem {
         let operation = [MathOperation.addition, .subtraction, .multiplication, .division][
             Int.random(in: 0..<4, using: &rng)
         ]

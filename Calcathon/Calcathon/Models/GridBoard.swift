@@ -86,9 +86,11 @@ enum GridScoring {
         return base * rule.multiplier(forSum: sum(of: path, on: board))
     }
 
-    /// A canonical key for a path's tile set, so the same tiles can't be farmed
-    /// repeatedly within a round (order-independent).
-    static func key(for path: [GridPosition]) -> String {
-        path.map { "\($0.row)\($0.col)" }.sorted().joined(separator: "-")
+    /// A canonical key for the multiset of *values* on a path, so a combination
+    /// counts once no matter which tiles produced it. When a number repeats on
+    /// the board (e.g. two 75s), 85 + 75 is the same solution whichever 75 is
+    /// chosen — order-independent and cell-independent.
+    static func key(for path: [GridPosition], on board: GridBoard) -> String {
+        path.map { board.value(at: $0) }.sorted().map(String.init).joined(separator: "-")
     }
 }

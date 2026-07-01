@@ -47,6 +47,23 @@ final class PracticeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.accuracyText, "—")
     }
 
+    // MARK: - No-Repeat Tests
+
+    func testLargePoolSessionKeepsFullLength() {
+        // "Adding 9" draws from a large pool, so all 10 questions fit distinctly.
+        let lesson = LessonCatalog.basicAdditionGroup.lessons.first { $0.id == "add_9" }!
+        let vm = PracticeViewModel(lesson: lesson)
+        XCTAssertEqual(vm.totalProblems, lesson.practiceCount)
+    }
+
+    func testTinyPoolSessionShrinksInsteadOfRepeating() {
+        // Squares ending in 5 has only 9 distinct problems (15²…95²), so a
+        // 10-question request must shrink to 9 rather than repeat one.
+        let lesson = LessonCatalog.squaringShortcutsGroup.lessons.first { $0.id == "sq_ends5" }!
+        let vm = PracticeViewModel(lesson: lesson)
+        XCTAssertEqual(vm.totalProblems, 9)
+    }
+
     // MARK: - Answer Submission Tests
 
     func testCorrectAnswerRecorded() {

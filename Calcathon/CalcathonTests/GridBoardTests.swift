@@ -97,8 +97,28 @@ final class GridBoardTests: XCTestCase {
     }
 
     func testKeyIsOrderIndependent() {
-        let a = GridScoring.key(for: [pos(0, 0), pos(0, 1), pos(1, 1)])
-        let b = GridScoring.key(for: [pos(1, 1), pos(0, 1), pos(0, 0)])
+        let board = GridBoard(values: [
+            10, 20, 30, 1,
+            40, 50, 60, 1,
+            1,  1,  1,  1,
+            1,  1,  1,  1
+        ])
+        let a = GridScoring.key(for: [pos(0, 0), pos(0, 1), pos(1, 1)], on: board)
+        let b = GridScoring.key(for: [pos(1, 1), pos(0, 1), pos(0, 0)], on: board)
         XCTAssertEqual(a, b)
+    }
+
+    /// Two paths over different cells that hold the same numbers share a key,
+    /// so a repeated board value can't be farmed for duplicate credit.
+    func testKeyIsValueBasedNotCellBased() {
+        let board = GridBoard(values: [
+            85, 75, 75, 1,
+            1,  1,  1,  1,
+            1,  1,  1,  1,
+            1,  1,  1,  1
+        ])
+        let first85plus75 = GridScoring.key(for: [pos(0, 0), pos(0, 1)], on: board)
+        let second85plus75 = GridScoring.key(for: [pos(0, 0), pos(0, 2)], on: board)
+        XCTAssertEqual(first85plus75, second85plus75)
     }
 }

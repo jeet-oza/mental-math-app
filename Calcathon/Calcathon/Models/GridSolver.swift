@@ -10,7 +10,7 @@ import Foundation
 
 /// A scoring combination found on the board.
 struct GridSolution: Identifiable, Equatable, Sendable {
-    let id: String          // canonical tile-set key (also dedupe id)
+    let id: String          // canonical value-multiset key (also dedupe id)
     let positions: [GridPosition]
     let values: [Int]
     let sum: Int
@@ -25,7 +25,8 @@ struct GridSolution: Identifiable, Equatable, Sendable {
 enum GridSolver {
 
     /// All distinct paths satisfying the rule up to `maxLength` tiles,
-    /// deduplicated by tile set. Bounded length keeps enumeration tractable.
+    /// deduplicated by value multiset (so repeated board numbers don't yield
+    /// duplicate solutions). Bounded length keeps enumeration tractable.
     static func solutions(on board: GridBoard, rule: GridRule, maxLength: Int = 5) -> [GridSolution] {
         var byKey: [String: GridSolution] = [:]
         var path: [GridPosition] = []
@@ -37,7 +38,7 @@ enum GridSolver {
             if path.count >= GridScoring.minimumLength {
                 let sum = GridScoring.sum(of: path, on: board)
                 if rule.isSatisfied(by: sum) {
-                    let key = GridScoring.key(for: path)
+                    let key = GridScoring.key(for: path, on: board)
                     if byKey[key] == nil {
                         byKey[key] = GridSolution(
                             id: key,
@@ -65,8 +66,8 @@ enum GridSolver {
         return Array(byKey.values)
     }
 
-    /// Count of distinct tile-set paths (deduped) for each achievable sum,
-    /// up to `maxLength` tiles. Used to choose a target with enough solutions.
+    /// Count of distinct value-combination paths (deduped) for each achievable
+    /// sum, up to `maxLength` tiles. Used to choose a target with enough solutions.
     static func sumHistogram(on board: GridBoard, maxLength: Int) -> [Int: Int] {
         var counted = Set<String>()
         var histogram: [Int: Int] = [:]
@@ -77,7 +78,7 @@ enum GridSolver {
             defer { path.removeLast() }
 
             if path.count >= GridScoring.minimumLength {
-                let key = GridScoring.key(for: path)
+                let key = GridScoring.key(for: path, on: board)
                 if counted.insert(key).inserted {
                     histogram[GridScoring.sum(of: path, on: board), default: 0] += 1
                 }

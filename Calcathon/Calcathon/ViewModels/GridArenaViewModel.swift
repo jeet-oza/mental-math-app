@@ -76,7 +76,7 @@ final class GridArenaViewModel: ObservableObject {
 
     var currentPlayerId: String { playerId }
 
-    /// Tile-set keys the player banked this round (to mark found solutions).
+    /// Value-combination keys the player banked this round (to mark found solutions).
     var foundSolutionKeys: Set<String> { foundKeys }
 
     // MARK: - Computed (current selection)
@@ -226,9 +226,9 @@ final class GridArenaViewModel: ObservableObject {
             message = "\(currentSum) doesn't satisfy the rule"
             return
         }
-        let key = GridScoring.key(for: currentPath)
+        let key = GridScoring.key(for: currentPath, on: board)
         guard !foundKeys.contains(key) else {
-            message = "Already found those tiles"
+            message = "Already found those numbers"
             clearPath()
             return
         }
