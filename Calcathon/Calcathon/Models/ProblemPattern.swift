@@ -66,6 +66,10 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// `0..<100` (no carry); `mixed` and `carry` deliberately break that.
     case nearHundred(kinds: [NearHundredKind])
 
+    /// An even operand (drawn from `evenRange`) times a fixed value, e.g.
+    /// "even × 6" → the left operand is always even.
+    case evenTimes(fixed: Int, evenRange: ClosedRange<Int>)
+
     /// Clean division `a ÷ d` where `d` is a chosen divisor and `a = d × q`.
     case divisor(divisors: [Int], quotientRange: ClosedRange<Int>)
 
@@ -119,6 +123,11 @@ enum ProblemPattern: Codable, Equatable, Sendable {
                 let b = Int.random(in: 11...19, using: &rng)
                 return MathProblem(operandA: 100 + a, operandB: 100 + b, operation: .multiplication)
             }
+
+        case let .evenTimes(fixed, evenRange):
+            // Pick an even value in the range: choose a half, then double it.
+            let half = Int.random(in: (evenRange.lowerBound + 1) / 2 ... evenRange.upperBound / 2, using: &rng)
+            return MathProblem(operandA: half * 2, operandB: fixed, operation: .multiplication)
 
         case let .divisor(divisors, quotientRange):
             let d = divisors[Int.random(in: 0..<divisors.count, using: &rng)]

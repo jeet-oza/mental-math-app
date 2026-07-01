@@ -161,11 +161,39 @@ nonisolated enum LessonCatalog {
             multiplyByFiveLesson,
             multiplyByNineLesson,
             multiplyByFourLesson,
+            multiplyBySixLesson,
             multiplyByTwentyFiveLesson,
             multiplyNearHundredLesson,
             multiplyNearHundredCarryLesson
         ],
         requiredGroupId: "basic_subtraction"
+    )
+
+    private static let multiplyBySixLesson = Lesson(
+        id: "mult_6_even",
+        title: "Multiply Even Numbers by 6",
+        description: "Halve it, ×10, then add the number back.",
+        trick: MathTrick(
+            name: "Half, Shift, Add",
+            steps: [
+                "Halve the even number.",
+                "Multiply that by 10 (add a zero).",
+                "Add the original number to the result."
+            ],
+            example: TrickExample(
+                problem: "42 × 6",
+                solution: "252",
+                stepByStepExplanation: [
+                    "Step 1: 42 ÷ 2 = 21",
+                    "Step 2: 21 × 10 = 210",
+                    "Step 3: 210 + 42 = 252",
+                    "Answer: 252"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.evenTimes(fixed: 6, evenRange: 12...98)
     )
 
     private static let multiplyByElevenLesson = Lesson(

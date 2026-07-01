@@ -26,6 +26,17 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    func testEvenTimesAlwaysEven() {
+        let pattern = ProblemPattern.evenTimes(fixed: 6, evenRange: 12...98)
+        let engine = MathEngine(seed: "even6", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .multiplication)
+            XCTAssertEqual(problem.operandB, 6)
+            XCTAssertEqual(problem.operandA % 2, 0, "left operand must be even")
+            XCTAssertTrue((12...98).contains(problem.operandA))
+        }
+    }
+
     func testFixedOperandLeftFromCandidateSet() {
         let pattern = ProblemPattern.fixedOperand(
             operation: .subtraction,
