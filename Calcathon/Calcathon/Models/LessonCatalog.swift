@@ -30,7 +30,8 @@ nonisolated enum LessonCatalog {
         iconName: "plus.circle.fill",
         lessons: [
             addingNineLesson,
-            addingElevenLesson
+            addingElevenLesson,
+            addingNearHundredLesson
         ]
     )
 
@@ -84,6 +85,34 @@ nonisolated enum LessonCatalog {
         pattern: ProblemPattern.fixedOperand(operation: .addition, fixedValues: [11], position: .right, variableRange: 10...99)
     )
 
+    private static let addingNearHundredLesson = Lesson(
+        id: "add_near100",
+        title: "Add a Number Near 100",
+        description: "Round up to 100, add, then take off the little extra.",
+        trick: MathTrick(
+            name: "Round Up, Then Adjust",
+            steps: [
+                "The number you're adding is just below 100 (or 1000).",
+                "Add the round number instead — it's much easier.",
+                "Then subtract however much you rounded up by.",
+                "Example: + 98 is the same as + 100 − 2."
+            ],
+            example: TrickExample(
+                problem: "156 + 98",
+                solution: "254",
+                stepByStepExplanation: [
+                    "Step 1: 98 is 2 below 100",
+                    "Step 2: 156 + 100 = 256",
+                    "Step 3: 256 − 2 = 254",
+                    "Answer: 254"
+                ]
+            )
+        ),
+        operations: [.addition],
+        difficulty: .medium,
+        pattern: ProblemPattern.nearRound(operation: .addition, base: 100, offsetRange: 1...19, otherRange: 110...899)
+    )
+
     // MARK: - Basic Subtraction
 
     static let basicSubtractionGroup = LessonGroup(
@@ -93,6 +122,7 @@ nonisolated enum LessonCatalog {
         iconName: "minus.circle.fill",
         lessons: [
             subtractingNineLesson,
+            subtractingNearHundredLesson,
             subtractingFromRoundNumbersLesson
         ],
         requiredGroupId: "basic_addition"
@@ -121,6 +151,34 @@ nonisolated enum LessonCatalog {
         operations: [.subtraction],
         difficulty: .easy,
         pattern: ProblemPattern.fixedOperand(operation: .subtraction, fixedValues: [9], position: .right, variableRange: 18...99)
+    )
+
+    private static let subtractingNearHundredLesson = Lesson(
+        id: "sub_near100",
+        title: "Subtract a Number Near 100",
+        description: "Round up to 100, subtract, then add back the little extra.",
+        trick: MathTrick(
+            name: "Round Up, Then Add Back",
+            steps: [
+                "The number you're subtracting is just below 100 (or 1000).",
+                "Subtract the round number instead — it's much easier.",
+                "Then add back however much you rounded up by.",
+                "Example: − 96 is the same as − 100 + 4."
+            ],
+            example: TrickExample(
+                problem: "234 − 96",
+                solution: "138",
+                stepByStepExplanation: [
+                    "Step 1: 96 is 4 below 100",
+                    "Step 2: 234 − 100 = 134",
+                    "Step 3: 134 + 4 = 138",
+                    "Answer: 138"
+                ]
+            )
+        ),
+        operations: [.subtraction],
+        difficulty: .medium,
+        pattern: ProblemPattern.nearRound(operation: .subtraction, base: 100, offsetRange: 1...19, otherRange: 110...899)
     )
 
     private static let subtractingFromRoundNumbersLesson = Lesson(
@@ -255,7 +313,7 @@ nonisolated enum LessonCatalog {
         title: "Multiply by 9",
         description: "Multiply by 10, then subtract the number.",
         trick: MathTrick(
-            name: "Times 10 Minus 1",
+            name: "Times 10 Minus the Number",
             steps: [
                 "Multiply the number by 10 (add a zero).",
                 "Subtract the original number from that result."

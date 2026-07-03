@@ -70,6 +70,17 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// "even × 6" → the left operand is always even.
     case evenTimes(fixed: Int, evenRange: ClosedRange<Int>)
 
+    /// Add or subtract a number sitting just below a round `base` (e.g. 96 or
+    /// 983, near 100 / 1000): the near operand is `base − offset` with `offset`
+    /// drawn from `offsetRange`, and the other operand comes from `otherRange`.
+    /// e.g. "Subtract Near 100" → `n − 96`, solved as `n − 100 + 4`.
+    case nearRound(
+        operation: MathOperation,
+        base: Int,
+        offsetRange: ClosedRange<Int>,
+        otherRange: ClosedRange<Int>
+    )
+
     /// Clean division `a ÷ d` where `d` is a chosen divisor and `a = d × q`.
     case divisor(divisors: [Int], quotientRange: ClosedRange<Int>)
 
@@ -128,6 +139,16 @@ enum ProblemPattern: Codable, Equatable, Sendable {
             // Pick an even value in the range: choose a half, then double it.
             let half = Int.random(in: (evenRange.lowerBound + 1) / 2 ... evenRange.upperBound / 2, using: &rng)
             return MathProblem(operandA: half * 2, operandB: fixed, operation: .multiplication)
+
+        case let .nearRound(operation, base, offsetRange, otherRange):
+            let near = base - Int.random(in: offsetRange, using: &rng) // e.g. 100 − 4 = 96
+            let other = Int.random(in: otherRange, using: &rng)
+            if operation == .subtraction {
+                // Keep the result non-negative (otherRange sits above the near value).
+                let (a, b) = other >= near ? (other, near) : (near, other)
+                return MathProblem(operandA: a, operandB: b, operation: .subtraction)
+            }
+            return MathProblem(operandA: other, operandB: near, operation: operation)
 
         case let .divisor(divisors, quotientRange):
             let d = divisors[Int.random(in: 0..<divisors.count, using: &rng)]

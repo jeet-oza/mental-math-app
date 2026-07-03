@@ -37,6 +37,27 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    func testNearRoundSubtractionStaysNearBaseAndNonNegative() {
+        let pattern = ProblemPattern.nearRound(
+            operation: .subtraction, base: 100, offsetRange: 1...19, otherRange: 110...899)
+        let engine = MathEngine(seed: "subNear100", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .subtraction)
+            XCTAssertTrue((81...99).contains(problem.operandB), "subtrahend must sit just below 100")
+            XCTAssertGreaterThanOrEqual(problem.operandA - problem.operandB, 0)
+        }
+    }
+
+    func testNearRoundAdditionOperandNearBase() {
+        let pattern = ProblemPattern.nearRound(
+            operation: .addition, base: 100, offsetRange: 1...19, otherRange: 110...899)
+        let engine = MathEngine(seed: "addNear100", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .addition)
+            XCTAssertTrue((81...99).contains(problem.operandB), "addend must sit just below 100")
+        }
+    }
+
     func testFixedOperandLeftFromCandidateSet() {
         let pattern = ProblemPattern.fixedOperand(
             operation: .subtraction,
