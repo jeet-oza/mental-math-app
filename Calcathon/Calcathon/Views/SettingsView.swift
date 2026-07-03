@@ -23,6 +23,9 @@ struct SettingsView: View {
     /// Hosted from /docs via GitHub Pages (enable Pages on the repo).
     private let privacyPolicyURL = URL(string: "https://jeet-oza.github.io/mental-math-app/privacy.html")!
 
+    /// Where problem reports and support questions are delivered.
+    private let supportEmail = "jeet.oza.trioza@gmail.com"
+
     var body: some View {
         NavigationStack {
             List {
@@ -95,6 +98,11 @@ struct SettingsView: View {
             Link(destination: privacyPolicyURL) {
                 Label("Privacy Policy", systemImage: "hand.raised")
             }
+            if let reportURL = reportProblemURL {
+                Link(destination: reportURL) {
+                    Label("Report a Problem", systemImage: "exclamationmark.bubble")
+                }
+            }
             statRow("Version", appVersion)
         }
     }
@@ -152,5 +160,26 @@ struct SettingsView: View {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(v) (\(b))"
+    }
+
+    /// A pre-addressed support email so a tapped report lands in the support
+    /// inbox, with app/OS context appended to make reports actionable.
+    private var reportProblemURL: URL? {
+        let body = """
+
+
+        ——
+        Please describe the problem above.
+        App: Calcathon \(appVersion)
+        OS: \(ProcessInfo.processInfo.operatingSystemVersionString)
+        """
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = supportEmail
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: "Calcathon Problem Report"),
+            URLQueryItem(name: "body", value: body)
+        ]
+        return components.url
     }
 }
