@@ -24,7 +24,7 @@ struct SettingsView: View {
     private let privacyPolicyURL = URL(string: "https://jeet-oza.github.io/mental-math-app/privacy.html")!
 
     /// Where problem reports and support questions are delivered.
-    private let supportEmail = "jeet.oza.trioza@gmail.com"
+    private let supportEmail = "jeet.oza.trioza@outlook.com"
 
     var body: some View {
         NavigationStack {
