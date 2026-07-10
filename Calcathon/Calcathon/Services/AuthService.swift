@@ -58,7 +58,7 @@ final class AuthService: ObservableObject {
     func prepareRequest(_ request: ASAuthorizationAppleIDRequest) {
         let nonce = Self.randomNonceString()
         currentNonce = nonce
-        request.requestedScopes = [.fullName, .email]
+        request.requestedScopes = [.email]
         request.nonce = Self.sha256(nonce)
         errorMessage = nil
     }
@@ -86,29 +86,25 @@ final class AuthService: ObservableObject {
             let firebaseCredential = OAuthProvider.appleCredential(
                 withIDToken: idToken,
                 rawNonce: nonce,
-                fullName: credential.fullName
+                fullName: nil
             )
 
-            Task { await signIn(with: firebaseCredential, appleName: credential.fullName) }
+            Task { await signIn(with: firebaseCredential) }
         }
     }
 
-    private func signIn(with credential: AuthCredential, appleName: PersonNameComponents?) async {
+    /// Signs in with the given credential. Deliberately never asks Apple for
+    /// or persists the player's real name — the public username is always
+    /// the uid-derived handle (see `makeUser`), so it can't leak their
+    /// identity on a shared leaderboard.
+    private func signIn(with credential: AuthCredential) async {
         do {
-            let result: AuthDataResult
             if let current = Auth.auth().currentUser, current.isAnonymous {
-                // Upgrade the guest in place so progress/stats keep the same uid.
-                result = try await linkOrSignIn(current: current, credential: credential)
+                // Upgrade the guest in place so progress/stats/username (all
+                // keyed on uid) carry over unchanged.
+                _ = try await linkOrSignIn(current: current, credential: credential)
             } else {
-                result = try await Auth.auth().signIn(with: credential)
-            }
-
-            // Apple only returns the name on first sign-in; persist it if present.
-            if let appleName, let formatted = Self.formattedName(appleName) {
-                let change = result.user.createProfileChangeRequest()
-                change.displayName = formatted
-                try? await change.commitChanges()
-                user = AppUser(uid: result.user.uid, displayName: formatted)
+                _ = try await Auth.auth().signIn(with: credential)
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -178,32 +174,23 @@ final class AuthService: ObservableObject {
 
     private static func makeUser(from firebaseUser: FirebaseAuth.User?) -> AppUser? {
         guard let firebaseUser else { return nil }
-        if firebaseUser.isAnonymous {
-            // Guests have no Apple name — derive a stable one from the uid.
-            return AppUser(uid: firebaseUser.uid, displayName: guestName(for: firebaseUser.uid))
-        }
-        let name = firebaseUser.displayName?.isEmpty == false
-            ? firebaseUser.displayName!
-            : "Player"
-        return AppUser(uid: firebaseUser.uid, displayName: name)
+        // Always the uid-derived handle, never the real name — same for
+        // guests and Apple-authenticated users, so it stays stable across
+        // sessions (and across a guest-to-Apple upgrade, since uid carries
+        // over) without ever exposing anyone's identity on a leaderboard.
+        return AppUser(uid: firebaseUser.uid, displayName: anonymizedUsername(for: firebaseUser.uid))
     }
 
-    /// Deterministic, friendly guest name derived from the uid, so the same
-    /// device (same uid) always shows the same name.
-    private static func guestName(for uid: String) -> String {
+    /// Deterministic, friendly username derived from the uid, so the same
+    /// account (same uid) always shows the same non-identifying name.
+    private static func anonymizedUsername(for uid: String) -> String {
         var rng = SeededRandomNumberGenerator(seed: uid)
         let adjectives = ["Swift", "Clever", "Brave", "Sharp", "Quick", "Cosmic", "Mighty", "Lucky"]
         let animals = ["Fox", "Otter", "Falcon", "Tiger", "Panda", "Hawk", "Lynx", "Whale"]
         let adjective = adjectives[Int.random(in: 0..<adjectives.count, using: &rng)]
         let animal = animals[Int.random(in: 0..<animals.count, using: &rng)]
         let number = Int.random(in: 10...99, using: &rng)
-        return "\(adjective) \(animal) \(number)"
-    }
-
-    private static func formattedName(_ components: PersonNameComponents) -> String? {
-        let formatter = PersonNameComponentsFormatter()
-        let name = formatter.string(from: components)
-        return name.isEmpty ? nil : name
+        return "\(adjective)\(animal)\(number)"
     }
 
     private static func sha256(_ input: String) -> String {
