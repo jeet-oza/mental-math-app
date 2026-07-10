@@ -5,7 +5,7 @@
 //  The scoring rule for a Grid Arena round. Each round rotates among a few
 //  strategies (deterministic per round index, so everyone gets the same one):
 //   - multiple(of: 10)  — the classic "sum to a multiple of 10"
-//   - multiple(of: N)   — divisible-by-N (N chosen from a fun set, never 2/3/5)
+//   - multiple(of: N)   — divisible-by-N (N in 6–20; 11–20 shows a mod hint per tile)
 //   - target(T)         — hit exactly T (always reachable on the board)
 //
 //  For "multiple" rules, higher multiples earn tier bonuses: ×2 at 5N, ×5 at 10N
@@ -23,7 +23,16 @@ enum GridRule: Equatable, Sendable {
     static let highMultiplier = 5  // at 10N
 
     /// Divisors players find satisfying (excludes the trivial 2, 3, 5).
-    static let funDivisors = [4, 6, 7, 8, 9, 11, 12]
+    static let funDivisors = Array(6...20)
+
+    /// For "multiple" rounds with a hard-to-eyeball divisor (11–20), the
+    /// quick-math hint shown on every tile: the tile's value mod the divisor,
+    /// so players can add remainders instead of doing division in their head.
+    /// Nil for easy divisors (6–10) and for target rounds.
+    func modHint(forTileValue value: Int) -> Int? {
+        guard case .multiple(let n) = self, (11...20).contains(n) else { return nil }
+        return value % n
+    }
 
     /// Whether a path sum satisfies this rule.
     func isSatisfied(by sum: Int) -> Bool {
@@ -85,32 +94,30 @@ enum GridRule: Equatable, Sendable {
         }
     }
 
-    /// A target round: tiles 1–20, with a target in 50–100 that has the most
-    /// solutions (and at least `targetMinSolutions`). Retries the board until a
-    /// well-stocked target is found, falling back to the best available.
+    /// A target round: tiles 1–20 (capped below the target so every tile is
+    /// smaller than the sum you're building), with a target in 10–30. Retries
+    /// with a fresh target/board until a well-stocked one is found, falling
+    /// back to the best available.
     private static func makeTargetRound(index: Int) -> (board: GridBoard, rule: GridRule) {
+        var rng = SeededRandomNumberGenerator(seed: "grid_rule_\(index)")
         var best: (board: GridBoard, target: Int, count: Int)?
 
         for attempt in 0..<6 {
-            let board = GridBoard.generate(seed: "grid_target_\(index)_\(attempt)", range: 1...20)
-            let histogram = GridSolver.sumHistogram(on: board, maxLength: solverMaxLength)
-
-            // Pick the in-range sum with the most solutions (tiebreak: smaller).
-            if let target = (50...100).sorted(by: {
-                let c0 = histogram[$0] ?? 0, c1 = histogram[$1] ?? 0
-                return c0 != c1 ? c0 > c1 : $0 < $1
-            }).first {
-                let count = histogram[target] ?? 0
-                if count >= targetMinSolutions {
-                    return (board, .target(target))
-                }
-                if best == nil || count > best!.count {
-                    best = (board, target, count)
-                }
+            let target = Int.random(in: 10...30, using: &rng)
+            let maxTile = min(target - 1, 20)
+            let board = GridBoard.generate(seed: "grid_target_\(index)_\(attempt)", range: 1...maxTile)
+            let count = GridSolver.sumHistogram(on: board, maxLength: solverMaxLength)[target] ?? 0
+            if count >= targetMinSolutions {
+                return (board, .target(target))
+            }
+            if best == nil || count > best!.count {
+                best = (board, target, count)
             }
         }
 
-        let fallback = best ?? (GridBoard.generate(seed: "grid_target_\(index)_0", range: 1...20), 60, 0)
-        return (fallback.board, .target(fallback.target))
+        let fallbackTarget = best?.target ?? 15
+        let fallbackBoard = best?.board
+            ?? GridBoard.generate(seed: "grid_target_\(index)_0", range: 1...(fallbackTarget - 1))
+        return (fallbackBoard, .target(fallbackTarget))
     }
 }

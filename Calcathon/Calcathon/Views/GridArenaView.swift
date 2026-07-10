@@ -140,9 +140,11 @@ private struct GridPlayingView: View {
                 HStack(spacing: spacing) {
                     ForEach(0..<GridBoard.size, id: \.self) { col in
                         let pos = GridPosition(row: row, col: col)
+                        let tileValue = viewModel.board.value(at: pos)
                         GridTileView(
-                            value: viewModel.board.value(at: pos),
-                            selectionIndex: viewModel.currentPath.firstIndex(of: pos)
+                            value: tileValue,
+                            selectionIndex: viewModel.currentPath.firstIndex(of: pos),
+                            modHint: viewModel.rule.modHint(forTileValue: tileValue)
                         )
                     }
                 }
@@ -211,6 +213,9 @@ private struct GridPlayingView: View {
 private struct GridTileView: View {
     let value: Int
     let selectionIndex: Int?
+    /// Quick-math hint for hard-to-eyeball teens (value mod the round's
+    /// divisor), shown in brackets under the number. Nil when not applicable.
+    var modHint: Int? = nil
 
     private var isSelected: Bool { selectionIndex != nil }
 
@@ -220,10 +225,17 @@ private struct GridTileView: View {
                 .fill(isSelected ? AnyShapeStyle(.accentGradient) : AnyShapeStyle(Color.brandBeige))
                 .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
 
-            Text("\(value)")
-                .font(.title.bold().monospacedDigit())
-                .foregroundStyle(isSelected ? .white : Color.groupedBackground)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            VStack(spacing: 0) {
+                Text("\(value)")
+                    .font(.title.bold().monospacedDigit())
+                if let modHint {
+                    Text("(\(modHint))")
+                        .font(.caption2.bold().monospacedDigit())
+                        .opacity(0.7)
+                }
+            }
+            .foregroundStyle(isSelected ? .white : Color.groupedBackground)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if let index = selectionIndex {
                 Text("\(index + 1)")
