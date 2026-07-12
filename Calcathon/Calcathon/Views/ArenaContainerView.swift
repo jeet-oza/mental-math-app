@@ -19,8 +19,22 @@ struct ArenaContainerView: View {
     @EnvironmentObject private var equationStats: EquationStatsStore
     @EnvironmentObject private var gridStats: GridStatsStore
 
+    @AppStorage("hasSeenEquationHowToPlay") private var hasSeenEquationHowToPlay = false
+    @AppStorage("hasSeenGridHowToPlay") private var hasSeenGridHowToPlay = false
+
+    /// A pending How to Play presentation: which mode, and whether dismissing
+    /// it should join the round (a gate on first PLAY) or just close it (a
+    /// voluntary lookup via the toolbar's "?" button). Bundled into one value
+    /// so the two facts can never end up out of sync.
+    private struct HowToPlayRequest: Identifiable {
+        let mode: Mode
+        let joinsOnDismiss: Bool
+        var id: String { "\(mode.rawValue)-\(joinsOnDismiss)" }
+    }
+
     @State private var mode: Mode = .equations
     @State private var isPlaying = false
+    @State private var howToPlayRequest: HowToPlayRequest?
 
     var body: some View {
         NavigationStack {
@@ -38,7 +52,20 @@ struct ArenaContainerView: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        howToPlayRequest = HowToPlayRequest(mode: mode, joinsOnDismiss: false)
+                    } label: {
+                        Image(systemName: "questionmark.circle")
+                    }
+                    .accessibilityLabel(Text("How to Play"))
+                }
+            }
             .navigationDestination(isPresented: $isPlaying) { liveView }
+            .fullScreenCover(item: $howToPlayRequest) { request in
+                howToPlaySheet(for: request)
+            }
         }
     }
 
@@ -51,7 +78,7 @@ struct ArenaContainerView: View {
                 subtitle: "Solve as many equations as you can in 90 seconds.",
                 icon: "flame.fill",
                 statRows: equationRows,
-                onPlay: { isPlaying = true }
+                onPlay: { play(.equations) }
             )
         case .grid:
             ArenaLandingView(
@@ -59,8 +86,39 @@ struct ArenaContainerView: View {
                 subtitle: "Each round picks a new rule — multiples, targets, and more.",
                 icon: "square.grid.3x3.fill",
                 statRows: gridRows,
-                onPlay: { isPlaying = true }
+                onPlay: { play(.grid) }
             )
+        }
+    }
+
+    /// Shows the mode's How to Play sheet the first time a player joins it;
+    /// afterwards jumps straight into the live round.
+    private func play(_ mode: Mode) {
+        let hasSeen = mode == .equations ? hasSeenEquationHowToPlay : hasSeenGridHowToPlay
+        if hasSeen {
+            isPlaying = true
+        } else {
+            howToPlayRequest = HowToPlayRequest(mode: mode, joinsOnDismiss: true)
+        }
+    }
+
+    @ViewBuilder
+    private func howToPlaySheet(for request: HowToPlayRequest) -> some View {
+        let dismiss = {
+            howToPlayRequest = nil
+            if request.joinsOnDismiss { isPlaying = true }
+        }
+        switch request.mode {
+        case .equations:
+            HowToPlaySheet.equationArena(buttonTitle: request.joinsOnDismiss ? "Let's Play" : "Got it") {
+                hasSeenEquationHowToPlay = true
+                dismiss()
+            }
+        case .grid:
+            HowToPlaySheet.gridArena(buttonTitle: request.joinsOnDismiss ? "Let's Play" : "Got it") {
+                hasSeenGridHowToPlay = true
+                dismiss()
+            }
         }
     }
 
