@@ -223,7 +223,8 @@ nonisolated enum LessonCatalog {
             multiplyByNineLesson,
             multiplyByFourLesson,
             multiplyBySixLesson,
-            multiplyByTwentyFiveLesson
+            multiplyByTwentyFiveLesson,
+            multiplyByNinesLesson
         ],
         requiredGroupId: "basic_subtraction"
     )
@@ -354,6 +355,48 @@ nonisolated enum LessonCatalog {
         operations: [.multiplication],
         difficulty: .easy,
         pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [9], position: .right, variableRange: 2...99)
+    )
+
+    private static let multiplyByNinesLesson = Lesson(
+        id: "mult_99",
+        title: "Multiply by 99 or 999",
+        description: "Two halves, written straight down — no multiplying at all.",
+        trick: MathTrick(
+            name: "One Less, Then the Complement",
+            steps: [
+                "Left half: knock 1 off the number you're multiplying.",
+                "Right half: take that same number away from the next round number (100 for 99, 1000 for 999).",
+                "For the right half use the complement rule you already know — all digits from 9, the last from 10.",
+                "Pad the right half to as many digits as there are 9s.",
+                "Write the two halves side by side."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "76 × 99",
+                    solution: "7524",
+                    stepByStepExplanation: [
+                        "Step 1: Left → 76 − 1 = 75",
+                        "Step 2: Right → 100 − 76 = 24",
+                        "Step 3: Two digits of 9s, so the right half is 24",
+                        "Answer: 7524"
+                    ]
+                ),
+                TrickExample(
+                    problem: "45 × 999",
+                    solution: "44955",
+                    stepByStepExplanation: [
+                        "Step 1: Left → 45 − 1 = 44",
+                        "Step 2: Right → 1000 − 45 = 955",
+                        "Step 3: Three digits of 9s, so the right half is 955",
+                        "Answer: 44955"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.fixedOperand(
+            operation: .multiplication, fixedValues: [99, 999], position: .right, variableRange: 11...99)
     )
 
     private static let multiplyByFourLesson = Lesson(
@@ -716,7 +759,8 @@ nonisolated enum LessonCatalog {
             squaresEndingInFiveLesson,
             sameTensUnitsSumTenLesson,
             squaresNearFiftyLesson,
-            squaresNearHundredLesson
+            squaresNearHundredLesson,
+            squareAnyTwoDigitLesson
         ],
         requiredGroupId: "advanced_multiplication"
     )
@@ -857,6 +901,48 @@ nonisolated enum LessonCatalog {
         pattern: ProblemPattern.squareNearBase(base: 100, deviationRange: 1...9)
     )
 
+    private static let squareAnyTwoDigitLesson = Lesson(
+        id: "sq_any",
+        title: "Square Any 2-Digit Number",
+        description: "The catch-all: three columns that work when no special shape fits.",
+        trick: MathTrick(
+            name: "The Duplex",
+            steps: [
+                "Split the number into its tens digit and its units digit.",
+                "Right column: the units digit squared.",
+                "Middle column: the two digits multiplied, then doubled.",
+                "Left column: the tens digit squared.",
+                "Work right to left, keeping one digit per column and carrying the rest left.",
+                "This is the crosswise method pointed at a number and itself — so it squares anything, no special shape needed."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "43 × 43",
+                    solution: "1849",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 3² = 9",
+                        "Step 2: Middle → 4 × 3 × 2 = 24 → write 4, carry 2",
+                        "Step 3: Tens → 4² = 16, plus carry 2 = 18",
+                        "Answer: 1849"
+                    ]
+                ),
+                TrickExample(
+                    problem: "67 × 67",
+                    solution: "4489",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 7² = 49 → write 9, carry 4",
+                        "Step 2: Middle → 6 × 7 × 2 = 84, plus carry 4 = 88 → write 8, carry 8",
+                        "Step 3: Tens → 6² = 36, plus carry 8 = 44",
+                        "Answer: 4489"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.square(range: 21...99)
+    )
+
     // MARK: - Division Tricks
 
     static let divisionTricksGroup = LessonGroup(
@@ -868,6 +954,7 @@ nonisolated enum LessonCatalog {
             divideByFourLesson,
             divideByFiveLesson,
             divideByNineLesson,
+            remainderByNineLesson,
             remainderBySevenLesson
         ],
         requiredGroupId: "squaring_shortcuts"
@@ -964,6 +1051,47 @@ nonisolated enum LessonCatalog {
         operations: [.division],
         difficulty: .hard,
         pattern: ProblemPattern.divideByNine(quotientRange: 12...99)
+    )
+
+    private static let remainderByNineLesson = Lesson(
+        id: "mod_9",
+        title: "Casting Out Nines",
+        description: "Add the digits to get the remainder after 9 — the classic way to check your own answers.",
+        trick: MathTrick(
+            name: "Add the Digits Down",
+            steps: [
+                "Add up all the digits of the number.",
+                "If that total still has more than one digit, add its digits too.",
+                "Keep going until one digit is left. That's the remainder after 9.",
+                "Landing on 9 means the remainder is 0 — the number divides by 9 exactly.",
+                "This is how you check any sum or product: do it to both sides, and they must match.",
+                "Nines vanish as you add, so you can skip any 9 — and any pair of digits making 9."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "4857 mod 9",
+                    solution: "6",
+                    stepByStepExplanation: [
+                        "Step 1: 4 + 8 + 5 + 7 = 24",
+                        "Step 2: Still two digits → 2 + 4 = 6",
+                        "Answer: 6"
+                    ]
+                ),
+                TrickExample(
+                    problem: "738 mod 9",
+                    solution: "0",
+                    stepByStepExplanation: [
+                        "Step 1: 7 + 3 + 8 = 18",
+                        "Step 2: 1 + 8 = 9",
+                        "Step 3: Landed on 9, so the remainder is 0",
+                        "Answer: 0"
+                    ]
+                )
+            ]
+        ),
+        operations: [.remainder],
+        difficulty: .medium,
+        pattern: ProblemPattern.remainder(divisor: 9, range: 100...9999)
     )
 
     private static let remainderBySevenLesson = Lesson(

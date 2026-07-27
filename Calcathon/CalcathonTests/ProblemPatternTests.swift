@@ -293,6 +293,53 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    func testMultiplyByNinesSplitsIntoTwoHalves() {
+        // The lesson's rule: n × 99 is (n − 1) followed by (100 − n), and the
+        // same shape with 1000 for 999. It only holds while n stays below the
+        // round number, which is what the variable range guarantees.
+        let pattern = ProblemPattern.fixedOperand(
+            operation: .multiplication, fixedValues: [99, 999], position: .right, variableRange: 11...99)
+        let engine = MathEngine(seed: "mult99", pattern: pattern)
+
+        for problem in engine.generateBatch(count: 200) {
+            let n = problem.operandA
+            let round = problem.operandB + 1 // 100 or 1000
+            XCTAssertTrue([99, 999].contains(problem.operandB))
+            XCTAssertLessThan(n, round, "the complement half needs n below the round number")
+            XCTAssertEqual(problem.correctAnswer, (n - 1) * round + (round - n))
+        }
+    }
+
+    func testDuplexReproducesAnySquare() {
+        // The taught columns: tens², then 2 × tens × units, then units².
+        let engine = MathEngine(seed: "sqAny", pattern: .square(range: 21...99))
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operandA, problem.operandB)
+            let (t, u) = (problem.operandA / 10, problem.operandA % 10)
+            XCTAssertEqual(problem.correctAnswer, t * t * 100 + 2 * t * u * 10 + u * u)
+        }
+    }
+
+    func testCastingOutNinesMatchesTheRemainder() {
+        let pattern = ProblemPattern.remainder(divisor: 9, range: 100...9999)
+        let engine = MathEngine(seed: "mod9", pattern: pattern)
+
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .remainder)
+            XCTAssertEqual(problem.operandB, 9)
+
+            // Repeated digit-summing must land on the true remainder — with the
+            // wrinkle the lesson calls out: a digital root of 9 means 0.
+            var value = problem.operandA
+            while value > 9 {
+                var sum = 0, rest = value
+                while rest > 0 { sum += rest % 10; rest /= 10 }
+                value = sum
+            }
+            XCTAssertEqual(value == 9 ? 0 : value, problem.correctAnswer)
+        }
+    }
+
     func testDivisorAlwaysDividesCleanly() {
         let pattern = ProblemPattern.divisor(divisors: [4, 5], quotientRange: 2...40)
         let engine = MathEngine(seed: "div", pattern: pattern)
