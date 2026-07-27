@@ -1024,9 +1024,142 @@ nonisolated enum LessonCatalog {
         lessons: [
             twoReferenceLesson,
             multiplyByFactorsLesson,
-            multiplyLeftToRightLesson
+            doubleAndHalveLesson,
+            multiplyLeftToRightLesson,
+            anchorMethodLesson,
+            midpointMethodLesson
         ],
         requiredGroupId: "advanced_multiplication"
+    )
+
+    private static let doubleAndHalveLesson = Lesson(
+        id: "mult_double_halve",
+        title: "Double and Halve",
+        description: "Move a factor of 2 from one side to the other and the product doesn't change.",
+        trick: MathTrick(
+            name: "Rebalance the Pair",
+            steps: [
+                "Double the smaller number and halve the larger one.",
+                "The product is unchanged, because you removed a 2 from one side and gave it to the other.",
+                "Aim for a pair you already know — landing on a times table you own is the whole point.",
+                "Halving only works while the larger number stays even, so stop when it turns odd."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "3 × 14",
+                    solution: "42",
+                    stepByStepExplanation: [
+                        "Step 1: Double 3 → 6",
+                        "Step 2: Halve 14 → 7",
+                        "Step 3: 6 × 7 = 42",
+                        "Answer: 42"
+                    ]
+                ),
+                TrickExample(
+                    problem: "6 × 24",
+                    solution: "144",
+                    stepByStepExplanation: [
+                        "Step 1: Double 6 → 12",
+                        "Step 2: Halve 24 → 12",
+                        "Step 3: 12 × 12 = 144",
+                        "Answer: 144"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .easy,
+        pattern: ProblemPattern.doubleAndHalve(smallRange: 3...9, evenRange: 12...48)
+    )
+
+    private static let anchorMethodLesson = Lesson(
+        id: "mult_anchor",
+        title: "The Anchor Method",
+        description: "The one identity behind every base method — and it works off any round number, not just 100.",
+        trick: MathTrick(
+            name: "Anchor and Correct",
+            steps: [
+                "Pick a round number near both — 10, 20, 30, whatever is closest.",
+                "Take each number's signed distance from that anchor.",
+                "Add both distances to the anchor. Multiply that by the anchor.",
+                "Multiply the two distances together, keeping the signs, and add it on.",
+                "One number moving above and the other below is not a special case — the signs handle it."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "18 × 16",
+                    solution: "288",
+                    stepByStepExplanation: [
+                        "Step 1: Anchor 20 → 18 is −2, 16 is −4",
+                        "Step 2: 20 − 2 − 4 = 14",
+                        "Step 3: 20 × 14 = 280",
+                        "Step 4: (−2) × (−4) = +8",
+                        "Step 5: 280 + 8 = 288",
+                        "Answer: 288"
+                    ]
+                ),
+                TrickExample(
+                    problem: "18 × 24",
+                    solution: "432",
+                    stepByStepExplanation: [
+                        "Step 1: Anchor 20 → 18 is −2, 24 is +4",
+                        "Step 2: 20 − 2 + 4 = 22",
+                        "Step 3: 20 × 22 = 440",
+                        "Step 4: (−2) × (+4) = −8",
+                        "Step 5: 440 − 8 = 432",
+                        "Answer: 432"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.anchorProduct(anchors: [20, 30, 40, 60, 70], deviationRange: 1...5)
+    )
+
+    private static let midpointMethodLesson = Lesson(
+        id: "mult_midpoint",
+        title: "Meet in the Middle",
+        description: "Turn any product into one square minus another — 46 × 58 becomes 52² − 6².",
+        trick: MathTrick(
+            name: "Midpoint Method",
+            steps: [
+                "Find the number halfway between the two — their average.",
+                "Note how far each one sits from that midpoint. Both are the same distance, one either side.",
+                "Square the midpoint.",
+                "Subtract the distance squared. That's the answer.",
+                "It works because (m − g)(m + g) is always m² − g², so a product becomes a square you already know."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "46 × 58",
+                    solution: "2668",
+                    stepByStepExplanation: [
+                        "Step 1: Midpoint of 46 and 58 is 52",
+                        "Step 2: Each sits 6 away from 52",
+                        "Step 3: 52² = 2704",
+                        "Step 4: 6² = 36",
+                        "Step 5: 2704 − 36 = 2668",
+                        "Answer: 2668"
+                    ]
+                ),
+                TrickExample(
+                    problem: "28 × 32",
+                    solution: "896",
+                    stepByStepExplanation: [
+                        "Step 1: Midpoint of 28 and 32 is 30",
+                        "Step 2: Each sits 2 away from 30",
+                        "Step 3: 30² = 900",
+                        "Step 4: 2² = 4",
+                        "Step 5: 900 − 4 = 896",
+                        "Answer: 896"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.midpointProduct(midpointRange: 20...90, gapRange: 2...8)
     )
 
     private static let twoReferenceLesson = Lesson(
@@ -1176,9 +1309,50 @@ nonisolated enum LessonCatalog {
             sameTensUnitsSumTenLesson,
             squaresNearFiftyLesson,
             squaresNearHundredLesson,
+            squareNeighbourLesson,
             squareAnyTwoDigitLesson
         ],
         requiredGroupId: "problem_reshaping"
+    )
+
+    private static let squareNeighbourLesson = Lesson(
+        id: "sq_neighbour",
+        title: "Squares Next Door",
+        description: "31² and 29² both fall straight out of 30² — for anything ending in 1 or 9.",
+        trick: MathTrick(
+            name: "Borrow the Round Square",
+            steps: [
+                "Round to the nearest multiple of ten and square it — that part is just a times table and two zeros.",
+                "Going up one: add the round number, then add the number you want.",
+                "Going down one: subtract the round number, then subtract the number you want.",
+                "Put another way, stepping from one square to the next adds the two numbers involved."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "31 × 31",
+                    solution: "961",
+                    stepByStepExplanation: [
+                        "Step 1: 30² = 900",
+                        "Step 2: Going up, so add 30 → 930",
+                        "Step 3: Then add 31 → 961",
+                        "Answer: 961"
+                    ]
+                ),
+                TrickExample(
+                    problem: "69 × 69",
+                    solution: "4761",
+                    stepByStepExplanation: [
+                        "Step 1: Nearest round is 70, and 70² = 4900",
+                        "Step 2: Going down, so subtract 70 → 4830",
+                        "Step 3: Then subtract 69 → 4761",
+                        "Answer: 4761"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.squareAdjacentToRound(tensRange: 2...9)
     )
 
     private static let squaresEndingInFiveLesson = Lesson(
@@ -1760,9 +1934,56 @@ nonisolated enum LessonCatalog {
             divideByFiveLesson,
             divideByEightLesson,
             divideByNineLesson,
+            divideByNineRemainderLesson,
             divideByFactorsLesson
         ],
         requiredGroupId: "powers_and_roots"
+    )
+
+    private static let divideByNineRemainderLesson = Lesson(
+        id: "div_9_remainder",
+        title: "Divide by 9 — With a Remainder",
+        description: "Any two-digit number ÷ 9: the tens digit is the answer, the digit sum is the remainder.",
+        trick: MathTrick(
+            name: "Tens Digit, Digit Sum",
+            steps: [
+                "The tens digit is the quotient.",
+                "Add the two digits together — that's the remainder.",
+                "If that remainder reaches 9 or more, it is too big to be a remainder for 9.",
+                "In that case divide the remainder by 9 as well: add its quotient to your answer and keep what's left.",
+                "This is the running-sum method stopped after one step, which is why the digits add up."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "34 ÷ 9",
+                    solution: "3 r 7",
+                    stepByStepExplanation: [
+                        "Step 1: Tens digit → 3",
+                        "Step 2: 3 + 4 = 7, and 7 is under 9",
+                        "Answer: 3 r 7"
+                    ]
+                ),
+                TrickExample(
+                    problem: "75 ÷ 9",
+                    solution: "8 r 3",
+                    stepByStepExplanation: [
+                        "Step 1: Tens digit → 7",
+                        "Step 2: 7 + 5 = 12, which is too big for a remainder",
+                        "Step 3: 12 ÷ 9 = 1 r 3",
+                        "Step 4: Add the 1 → 7 + 1 = 8, and keep the 3",
+                        "Answer: 8 r 3"
+                    ]
+                )
+            ]
+        ),
+        operations: [.divisionWithRemainder],
+        difficulty: .medium,
+        pattern: ProblemPattern.nearBaseDivision(
+            base: 10,
+            side: .below,
+            offsetRange: 1...1,
+            quotientRange: 2...10
+        )
     )
 
     private static let divideByFactorsLesson = Lesson(
@@ -2072,7 +2293,8 @@ nonisolated enum LessonCatalog {
         lessons: [
             remainderByNineLesson,
             remainderByElevenLesson,
-            remainderBySevenLesson
+            remainderBySevenLesson,
+            remainderByThirteenLesson
         ],
         requiredGroupId: "advanced_division"
     )
@@ -2197,6 +2419,47 @@ nonisolated enum LessonCatalog {
         operations: [.remainder],
         difficulty: .hard,
         pattern: ProblemPattern.remainder(divisor: 7, range: 100...9999)
+    )
+
+    private static let remainderByThirteenLesson = Lesson(
+        id: "mod_13",
+        title: "Remainder After 13",
+        description: "Split the number into groups of three and alternate the signs — 1001 does the work.",
+        trick: MathTrick(
+            name: "The 1001 Split",
+            steps: [
+                "Break the number into groups of three digits, starting from the right.",
+                "Add the rightmost group, subtract the next, add the next, and so on.",
+                "Take the result's remainder after 13. A negative total just means adding 13 until it turns positive.",
+                "This works because 1001 = 7 × 11 × 13, so every group of three is one step around all three at once.",
+                "The very same total gives you the remainder after 7 and after 11 — one calculation, three answers."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "8214 mod 13",
+                    solution: "11",
+                    stepByStepExplanation: [
+                        "Step 1: Groups of three from the right → 8 | 214",
+                        "Step 2: 214 − 8 = 206",
+                        "Step 3: 13 × 15 = 195, and 206 − 195 = 11",
+                        "Answer: 11"
+                    ]
+                ),
+                TrickExample(
+                    problem: "45678 mod 13",
+                    solution: "9",
+                    stepByStepExplanation: [
+                        "Step 1: Groups of three from the right → 45 | 678",
+                        "Step 2: 678 − 45 = 633",
+                        "Step 3: 13 × 48 = 624, and 633 − 624 = 9",
+                        "Answer: 9"
+                    ]
+                )
+            ]
+        ),
+        operations: [.remainder],
+        difficulty: .hard,
+        pattern: ProblemPattern.remainder(divisor: 13, range: 1000...999999)
     )
 
     // MARK: - Percentage Tricks

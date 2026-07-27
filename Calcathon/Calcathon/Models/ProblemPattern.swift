@@ -100,6 +100,26 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// e.g. `43 × 47`. Products split cleanly into `t(t+1) | u(10−u)`.
     case sameTensUnitsSumTen(tensRange: ClosedRange<Int>)
 
+    /// Products of two numbers straddling a midpoint, `m − g` and `m + g`, so
+    /// the pair collapses to `m² − g²`. The midpoint is always a round number
+    /// or one ending in 5, because the method is only a shortcut if `m²` is
+    /// itself easy.
+    case midpointProduct(midpointRange: ClosedRange<Int>, gapRange: ClosedRange<Int>)
+
+    /// Products of two numbers near a small round `anchor` (10, 20, 30 …),
+    /// solved as `a(a + c + d) + cd`. Unlike `nearBase`, the two deviations
+    /// take independent signs: the anchor method handles a mixed pair without
+    /// a special case, which is most of why it is worth learning.
+    case anchorProduct(anchors: [Int], deviationRange: ClosedRange<Int>)
+
+    /// A small multiplier times an even number, which rebalances into an
+    /// easier pair by doubling one side and halving the other.
+    case doubleAndHalve(smallRange: ClosedRange<Int>, evenRange: ClosedRange<Int>)
+
+    /// Squares of numbers sitting one either side of a multiple of ten, i.e.
+    /// ending in 1 or 9, so the neighbouring round square carries the work.
+    case squareAdjacentToRound(tensRange: ClosedRange<Int>)
+
     /// Squares of numbers within `deviationRange` of a round `base`,
     /// e.g. base 100 → 91…109. The base itself is never generated.
     case squareNearBase(base: Int, deviationRange: ClosedRange<Int>)
@@ -297,6 +317,42 @@ enum ProblemPattern: Codable, Equatable, Sendable {
                 operandB: t * 10 + (10 - u),
                 operation: .multiplication
             )
+
+        case let .midpointProduct(midpointRange, gapRange):
+            // Midpoints land on a multiple of 5 so the square at the centre is
+            // one the player already has a shortcut for.
+            let steps = midpointRange.lowerBound / 5 ... midpointRange.upperBound / 5
+            let midpoint = Int.random(in: steps, using: &rng) * 5
+            let gap = Int.random(in: gapRange, using: &rng)
+            return MathProblem(
+                operandA: midpoint - gap,
+                operandB: midpoint + gap,
+                operation: .multiplication
+            )
+
+        case let .anchorProduct(anchors, deviationRange):
+            let anchor = anchors[Int.random(in: 0..<anchors.count, using: &rng)]
+            func deviation() -> Int {
+                let size = Int.random(in: deviationRange, using: &rng)
+                return Bool.random(using: &rng) ? size : -size
+            }
+            return MathProblem(
+                operandA: anchor + deviation(),
+                operandB: anchor + deviation(),
+                operation: .multiplication
+            )
+
+        case let .doubleAndHalve(smallRange, evenRange):
+            let small = Int.random(in: smallRange, using: &rng)
+            // Pick an even value the same way `evenTimes` does: halve the
+            // range, draw, then double.
+            let half = Int.random(in: (evenRange.lowerBound + 1) / 2 ... evenRange.upperBound / 2, using: &rng)
+            return MathProblem(operandA: small, operandB: half * 2, operation: .multiplication)
+
+        case let .squareAdjacentToRound(tensRange):
+            let tens = Int.random(in: tensRange, using: &rng)
+            let n = Bool.random(using: &rng) ? tens * 10 + 1 : tens * 10 - 1
+            return MathProblem(operandA: n, operandB: n, operation: .multiplication)
 
         case let .squareNearBase(base, deviationRange):
             let d = Int.random(in: deviationRange, using: &rng)

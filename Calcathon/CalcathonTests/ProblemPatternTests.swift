@@ -537,6 +537,116 @@ final class ProblemPatternTests: XCTestCase {
         LessonCatalog.allGroups.lazy.flatMap(\.lessons).first { $0.id == id }
     }
 
+    /// The midpoint method is only a shortcut if the centre square is one the
+    /// player can already do, so the midpoint has to land on a multiple of 5
+    /// and the two operands must sit symmetrically either side of it.
+    func testMidpointProductIsSymmetricAboutAnEasySquare() {
+        let pattern = ProblemPattern.midpointProduct(midpointRange: 20...90, gapRange: 2...8)
+        let engine = MathEngine(seed: "midpoint", pattern: pattern)
+        for problem in engine.generateBatch(count: 300) {
+            let sum = problem.operandA + problem.operandB
+            XCTAssertEqual(sum % 2, 0, "operands must share a midpoint")
+            let midpoint = sum / 2
+            XCTAssertEqual(midpoint % 5, 0, "midpoint must be a multiple of 5 to be worth squaring")
+
+            let gap = midpoint - problem.operandA
+            XCTAssertTrue((2...8).contains(gap))
+            XCTAssertEqual(
+                problem.correctAnswer, midpoint * midpoint - gap * gap,
+                "the identity m² − g² must actually hold"
+            )
+        }
+    }
+
+    /// The anchor method's selling point is that a mixed pair needs no special
+    /// case, so both same-side and opposite-side pairs have to be generated.
+    func testAnchorProductCoversMixedAndSameSidePairs() {
+        let anchors = [20, 30, 40, 60, 70]
+        let pattern = ProblemPattern.anchorProduct(anchors: anchors, deviationRange: 1...5)
+        let engine = MathEngine(seed: "anchor", pattern: pattern)
+        var sawSameSide = false, sawMixed = false
+
+        for problem in engine.generateBatch(count: 300) {
+            guard let anchor = anchors.min(by: {
+                abs($0 - problem.operandA) < abs($1 - problem.operandA)
+            }) else { return XCTFail("no anchors") }
+
+            let c = problem.operandA - anchor
+            let d = problem.operandB - anchor
+            XCTAssertNotEqual(c, 0, "a zero deviation makes the method trivial")
+            XCTAssertNotEqual(d, 0, "a zero deviation makes the method trivial")
+            XCTAssertEqual(
+                problem.correctAnswer, anchor * (anchor + c + d) + c * d,
+                "the identity a(a + c + d) + cd must actually hold"
+            )
+
+            if c.signum() == d.signum() { sawSameSide = true } else { sawMixed = true }
+        }
+
+        XCTAssertTrue(sawSameSide && sawMixed, "both same-side and mixed pairs must occur")
+    }
+
+    /// Halving the larger operand has to leave a whole number, or the taught
+    /// step cannot be carried out at all.
+    func testDoubleAndHalveAlwaysHasAnEvenSide() {
+        let pattern = ProblemPattern.doubleAndHalve(smallRange: 3...9, evenRange: 12...48)
+        let engine = MathEngine(seed: "doublehalve", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operandB % 2, 0, "the halved side must be even")
+            XCTAssertTrue((12...48).contains(problem.operandB))
+            XCTAssertTrue((3...9).contains(problem.operandA))
+            XCTAssertEqual(
+                problem.correctAnswer, (problem.operandA * 2) * (problem.operandB / 2),
+                "doubling and halving must leave the product unchanged"
+            )
+        }
+    }
+
+    /// This lesson leans on the neighbouring round square, which only exists
+    /// if the number ends in 1 or 9.
+    func testSquareAdjacentToRoundEndsInOneOrNine() {
+        let pattern = ProblemPattern.squareAdjacentToRound(tensRange: 2...9)
+        let engine = MathEngine(seed: "sqadjacent", pattern: pattern)
+        var sawBelow = false, sawAbove = false
+
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operandA, problem.operandB, "must be a square")
+            let units = problem.operandA % 10
+            XCTAssertTrue(units == 1 || units == 9, "\(problem.operandA) is not next to a round number")
+            if units == 9 { sawBelow = true } else { sawAbove = true }
+        }
+
+        XCTAssertTrue(sawBelow && sawAbove, "both the up and down cases must occur")
+    }
+
+    /// The two-digit ÷ 9 lesson teaches a quotient *and* a remainder, and its
+    /// worked correction step only exists when the digits can sum past 9.
+    func testDivideByNineWithRemainderStaysTwoDigit() {
+        guard let pattern = catalogLesson(id: "div_9_remainder")?.pattern else {
+            return XCTFail("div_9_remainder is missing from the catalog")
+        }
+        let engine = MathEngine(seed: "div9r", pattern: pattern)
+        var sawCorrectionCase = false
+
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .divisionWithRemainder)
+            XCTAssertEqual(problem.operandB, 9)
+            XCTAssertTrue((10...99).contains(problem.operandA), "must stay a two-digit dividend")
+
+            // The taught shortcut: tens digit is the quotient, digit sum the
+            // remainder, before any correction.
+            let tens = problem.operandA / 10
+            let digitSum = tens + problem.operandA % 10
+            if digitSum >= 9 { sawCorrectionCase = true }
+            XCTAssertEqual(
+                problem.operandA, 9 * tens + digitSum,
+                "the shortcut must reconstruct the dividend"
+            )
+        }
+
+        XCTAssertTrue(sawCorrectionCase, "the remainder-too-big case must occur")
+    }
+
     func testPatternGenerationIsDeterministic() {
         let pattern = ProblemPattern.fixedOperand(
             operation: .addition,
