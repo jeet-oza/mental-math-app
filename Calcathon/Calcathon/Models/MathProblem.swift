@@ -49,6 +49,25 @@ enum ProblemAnswer: Equatable, Codable, Sendable {
         }
     }
 
+    /// Whether `input` is even the right *shape* to be an answer here —
+    /// digits for a whole number, something fraction-like for a fraction.
+    ///
+    /// Kept separate from `accepts` so that typing nonsense is a no-op rather
+    /// than a wrong answer: a player who fumbles the keypad should not burn
+    /// an attempt.
+    func isWellFormed(_ input: String) -> Bool {
+        let trimmed = input.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return false }
+        switch self {
+        case .single, .quotientRemainder:
+            return Int(trimmed) != nil
+        case .rational:
+            return Fraction.parse(trimmed) != nil
+        case .approximate:
+            return (try? ExpressionEvaluator.evaluate(trimmed)) != nil
+        }
+    }
+
     /// Whether `input` is an acceptable answer. Each case decides for itself
     /// what "acceptable" means: exact for whole numbers, by value for
     /// fractions, within tolerance for approximations.

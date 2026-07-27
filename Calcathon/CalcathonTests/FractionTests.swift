@@ -101,6 +101,26 @@ final class FractionTests: XCTestCase {
         XCTAssertFalse(answer.accepts("not a number"))
     }
 
+    /// Nonsense must be rejected before grading, so a fumbled keypad is a
+    /// no-op rather than a wrong answer. Each answer shape has its own idea
+    /// of what "typeable" means.
+    func testWellFormedGatesEachAnswerShapeSeparately() {
+        XCTAssertTrue(ProblemAnswer.single(42).isWellFormed("43"))
+        XCTAssertFalse(ProblemAnswer.single(42).isWellFormed("abc"))
+        XCTAssertFalse(ProblemAnswer.single(42).isWellFormed(""))
+        // A fraction is not a whole number, so it must not pass as one.
+        XCTAssertFalse(ProblemAnswer.single(42).isWellFormed("1/2"))
+
+        XCTAssertTrue(ProblemAnswer.rational(Fraction(1, 2)).isWellFormed("1/3"))
+        XCTAssertTrue(ProblemAnswer.rational(Fraction(1, 2)).isWellFormed("7"))
+        XCTAssertFalse(ProblemAnswer.rational(Fraction(1, 2)).isWellFormed("abc"))
+
+        let root = ProblemAnswer.approximate(value: 7.07, tolerance: 0.05)
+        XCTAssertTrue(root.isWellFormed("7.1"))
+        XCTAssertTrue(root.isWellFormed("√50"))
+        XCTAssertFalse(root.isWellFormed("abc"))
+    }
+
     func testExactAnswersStillGradeExactly() {
         XCTAssertTrue(ProblemAnswer.single(42).accepts("42"))
         XCTAssertTrue(ProblemAnswer.single(42).accepts(" 42 "))

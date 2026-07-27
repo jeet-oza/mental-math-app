@@ -130,7 +130,9 @@ final class PracticeViewModel: ObservableObject {
     func submitAnswer() {
         guard let problem = currentProblem else { return }
         let trimmed = userInput.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
+        // Nonsense is ignored outright rather than graded wrong, so a fumbled
+        // keypad does not cost an attempt.
+        guard problem.answer.isWellFormed(trimmed) else { return }
 
         let elapsed = Date().timeIntervalSince(problemStartTime)
         let isCorrect: Bool
