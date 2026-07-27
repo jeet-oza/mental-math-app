@@ -38,6 +38,39 @@ final class CurriculumViewModelTests: XCTestCase {
         }
     }
 
+    /// The unlock chain must run strictly forward: every prerequisite has to be
+    /// a real group that sits *earlier* in the list. A typo or a group inserted
+    /// without rewiring its neighbours would otherwise strand everything
+    /// downstream behind a prerequisite the player can never reach.
+    func testUnlockChainOnlyPointsBackwards() {
+        var seen: Set<String> = []
+        for group in LessonCatalog.allGroups {
+            if let required = group.requiredGroupId {
+                XCTAssertTrue(
+                    seen.contains(required),
+                    "\(group.id) requires \(required), which is not an earlier group"
+                )
+            }
+            seen.insert(group.id)
+        }
+        XCTAssertEqual(seen.count, LessonCatalog.allGroups.count, "group ids must be unique")
+
+        // Exactly one entry point, or the curriculum has no defined start.
+        let openers = LessonCatalog.allGroups.filter { $0.requiredGroupId == nil }
+        XCTAssertEqual(openers.count, 1)
+    }
+
+    /// Every group is a wall the player has to finish before the next one
+    /// opens, so an oversized group stalls the whole curriculum behind it.
+    func testNoGroupIsUnreasonablyLong() {
+        for group in LessonCatalog.allGroups {
+            XCTAssertLessThanOrEqual(
+                group.lessons.count, 8,
+                "\(group.id) has \(group.lessons.count) lessons — consider splitting it"
+            )
+        }
+    }
+
     // MARK: - Unlock Logic Tests
 
     func testFirstGroupIsUnlocked() {

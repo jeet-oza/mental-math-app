@@ -16,6 +16,7 @@ nonisolated enum LessonCatalog {
         basicAdditionGroup,
         basicSubtractionGroup,
         multiplicationTricksGroup,
+        advancedMultiplicationGroup,
         squaringShortcutsGroup,
         divisionTricksGroup,
         percentageTricksGroup
@@ -209,6 +210,8 @@ nonisolated enum LessonCatalog {
 
     // MARK: - Multiplication Tricks
 
+    /// Shortcuts tied to one specific multiplier (×11, ×5, ×25 …). Each works
+    /// only for its own number, and each is a single step.
     static let multiplicationTricksGroup = LessonGroup(
         id: "multiplication_tricks",
         title: "Multiplication Tricks",
@@ -220,7 +223,22 @@ nonisolated enum LessonCatalog {
             multiplyByNineLesson,
             multiplyByFourLesson,
             multiplyBySixLesson,
-            multiplyByTwentyFiveLesson,
+            multiplyByTwentyFiveLesson
+        ],
+        requiredGroupId: "basic_subtraction"
+    )
+
+    // MARK: - Advanced Multiplication
+
+    /// Methods rather than shortcuts: pick a base and adjust, or work the
+    /// columns crosswise. These are not tied to a particular multiplier, so
+    /// they cover the pairs no single-number trick reaches.
+    static let advancedMultiplicationGroup = LessonGroup(
+        id: "advanced_multiplication",
+        title: "Advanced Multiplication",
+        description: "Base methods and crosswise columns — for numbers no simple shortcut fits.",
+        iconName: "arrow.triangle.swap",
+        lessons: [
             multiplyNearHundredLesson,
             multiplyNearHundredCarryLesson,
             multiplyNearFiftyLesson,
@@ -229,7 +247,7 @@ nonisolated enum LessonCatalog {
             crosswiseCarryLesson,
             crosswiseThreeDigitLesson
         ],
-        requiredGroupId: "basic_subtraction"
+        requiredGroupId: "multiplication_tricks"
     )
 
     private static let multiplyBySixLesson = Lesson(
@@ -700,7 +718,7 @@ nonisolated enum LessonCatalog {
             squaresNearFiftyLesson,
             squaresNearHundredLesson
         ],
-        requiredGroupId: "multiplication_tricks"
+        requiredGroupId: "advanced_multiplication"
     )
 
     private static let squaresEndingInFiveLesson = Lesson(
