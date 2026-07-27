@@ -66,6 +66,20 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// `0..<100` (no carry); `mixed` and `carry` deliberately break that.
     case nearHundred(kinds: [NearHundredKind])
 
+    /// Which crosswise ("vertically and crosswise") situation a two-digit
+    /// product falls into.
+    enum CrosswiseKind: String, Codable, Equatable, Sendable {
+        /// Every column lands below 10, so the three results can be read off
+        /// directly — used to teach the shape of the method.
+        case carryFree
+        /// At least one column reaches 10, so a carry has to move left.
+        case carrying
+    }
+
+    /// Two-digit × two-digit products solved column by column: units × units,
+    /// the crosswise sum, then tens × tens.
+    case crosswise(kind: CrosswiseKind)
+
     /// An even operand (drawn from `evenRange`) times a fixed value, e.g.
     /// "even × 6" → the left operand is always even.
     case evenTimes(fixed: Int, evenRange: ClosedRange<Int>)
@@ -133,6 +147,35 @@ enum ProblemPattern: Codable, Equatable, Sendable {
                 let a = Int.random(in: 11...19, using: &rng)
                 let b = Int.random(in: 11...19, using: &rng)
                 return MathProblem(operandA: 100 + a, operandB: 100 + b, operation: .multiplication)
+            }
+
+        case let .crosswise(kind):
+            // Operands are `ab × cd`, i.e. (10a + b) × (10c + d). The method's
+            // three columns are b×d (units), a×d + b×c (crosswise), a×c (tens).
+            switch kind {
+            case .carryFree:
+                // Pick the digits so both right-hand columns stay under 10.
+                // a×c can be anything: it's the leading column, nothing to
+                // carry into.
+                let b = Int.random(in: 1...3, using: &rng)
+                let d = Int.random(in: 1...3, using: &rng)     // b×d ≤ 9
+                let a = Int.random(in: 1...((9 - b) / d), using: &rng)  // leaves room for b×c
+                let c = Int.random(in: 1...((9 - a * d) / b), using: &rng)
+                return MathProblem(operandA: a * 10 + b, operandB: c * 10 + d, operation: .multiplication)
+
+            case .carrying:
+                // Random two-digit pairs, rejecting the rare ones where no
+                // column reaches 10 — this lesson is about the carry.
+                for _ in 0..<16 {
+                    let a = Int.random(in: 1...9, using: &rng)
+                    let b = Int.random(in: 1...9, using: &rng)
+                    let c = Int.random(in: 1...9, using: &rng)
+                    let d = Int.random(in: 1...9, using: &rng)
+                    if b * d >= 10 || a * d + b * c >= 10 {
+                        return MathProblem(operandA: a * 10 + b, operandB: c * 10 + d, operation: .multiplication)
+                    }
+                }
+                return MathProblem(operandA: 47, operandB: 63, operation: .multiplication)
             }
 
         case let .evenTimes(fixed, evenRange):

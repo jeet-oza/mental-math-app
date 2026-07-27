@@ -18,7 +18,8 @@ nonisolated enum LessonCatalog {
         multiplicationTricksGroup,
         squaringShortcutsGroup,
         divisionTricksGroup,
-        percentageTricksGroup
+        percentageTricksGroup,
+        crosswiseMultiplicationGroup
     ]
 
     // MARK: - Basic Addition
@@ -710,5 +711,110 @@ nonisolated enum LessonCatalog {
         operations: [.percentage],
         difficulty: .medium,
         pattern: ProblemPattern.percentage(percents: [25], multiplierRange: 2...25)
+    )
+
+    // MARK: - Crosswise Multiplication
+
+    /// The Vedic "vertically and crosswise" method. Unlike the other
+    /// multiplication groups, these tricks need no special shape of number —
+    /// they work on any two-digit pair — so they sit at the end of the
+    /// progression as the general-purpose finisher.
+    static let crosswiseMultiplicationGroup = LessonGroup(
+        id: "crosswise_multiplication",
+        title: "Crosswise Multiplication",
+        description: "Multiply any two 2-digit numbers in three columns — no special shape required.",
+        iconName: "arrow.triangle.swap",
+        lessons: [
+            crosswiseBasicsLesson,
+            crosswiseCarryLesson
+        ],
+        requiredGroupId: "percentage_tricks"
+    )
+
+    private static let crosswiseBasicsLesson = Lesson(
+        id: "mult_crosswise",
+        title: "Vertically and Crosswise",
+        description: "Any two 2-digit numbers, read off as three columns.",
+        trick: MathTrick(
+            name: "Three Columns",
+            steps: [
+                "Write the numbers one above the other, digits lined up.",
+                "Right column: multiply the two units digits.",
+                "Middle column: multiply crosswise — top tens × bottom units, plus top units × bottom tens — and add the two.",
+                "Left column: multiply the two tens digits.",
+                "Read the three results left to right.",
+                "Every column is a small times-table fact, so you never write out a long multiplication."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "23 × 13",
+                    solution: "299",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 3 × 3 = 9",
+                        "Step 2: Crosswise → 2 × 3 + 3 × 1 = 9",
+                        "Step 3: Tens → 2 × 1 = 2",
+                        "Step 4: Read left to right → 2 | 9 | 9",
+                        "Answer: 299"
+                    ]
+                ),
+                TrickExample(
+                    problem: "31 × 22",
+                    solution: "682",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 1 × 2 = 2",
+                        "Step 2: Crosswise → 3 × 2 + 1 × 2 = 8",
+                        "Step 3: Tens → 3 × 2 = 6",
+                        "Step 4: Read left to right → 6 | 8 | 2",
+                        "Answer: 682"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.crosswise(kind: .carryFree)
+    )
+
+    private static let crosswiseCarryLesson = Lesson(
+        id: "mult_crosswise_carry",
+        title: "Crosswise with Carries",
+        description: "The same three columns, now carrying from one column into the next.",
+        trick: MathTrick(
+            name: "Three Columns — Carry Left",
+            steps: [
+                "Work the same three columns, but start from the right.",
+                "Keep only the last digit of each column.",
+                "Carry everything above 9 into the column to its left, and add it there.",
+                "The left column plus its carry becomes the front of the answer.",
+                "Only one digit is ever written down per column, so you can hold the running answer in your head."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "47 × 63",
+                    solution: "2961",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 7 × 3 = 21 → write 1, carry 2",
+                        "Step 2: Crosswise → 4 × 3 + 7 × 6 = 54, plus carry 2 = 56 → write 6, carry 5",
+                        "Step 3: Tens → 4 × 6 = 24, plus carry 5 = 29",
+                        "Step 4: Read left to right → 29 | 6 | 1",
+                        "Answer: 2961"
+                    ]
+                ),
+                TrickExample(
+                    problem: "86 × 74",
+                    solution: "6364",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 6 × 4 = 24 → write 4, carry 2",
+                        "Step 2: Crosswise → 8 × 4 + 6 × 7 = 74, plus carry 2 = 76 → write 6, carry 7",
+                        "Step 3: Tens → 8 × 7 = 56, plus carry 7 = 63",
+                        "Step 4: Read left to right → 63 | 6 | 4",
+                        "Answer: 6364"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.crosswise(kind: .carrying)
     )
 }

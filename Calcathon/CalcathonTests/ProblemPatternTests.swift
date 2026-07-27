@@ -142,6 +142,54 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    func testCrosswiseCarryFreeNeverCarries() {
+        let pattern = ProblemPattern.crosswise(kind: .carryFree)
+        let engine = MathEngine(seed: "crosswise", pattern: pattern)
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .multiplication)
+            XCTAssertTrue((10...99).contains(problem.operandA))
+            XCTAssertTrue((10...99).contains(problem.operandB))
+
+            let (a, b) = (problem.operandA / 10, problem.operandA % 10)
+            let (c, d) = (problem.operandB / 10, problem.operandB % 10)
+            // Both right-hand columns must stay single-digit so the three
+            // results can be read off without any carry.
+            XCTAssertLessThan(b * d, 10, "units column must not carry")
+            XCTAssertLessThan(a * d + b * c, 10, "crosswise column must not carry")
+            // A zero digit would collapse a column and hide the method.
+            XCTAssertGreaterThan(b, 0)
+            XCTAssertGreaterThan(d, 0)
+        }
+    }
+
+    func testCrosswiseCarryingAlwaysCarries() {
+        let pattern = ProblemPattern.crosswise(kind: .carrying)
+        let engine = MathEngine(seed: "crosswiseCarry", pattern: pattern)
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .multiplication)
+            XCTAssertTrue((11...99).contains(problem.operandA))
+            XCTAssertTrue((11...99).contains(problem.operandB))
+
+            let (a, b) = (problem.operandA / 10, problem.operandA % 10)
+            let (c, d) = (problem.operandB / 10, problem.operandB % 10)
+            XCTAssertTrue(b * d >= 10 || a * d + b * c >= 10,
+                          "hard lesson must require a carry")
+        }
+    }
+
+    func testCrosswiseColumnsReconstructTheProduct() {
+        // The method itself: units + crosswise×10 + tens×100 is the product.
+        for kind in [ProblemPattern.CrosswiseKind.carryFree, .carrying] {
+            let engine = MathEngine(seed: "crosswiseMath", pattern: .crosswise(kind: kind))
+            for problem in engine.generateBatch(count: 200) {
+                let (a, b) = (problem.operandA / 10, problem.operandA % 10)
+                let (c, d) = (problem.operandB / 10, problem.operandB % 10)
+                let assembled = (a * c) * 100 + (a * d + b * c) * 10 + b * d
+                XCTAssertEqual(assembled, problem.correctAnswer)
+            }
+        }
+    }
+
     func testDivisorAlwaysDividesCleanly() {
         let pattern = ProblemPattern.divisor(divisors: [4, 5], quotientRange: 2...40)
         let engine = MathEngine(seed: "div", pattern: pattern)
