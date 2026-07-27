@@ -90,6 +90,12 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// Deviations are drawn from `deviationRange`.
     case nearBase(base: Int, deviationRange: ClosedRange<Int>)
 
+    /// Products whose two numbers sit near *different* references — a small
+    /// `base` (10) and a `multiple` of it (50) — so neither is near enough to a
+    /// single base for the ordinary method. e.g. `8 × 53`. Both deviations are
+    /// drawn from `deviationRange` and take either sign.
+    case twoReference(base: Int, multiple: Int, deviationRange: ClosedRange<Int>)
+
     /// `ab × ac` where the tens digits match and the units digits sum to 10,
     /// e.g. `43 × 47`. Products split cleanly into `t(t+1) | u(10−u)`.
     case sameTensUnitsSumTen(tensRange: ClosedRange<Int>)
@@ -266,6 +272,20 @@ enum ProblemPattern: Codable, Equatable, Sendable {
             return MathProblem(
                 operandA: base + sign * d1,
                 operandB: base + sign * d2,
+                operation: .multiplication
+            )
+
+        case let .twoReference(base, multiple, deviationRange):
+            // Either number may sit above or below its own reference — the
+            // method carries the sign through, and half the value of the
+            // lesson is that a negative deviation is not a special case.
+            func deviation() -> Int {
+                let size = Int.random(in: deviationRange, using: &rng)
+                return Bool.random(using: &rng) ? size : -size
+            }
+            return MathProblem(
+                operandA: base + deviation(),
+                operandB: multiple + deviation(),
                 operation: .multiplication
             )
 

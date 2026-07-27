@@ -16,7 +16,9 @@ nonisolated enum LessonCatalog {
         basicAdditionGroup,
         basicSubtractionGroup,
         multiplicationTricksGroup,
+        digitRulesGroup,
         advancedMultiplicationGroup,
+        problemReshapingGroup,
         squaringShortcutsGroup,
         powersAndRootsGroup,
         divisionTricksGroup,
@@ -234,6 +236,260 @@ nonisolated enum LessonCatalog {
         requiredGroupId: "basic_subtraction"
     )
 
+    // MARK: - Digit-by-Digit Rules
+
+    /// Trachtenberg's rules for the awkward single-digit multipliers. Where the
+    /// tricks group has a different idea for every multiplier, these are one
+    /// mechanism reused seven times: prepend a zero, walk right to left, and
+    /// build each output digit from the digit under it and its *neighbour* —
+    /// the digit on its right. Nothing is ever held in mind but one carry, and
+    /// the number can be any length.
+    static let digitRulesGroup = LessonGroup(
+        id: "digit_rules",
+        title: "Digit-by-Digit Rules",
+        description: "One mechanism for ×3, ×4, ×6, ×7, ×8, ×11 and ×12 — read each digit off its neighbour.",
+        iconName: "list.number",
+        lessons: [
+            neighbourElevenLesson,
+            neighbourTwelveLesson,
+            neighbourSixLesson,
+            neighbourSevenLesson,
+            complementEightLesson,
+            complementFourLesson,
+            complementThreeLesson
+        ],
+        requiredGroupId: "multiplication_tricks"
+    )
+
+    /// Shared preamble for the neighbour rules, so every lesson in the group
+    /// states the convention the same way.
+    private static let neighbourNote =
+        "Write a 0 in front of the number. Each digit's \"neighbour\" is the digit on its right; the last digit has none (treat it as 0)."
+
+    private static let neighbourElevenLesson = Lesson(
+        id: "tb_11",
+        title: "×11, Any Length",
+        description: "The 2-digit ×11 trick is one case of a rule that runs across a number of any size.",
+        trick: MathTrick(
+            name: "Add the Neighbour",
+            steps: [
+                neighbourNote,
+                "Working right to left, each answer digit is the digit plus its neighbour.",
+                "The last digit has no neighbour, so it just comes down.",
+                "Carry as usual when a total reaches 10."
+            ],
+            example: TrickExample(
+                problem: "4213 × 11",
+                solution: "46343",
+                stepByStepExplanation: [
+                    "Step 1: Write it as 04213",
+                    "Step 2: 3 has no neighbour → 3",
+                    "Step 3: 1 + 3 = 4",
+                    "Step 4: 2 + 1 = 3",
+                    "Step 5: 4 + 2 = 6",
+                    "Step 6: 0 + 4 = 4",
+                    "Answer: 46343"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [11], position: .right, variableRange: 1000...9999)
+    )
+
+    private static let neighbourTwelveLesson = Lesson(
+        id: "tb_12",
+        title: "Multiply by 12",
+        description: "Same walk as ×11, but double each digit on the way past.",
+        trick: MathTrick(
+            name: "Double, Add the Neighbour",
+            steps: [
+                neighbourNote,
+                "Working right to left, each answer digit is double the digit, plus its neighbour.",
+                "Carry anything over 9 into the next step."
+            ],
+            example: TrickExample(
+                problem: "316 × 12",
+                solution: "3792",
+                stepByStepExplanation: [
+                    "Step 1: Write it as 0316",
+                    "Step 2: (2 × 6) + 0 = 12 → write 2, carry 1",
+                    "Step 3: (2 × 1) + 6 + 1 = 9",
+                    "Step 4: (2 × 3) + 1 = 7",
+                    "Step 5: (2 × 0) + 3 = 3",
+                    "Answer: 3792"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [12], position: .right, variableRange: 100...999)
+    )
+
+    private static let neighbourSixLesson = Lesson(
+        id: "tb_6",
+        title: "Multiply by 6",
+        description: "Works on odd numbers too, unlike halve-and-shift.",
+        trick: MathTrick(
+            name: "Half the Neighbour, +5 if Odd",
+            steps: [
+                neighbourNote,
+                "Each answer digit is the digit itself, plus half its neighbour.",
+                "Halving always throws the fraction away: half of 7 is 3.",
+                "If the digit you are on is odd, add 5.",
+                "Carry anything over 9 into the next step."
+            ],
+            example: TrickExample(
+                problem: "357 × 6",
+                solution: "2142",
+                stepByStepExplanation: [
+                    "Step 1: Write it as 0357",
+                    "Step 2: 7 is odd, no neighbour → 7 + 0 + 5 = 12 → write 2, carry 1",
+                    "Step 3: 5 is odd, neighbour 7 → 5 + 3 + 5 + 1 = 14 → write 4, carry 1",
+                    "Step 4: 3 is odd, neighbour 5 → 3 + 2 + 5 + 1 = 11 → write 1, carry 1",
+                    "Step 5: 0 is even, neighbour 3 → 0 + 1 + 1 = 2",
+                    "Answer: 2142"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [6], position: .right, variableRange: 100...999)
+    )
+
+    private static let neighbourSevenLesson = Lesson(
+        id: "tb_7",
+        title: "Multiply by 7",
+        description: "The ×6 rule with the digit doubled — 7 is the one multiplier with no easy shortcut.",
+        trick: MathTrick(
+            name: "Double, Half the Neighbour, +5 if Odd",
+            steps: [
+                neighbourNote,
+                "Each answer digit is double the digit, plus half its neighbour.",
+                "Halving throws the fraction away, as in the ×6 rule.",
+                "If the digit you are on is odd, add 5.",
+                "Carry anything over 9 into the next step."
+            ],
+            example: TrickExample(
+                problem: "235 × 7",
+                solution: "1645",
+                stepByStepExplanation: [
+                    "Step 1: Write it as 0235",
+                    "Step 2: 5 is odd, no neighbour → (2 × 5) + 0 + 5 = 15 → write 5, carry 1",
+                    "Step 3: 3 is odd, neighbour 5 → (2 × 3) + 2 + 5 + 1 = 14 → write 4, carry 1",
+                    "Step 4: 2 is even, neighbour 3 → (2 × 2) + 1 + 1 = 6",
+                    "Step 5: 0 is even, neighbour 2 → 0 + 1 = 1",
+                    "Answer: 1645"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [7], position: .right, variableRange: 100...999)
+    )
+
+    /// Shared preamble for the three complement rules. Subtracting from 9 (and
+    /// 10 at the right-hand end) is what lets these multipliers be reached by
+    /// *adding* the neighbour rather than subtracting a partial product.
+    private static let complementNote =
+        "The first digit on the right is taken from 10; every digit after that is taken from 9. The leading 0 is the exception — see the last step."
+
+    private static let complementEightLesson = Lesson(
+        id: "tb_8",
+        title: "Multiply by 8",
+        description: "Take each digit from 9, double it, add the neighbour.",
+        trick: MathTrick(
+            name: "Complement, Double, Add the Neighbour",
+            steps: [
+                neighbourNote,
+                complementNote,
+                "Rightmost digit: (10 − digit) doubled.",
+                "Every middle digit: (9 − digit) doubled, plus its neighbour.",
+                "Leading 0: its neighbour minus 2.",
+                "Carry anything over 9 into the next step."
+            ],
+            example: TrickExample(
+                problem: "456 × 8",
+                solution: "3648",
+                stepByStepExplanation: [
+                    "Step 1: Write it as 0456",
+                    "Step 2: rightmost 6 → 2 × (10 − 6) = 8",
+                    "Step 3: 5, neighbour 6 → 2 × (9 − 5) + 6 = 14 → write 4, carry 1",
+                    "Step 4: 4, neighbour 5 → 2 × (9 − 4) + 5 + 1 = 16 → write 6, carry 1",
+                    "Step 5: leading 0, neighbour 4 → 4 − 2 + 1 = 3",
+                    "Answer: 3648"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [8], position: .right, variableRange: 100...999)
+    )
+
+    private static let complementFourLesson = Lesson(
+        id: "tb_4",
+        title: "Multiply by 4",
+        description: "The complement rule at its shortest — one pass, no doubling twice.",
+        trick: MathTrick(
+            name: "Complement, Half the Neighbour",
+            steps: [
+                neighbourNote,
+                complementNote,
+                "Rightmost digit: (10 − digit), plus 5 if that digit is odd.",
+                "Every middle digit: (9 − digit), plus half its neighbour, plus 5 if the digit is odd.",
+                "Leading 0: half its neighbour, minus 1.",
+                "Carry anything over 9 into the next step."
+            ],
+            example: TrickExample(
+                problem: "213 × 4",
+                solution: "852",
+                stepByStepExplanation: [
+                    "Step 1: Write it as 0213",
+                    "Step 2: rightmost 3 is odd → (10 − 3) + 5 = 12 → write 2, carry 1",
+                    "Step 3: 1 is odd, neighbour 3 → (9 − 1) + 1 + 5 + 1 = 15 → write 5, carry 1",
+                    "Step 4: 2 is even, neighbour 1 → (9 − 2) + 0 + 1 = 8",
+                    "Step 5: leading 0, neighbour 2 → 1 − 1 = 0",
+                    "Answer: 852"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [4], position: .right, variableRange: 100...999)
+    )
+
+    private static let complementThreeLesson = Lesson(
+        id: "tb_3",
+        title: "Multiply by 3",
+        description: "Every part of the system at once — complement, double, half the neighbour, +5.",
+        trick: MathTrick(
+            name: "The Full Rule",
+            steps: [
+                neighbourNote,
+                complementNote,
+                "Rightmost digit: (10 − digit) doubled, plus 5 if that digit is odd.",
+                "Every middle digit: (9 − digit) doubled, plus half its neighbour, plus 5 if the digit is odd.",
+                "Leading 0: half its neighbour, minus 2.",
+                "Carry anything over 9 into the next step."
+            ],
+            example: TrickExample(
+                problem: "214 × 3",
+                solution: "642",
+                stepByStepExplanation: [
+                    "Step 1: Write it as 0214",
+                    "Step 2: rightmost 4 is even → 2 × (10 − 4) = 12 → write 2, carry 1",
+                    "Step 3: 1 is odd, neighbour 4 → 2 × (9 − 1) + 2 + 5 + 1 = 24 → write 4, carry 2",
+                    "Step 4: 2 is even, neighbour 1 → 2 × (9 − 2) + 0 + 2 = 16 → write 6, carry 1",
+                    "Step 5: leading 0, neighbour 2 → 1 − 2 + 1 = 0",
+                    "Answer: 642"
+                ]
+            )
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.fixedOperand(operation: .multiplication, fixedValues: [3], position: .right, variableRange: 100...999)
+    )
+
     // MARK: - Advanced Multiplication
 
     /// Methods rather than shortcuts: pick a base and adjust, or work the
@@ -254,7 +510,7 @@ nonisolated enum LessonCatalog {
             crosswiseCarryLesson,
             crosswiseThreeDigitLesson
         ],
-        requiredGroupId: "multiplication_tricks"
+        requiredGroupId: "digit_rules"
     )
 
     private static let multiplyBySixLesson = Lesson(
@@ -754,6 +1010,160 @@ nonisolated enum LessonCatalog {
         pattern: ProblemPattern.crosswiseThreeDigit
     )
 
+    // MARK: - Reshape the Problem
+
+    /// Techniques that change the problem before any arithmetic happens. Every
+    /// other group makes a *calculation* faster; these make the calculation
+    /// smaller, which is the habit the calculating prodigies had in common —
+    /// none of them computed the problem they were handed.
+    static let problemReshapingGroup = LessonGroup(
+        id: "problem_reshaping",
+        title: "Reshape the Problem",
+        description: "Split it, re-base it, or work it from the left — change the problem before you solve it.",
+        iconName: "arrow.triangle.branch",
+        lessons: [
+            twoReferenceLesson,
+            multiplyByFactorsLesson,
+            multiplyLeftToRightLesson
+        ],
+        requiredGroupId: "advanced_multiplication"
+    )
+
+    private static let twoReferenceLesson = Lesson(
+        id: "mult_two_reference",
+        title: "Two Reference Numbers",
+        description: "For pairs too far apart to share a base, like 8 × 53 — give each number its own.",
+        trick: MathTrick(
+            name: "Base and Multiple",
+            steps: [
+                "Use 10 for the small number and 50 for the large one. 50 is 5 × 10, so 5 is the link between them.",
+                "Take each number's signed distance from its own reference (8 → −2, 53 → +3).",
+                "Multiply the small number's distance by the link (5) and add that to the large number.",
+                "Multiply that total by 10.",
+                "Add the two distances multiplied together, keeping the sign."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "8 × 53",
+                    solution: "424",
+                    stepByStepExplanation: [
+                        "Step 1: 8 → −2 from 10, and 53 → +3 from 50",
+                        "Step 2: −2 × 5 = −10, so 53 − 10 = 43",
+                        "Step 3: 43 × 10 = 430",
+                        "Step 4: distances −2 × 3 = −6",
+                        "Step 5: 430 − 6 = 424",
+                        "Answer: 424"
+                    ]
+                ),
+                TrickExample(
+                    problem: "12 × 47",
+                    solution: "564",
+                    stepByStepExplanation: [
+                        "Step 1: 12 → +2 from 10, and 47 → −3 from 50",
+                        "Step 2: +2 × 5 = +10, so 47 + 10 = 57",
+                        "Step 3: 57 × 10 = 570",
+                        "Step 4: distances 2 × −3 = −6",
+                        "Step 5: 570 − 6 = 564",
+                        "Answer: 564"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.twoReference(base: 10, multiple: 50, deviationRange: 1...4)
+    )
+
+    private static let multiplyByFactorsLesson = Lesson(
+        id: "mult_factors",
+        title: "Multiply by Factors",
+        description: "Break an awkward multiplier into two easy ones and go twice.",
+        trick: MathTrick(
+            name: "Split the Multiplier",
+            steps: [
+                "Split the multiplier into two factors you already have a shortcut for.",
+                "Multiply by the first, then multiply that result by the second.",
+                "Order is free — take whichever leaves the rounder number in the middle.",
+                "14 = 2 × 7, 15 = 5 × 3, 16 = 4 × 4, 18 = 2 × 9, 24 = 3 × 8, 45 = 5 × 9."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "47 × 14",
+                    solution: "658",
+                    stepByStepExplanation: [
+                        "Step 1: 14 = 2 × 7",
+                        "Step 2: 47 × 2 = 94",
+                        "Step 3: 94 × 7 = 658",
+                        "Answer: 658"
+                    ]
+                ),
+                TrickExample(
+                    problem: "36 × 45",
+                    solution: "1620",
+                    stepByStepExplanation: [
+                        "Step 1: 45 = 9 × 5",
+                        "Step 2: 36 × 9 = 324",
+                        "Step 3: 324 × 5 = 1620 (half of 3240)",
+                        "Answer: 1620"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.fixedOperand(
+            operation: .multiplication,
+            fixedValues: [14, 15, 16, 18, 21, 24, 35, 45, 48, 63],
+            position: .right,
+            variableRange: 12...99
+        )
+    )
+
+    private static let multiplyLeftToRightLesson = Lesson(
+        id: "mult_left_right",
+        title: "Multiply From the Left",
+        description: "One running total instead of a stack of partial products — the way the prodigies did it.",
+        trick: MathTrick(
+            name: "Biggest Part First",
+            steps: [
+                "Start with the largest place value, not the units.",
+                "Multiply it out and hold that as your running total.",
+                "Take the next place value, multiply, and add it straight into the total.",
+                "Carry on to the units. You never hold more than one number in mind.",
+                "The answer's size is right from the very first step, so you can stop early for an estimate."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "342 × 7",
+                    solution: "2394",
+                    stepByStepExplanation: [
+                        "Step 1: 300 × 7 = 2100 (running total 2100)",
+                        "Step 2: 40 × 7 = 280 → 2100 + 280 = 2380",
+                        "Step 3: 2 × 7 = 14 → 2380 + 14 = 2394",
+                        "Answer: 2394"
+                    ]
+                ),
+                TrickExample(
+                    problem: "608 × 4",
+                    solution: "2432",
+                    stepByStepExplanation: [
+                        "Step 1: 600 × 4 = 2400 (running total 2400)",
+                        "Step 2: 0 × 4 = 0 → still 2400",
+                        "Step 3: 8 × 4 = 32 → 2400 + 32 = 2432",
+                        "Answer: 2432"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.twoOperand(
+            operation: .multiplication,
+            leftRange: 100...999,
+            rightRange: 3...9
+        )
+    )
+
     // MARK: - Squaring Shortcuts
 
     static let squaringShortcutsGroup = LessonGroup(
@@ -768,7 +1178,7 @@ nonisolated enum LessonCatalog {
             squaresNearHundredLesson,
             squareAnyTwoDigitLesson
         ],
-        requiredGroupId: "advanced_multiplication"
+        requiredGroupId: "problem_reshaping"
     )
 
     private static let squaresEndingInFiveLesson = Lesson(
@@ -1349,9 +1759,53 @@ nonisolated enum LessonCatalog {
             divideByFourLesson,
             divideByFiveLesson,
             divideByEightLesson,
-            divideByNineLesson
+            divideByNineLesson,
+            divideByFactorsLesson
         ],
         requiredGroupId: "powers_and_roots"
+    )
+
+    private static let divideByFactorsLesson = Lesson(
+        id: "div_factors",
+        title: "Divide by Factors",
+        description: "Two easy divisions beat one hard one — ÷14 is ÷2 then ÷7.",
+        trick: MathTrick(
+            name: "Split the Divisor",
+            steps: [
+                "Split the divisor into two factors you can divide by easily.",
+                "Divide by the first, then divide that result by the second.",
+                "Divide by the larger factor first if it keeps the middle number whole.",
+                "14 = 2 × 7, 15 = 3 × 5, 16 = 4 × 4, 18 = 2 × 9, 24 = 4 × 6, 35 = 5 × 7."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "1638 ÷ 14",
+                    solution: "117",
+                    stepByStepExplanation: [
+                        "Step 1: 14 = 2 × 7",
+                        "Step 2: 1638 ÷ 2 = 819",
+                        "Step 3: 819 ÷ 7 = 117",
+                        "Answer: 117"
+                    ]
+                ),
+                TrickExample(
+                    problem: "1080 ÷ 24",
+                    solution: "45",
+                    stepByStepExplanation: [
+                        "Step 1: 24 = 4 × 6",
+                        "Step 2: 1080 ÷ 4 = 270",
+                        "Step 3: 270 ÷ 6 = 45",
+                        "Answer: 45"
+                    ]
+                )
+            ]
+        ),
+        operations: [.division],
+        difficulty: .medium,
+        pattern: ProblemPattern.divisor(
+            divisors: [14, 15, 16, 18, 21, 24, 35, 45],
+            quotientRange: 3...99
+        )
     )
 
     private static let divideByFourLesson = Lesson(

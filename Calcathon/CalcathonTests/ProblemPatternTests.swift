@@ -472,6 +472,71 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    /// The whole point of the two-reference method is that the operands are
+    /// too far apart to share a base, so each must stay near its own — and
+    /// both sides of each reference have to show up, since a negative
+    /// deviation is the case the lesson exists to teach.
+    func testTwoReferenceStaysNearItsOwnReference() {
+        let pattern = ProblemPattern.twoReference(base: 10, multiple: 50, deviationRange: 1...4)
+        let engine = MathEngine(seed: "tworef", pattern: pattern)
+        var sawSmallBelow = false, sawSmallAbove = false
+        var sawLargeBelow = false, sawLargeAbove = false
+
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .multiplication)
+            XCTAssertTrue((6...14).contains(problem.operandA), "small operand must stay near 10")
+            XCTAssertTrue((46...54).contains(problem.operandB), "large operand must stay near 50")
+            XCTAssertNotEqual(problem.operandA, 10, "a zero deviation makes the method trivial")
+            XCTAssertNotEqual(problem.operandB, 50, "a zero deviation makes the method trivial")
+
+            if problem.operandA < 10 { sawSmallBelow = true } else { sawSmallAbove = true }
+            if problem.operandB < 50 { sawLargeBelow = true } else { sawLargeAbove = true }
+        }
+
+        XCTAssertTrue(sawSmallBelow && sawSmallAbove, "both sides of the base must occur")
+        XCTAssertTrue(sawLargeBelow && sawLargeAbove, "both sides of the multiple must occur")
+    }
+
+    /// Both factoring lessons teach "split it into two easy ones", so every
+    /// multiplier and divisor they can generate has to actually split that way.
+    /// A prime slipping into either list would leave the problem unsolvable by
+    /// the method being taught.
+    func testFactoringLessonsOnlyGenerateSplittableOperands() {
+        func splitsIntoSingleDigitFactors(_ n: Int) -> Bool {
+            (2...9).contains { a in n % a == 0 && (2...9).contains(n / a) }
+        }
+
+        for lessonId in ["mult_factors", "div_factors"] {
+            guard let lesson = catalogLesson(id: lessonId), let pattern = lesson.pattern else {
+                return XCTFail("\(lessonId) is missing from the catalog")
+            }
+            let engine = MathEngine(seed: lessonId, pattern: pattern)
+            for problem in engine.generateBatch(count: 200) {
+                XCTAssertTrue(
+                    splitsIntoSingleDigitFactors(problem.operandB),
+                    "\(lessonId) generated \(problem.operandB), which has no single-digit factor pair"
+                )
+            }
+        }
+    }
+
+    /// Dividing by factors only works cleanly when the division is exact, and
+    /// the lesson never shows a remainder.
+    func testDivideByFactorsIsAlwaysExact() {
+        guard let pattern = catalogLesson(id: "div_factors")?.pattern else {
+            return XCTFail("div_factors is missing from the catalog")
+        }
+        let engine = MathEngine(seed: "divfactors", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .division)
+            XCTAssertEqual(problem.operandA % problem.operandB, 0, "must divide evenly")
+        }
+    }
+
+    private func catalogLesson(id: String) -> Lesson? {
+        LessonCatalog.allGroups.lazy.flatMap(\.lessons).first { $0.id == id }
+    }
+
     func testPatternGenerationIsDeterministic() {
         let pattern = ProblemPattern.fixedOperand(
             operation: .addition,
