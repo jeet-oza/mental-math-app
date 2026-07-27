@@ -69,11 +69,23 @@ final class MathOperationTests: XCTestCase {
         XCTAssertEqual(MathOperation.percentage.evaluate(lhs: 25, rhs: 80), 20)
     }
 
+    func testRemainderEvaluation() {
+        XCTAssertEqual(MathOperation.remainder.evaluate(lhs: 528, rhs: 7), 3)
+        XCTAssertEqual(MathOperation.remainder.evaluate(lhs: 1234, rhs: 7), 2)
+        XCTAssertEqual(MathOperation.remainder.evaluate(lhs: 49, rhs: 7), 0)
+    }
+
+    func testRemainderByZeroReturnsSafeValue() {
+        XCTAssertEqual(MathOperation.remainder.evaluate(lhs: 10, rhs: 0), 0)
+    }
+
     // MARK: - CaseIterable
 
-    func testAllCasesCountExcludesPercentage() {
-        // Percentage is concept-only and must not appear in random generation.
+    func testAllCasesCountExcludesConceptOnlyOperations() {
+        // Percentage and remainder are concept-only: they belong to specific
+        // lessons and must never appear in random or Arena generation.
         XCTAssertEqual(MathOperation.allCases.count, 4)
         XCTAssertFalse(MathOperation.allCases.contains(.percentage))
+        XCTAssertFalse(MathOperation.allCases.contains(.remainder))
     }
 }

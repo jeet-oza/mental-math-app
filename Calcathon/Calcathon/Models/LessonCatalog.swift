@@ -18,8 +18,7 @@ nonisolated enum LessonCatalog {
         multiplicationTricksGroup,
         squaringShortcutsGroup,
         divisionTricksGroup,
-        percentageTricksGroup,
-        crosswiseMultiplicationGroup
+        percentageTricksGroup
     ]
 
     // MARK: - Basic Addition
@@ -223,7 +222,12 @@ nonisolated enum LessonCatalog {
             multiplyBySixLesson,
             multiplyByTwentyFiveLesson,
             multiplyNearHundredLesson,
-            multiplyNearHundredCarryLesson
+            multiplyNearHundredCarryLesson,
+            multiplyNearFiftyLesson,
+            multiplyNearThousandLesson,
+            crosswiseBasicsLesson,
+            crosswiseCarryLesson,
+            crosswiseThreeDigitLesson
         ],
         requiredGroupId: "basic_subtraction"
     )
@@ -468,6 +472,221 @@ nonisolated enum LessonCatalog {
         pattern: ProblemPattern.nearHundred(kinds: [.mixed, .carry])
     )
 
+    private static let multiplyNearFiftyLesson = Lesson(
+        id: "mult_near50",
+        title: "Multiply Near 50",
+        description: "Numbers in the 40s and 50s, using 50 as the base.",
+        trick: MathTrick(
+            name: "Base 50 — Halve the Front",
+            steps: [
+                "Measure how far each number is from 50 (53 → 3 above, 46 → 4 below).",
+                "Front = one number plus the other's distance, then halved — because 50 is half of 100.",
+                "Tail = the two distances multiplied, padded to two digits.",
+                "If the front comes out as a half, drop the ½ and add 50 to the tail.",
+                "Write the front, then the tail."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "53 × 57",
+                    solution: "3021",
+                    stepByStepExplanation: [
+                        "Step 1: 53 = 50 + 3 and 57 = 50 + 7",
+                        "Step 2: Front = 53 + 7 = 60, halved → 30",
+                        "Step 3: Tail = 3 × 7 = 21",
+                        "Answer: 3021"
+                    ]
+                ),
+                TrickExample(
+                    problem: "52 × 57",
+                    solution: "2964",
+                    stepByStepExplanation: [
+                        "Step 1: 52 = 50 + 2 and 57 = 50 + 7",
+                        "Step 2: Front = 52 + 7 = 59, halved → 29½",
+                        "Step 3: Drop the ½ → front 29, and add 50 to the tail",
+                        "Step 4: Tail = 2 × 7 = 14, plus 50 = 64",
+                        "Answer: 2964"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.nearBase(base: 50, deviationRange: 1...8)
+    )
+
+    private static let multiplyNearThousandLesson = Lesson(
+        id: "mult_near1000",
+        title: "Multiply Near 1000",
+        description: "Four-digit products in two easy pieces, using 1000 as the base.",
+        trick: MathTrick(
+            name: "Base 1000",
+            steps: [
+                "Measure how far each number is from 1000 (1012 → 12 above, 994 → 6 below).",
+                "Front = one number plus the other's distance (or minus, if both are below).",
+                "Tail = the two distances multiplied, padded to three digits.",
+                "Three digits, not two — the base has three zeros.",
+                "Write the front, then the tail."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "1012 × 1008",
+                    solution: "1020096",
+                    stepByStepExplanation: [
+                        "Step 1: Distances are 12 above and 8 above",
+                        "Step 2: Front = 1012 + 8 = 1020",
+                        "Step 3: Tail = 12 × 8 = 96 → 096",
+                        "Answer: 1020096"
+                    ]
+                ),
+                TrickExample(
+                    problem: "994 × 988",
+                    solution: "982072",
+                    stepByStepExplanation: [
+                        "Step 1: Distances are 6 below and 12 below",
+                        "Step 2: Front = 994 − 12 = 982",
+                        "Step 3: Tail = 6 × 12 = 72 → 072",
+                        "Answer: 982072"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.nearBase(base: 1000, deviationRange: 1...19)
+    )
+
+    private static let crosswiseBasicsLesson = Lesson(
+        id: "mult_crosswise",
+        title: "Vertically and Crosswise",
+        description: "Any two 2-digit numbers, read off as three columns.",
+        trick: MathTrick(
+            name: "Three Columns",
+            steps: [
+                "Write the numbers one above the other, digits lined up.",
+                "Right column: multiply the two units digits.",
+                "Middle column: multiply crosswise — top tens × bottom units, plus top units × bottom tens — and add the two.",
+                "Left column: multiply the two tens digits.",
+                "Read the three results left to right.",
+                "Every column is a small times-table fact, so you never write out a long multiplication."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "23 × 13",
+                    solution: "299",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 3 × 3 = 9",
+                        "Step 2: Crosswise → 2 × 3 + 3 × 1 = 9",
+                        "Step 3: Tens → 2 × 1 = 2",
+                        "Step 4: Read left to right → 2 | 9 | 9",
+                        "Answer: 299"
+                    ]
+                ),
+                TrickExample(
+                    problem: "31 × 22",
+                    solution: "682",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 1 × 2 = 2",
+                        "Step 2: Crosswise → 3 × 2 + 1 × 2 = 8",
+                        "Step 3: Tens → 3 × 2 = 6",
+                        "Step 4: Read left to right → 6 | 8 | 2",
+                        "Answer: 682"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.crosswise(kind: .carryFree)
+    )
+
+    private static let crosswiseCarryLesson = Lesson(
+        id: "mult_crosswise_carry",
+        title: "Crosswise with Carries",
+        description: "The same three columns, now carrying from one column into the next.",
+        trick: MathTrick(
+            name: "Three Columns — Carry Left",
+            steps: [
+                "Work the same three columns, but start from the right.",
+                "Keep only the last digit of each column.",
+                "Carry everything above 9 into the column to its left, and add it there.",
+                "The left column plus its carry becomes the front of the answer.",
+                "Only one digit is ever written down per column, so you can hold the running answer in your head."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "47 × 63",
+                    solution: "2961",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 7 × 3 = 21 → write 1, carry 2",
+                        "Step 2: Crosswise → 4 × 3 + 7 × 6 = 54, plus carry 2 = 56 → write 6, carry 5",
+                        "Step 3: Tens → 4 × 6 = 24, plus carry 5 = 29",
+                        "Step 4: Read left to right → 29 | 6 | 1",
+                        "Answer: 2961"
+                    ]
+                ),
+                TrickExample(
+                    problem: "86 × 74",
+                    solution: "6364",
+                    stepByStepExplanation: [
+                        "Step 1: Units → 6 × 4 = 24 → write 4, carry 2",
+                        "Step 2: Crosswise → 8 × 4 + 6 × 7 = 74, plus carry 2 = 76 → write 6, carry 7",
+                        "Step 3: Tens → 8 × 7 = 56, plus carry 7 = 63",
+                        "Step 4: Read left to right → 63 | 6 | 4",
+                        "Answer: 6364"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.crosswise(kind: .carrying)
+    )
+
+    private static let crosswiseThreeDigitLesson = Lesson(
+        id: "mult_crosswise_3digit",
+        title: "Crosswise: 3 × 3 Digits",
+        description: "The same method widened to five columns — where it really beats long multiplication.",
+        trick: MathTrick(
+            name: "Five Columns",
+            steps: [
+                "For 3-digit numbers the pattern widens from three columns to five.",
+                "Right to left: units × units; then the two crosswise pairs; then the full three-way crossing in the middle; then back down to two pairs; finally hundreds × hundreds.",
+                "The middle column is the widest — three products added together.",
+                "Carry from each column into the next, exactly as before.",
+                "You write one digit per column and never line up a partial product."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "123 × 456",
+                    solution: "56088",
+                    stepByStepExplanation: [
+                        "Step 1: 3 × 6 = 18 → write 8, carry 1",
+                        "Step 2: 2×6 + 3×5 = 27, plus 1 = 28 → write 8, carry 2",
+                        "Step 3: 1×6 + 2×5 + 3×4 = 28, plus 2 = 30 → write 0, carry 3",
+                        "Step 4: 1×5 + 2×4 = 13, plus 3 = 16 → write 6, carry 1",
+                        "Step 5: 1 × 4 = 4, plus 1 = 5",
+                        "Answer: 56088"
+                    ]
+                ),
+                TrickExample(
+                    problem: "214 × 123",
+                    solution: "26322",
+                    stepByStepExplanation: [
+                        "Step 1: 4 × 3 = 12 → write 2, carry 1",
+                        "Step 2: 1×3 + 4×2 = 11, plus 1 = 12 → write 2, carry 1",
+                        "Step 3: 2×3 + 1×2 + 4×1 = 12, plus 1 = 13 → write 3, carry 1",
+                        "Step 4: 2×2 + 1×1 = 5, plus 1 = 6",
+                        "Step 5: 2 × 1 = 2",
+                        "Answer: 26322"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.crosswiseThreeDigit
+    )
+
     // MARK: - Squaring Shortcuts
 
     static let squaringShortcutsGroup = LessonGroup(
@@ -477,7 +696,9 @@ nonisolated enum LessonCatalog {
         iconName: "square.on.square",
         lessons: [
             squaresEndingInFiveLesson,
-            squaresNearFiftyLesson
+            sameTensUnitsSumTenLesson,
+            squaresNearFiftyLesson,
+            squaresNearHundredLesson
         ],
         requiredGroupId: "multiplication_tricks"
     )
@@ -536,6 +757,88 @@ nonisolated enum LessonCatalog {
         pattern: ProblemPattern.square(range: 41...59)
     )
 
+    private static let sameTensUnitsSumTenLesson = Lesson(
+        id: "mult_same_tens",
+        title: "Same Tens, Units Make 10",
+        description: "Pairs like 43 × 47 — same tens digit, units adding to 10 — in one line.",
+        trick: MathTrick(
+            name: "Tens × Next, then Units",
+            steps: [
+                "Check the shape: both numbers share a tens digit, and their units digits add to 10.",
+                "Take the tens digit T and multiply it by (T + 1).",
+                "Multiply the two units digits together.",
+                "Write the second result after the first, padded to two digits.",
+                "This is the same rule as squares ending in 5 — that's just the case where both units digits are 5."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "43 × 47",
+                    solution: "2021",
+                    stepByStepExplanation: [
+                        "Step 1: Units 3 + 7 = 10 ✓, tens both 4",
+                        "Step 2: 4 × 5 = 20",
+                        "Step 3: 3 × 7 = 21",
+                        "Answer: 2021"
+                    ]
+                ),
+                TrickExample(
+                    problem: "62 × 68",
+                    solution: "4216",
+                    stepByStepExplanation: [
+                        "Step 1: Units 2 + 8 = 10 ✓, tens both 6",
+                        "Step 2: 6 × 7 = 42",
+                        "Step 3: 2 × 8 = 16",
+                        "Answer: 4216"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.sameTensUnitsSumTen(tensRange: 1...9)
+    )
+
+    private static let squaresNearHundredLesson = Lesson(
+        id: "sq_near100",
+        title: "Squares Near 100",
+        description: "Square anything from 91 to 109 by leaning on 100.",
+        trick: MathTrick(
+            name: "Double the Distance",
+            steps: [
+                "Find the distance d from 100 (103 → +3, 96 → −4).",
+                "Add d to the number again — that's the front.",
+                "Multiply the front by 100 (append two zeros).",
+                "Add d² on the end.",
+                "The same move works off any round base — 50 and 1000 included."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "103 × 103",
+                    solution: "10609",
+                    stepByStepExplanation: [
+                        "Step 1: 103 is 3 above 100",
+                        "Step 2: 103 + 3 = 106 → 10600",
+                        "Step 3: 3² = 9 → 10600 + 9",
+                        "Answer: 10609"
+                    ]
+                ),
+                TrickExample(
+                    problem: "96 × 96",
+                    solution: "9216",
+                    stepByStepExplanation: [
+                        "Step 1: 96 is 4 below 100",
+                        "Step 2: 96 − 4 = 92 → 9200",
+                        "Step 3: 4² = 16 → 9200 + 16",
+                        "Answer: 9216"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.squareNearBase(base: 100, deviationRange: 1...9)
+    )
+
     // MARK: - Division Tricks
 
     static let divisionTricksGroup = LessonGroup(
@@ -545,7 +848,9 @@ nonisolated enum LessonCatalog {
         iconName: "divide.circle.fill",
         lessons: [
             divideByFourLesson,
-            divideByFiveLesson
+            divideByFiveLesson,
+            divideByNineLesson,
+            remainderBySevenLesson
         ],
         requiredGroupId: "squaring_shortcuts"
     )
@@ -598,6 +903,90 @@ nonisolated enum LessonCatalog {
         operations: [.division],
         difficulty: .medium,
         pattern: ProblemPattern.divisor(divisors: [5], quotientRange: 2...40)
+    )
+
+    private static let divideByNineLesson = Lesson(
+        id: "div_9",
+        title: "Divide by 9 — Running Sums",
+        description: "No long division: just add the digits as you go left to right.",
+        trick: MathTrick(
+            name: "Add As You Go",
+            steps: [
+                "Write down the first digit — that's the first digit of the answer.",
+                "Add the next digit to it — that's the next digit of the answer.",
+                "Keep the running total going across the number.",
+                "The very last total is the remainder, not part of the answer.",
+                "These divide exactly, so the remainder always comes out as 9 — add 1 to what you've written and you're done."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "117 ÷ 9",
+                    solution: "13",
+                    stepByStepExplanation: [
+                        "Step 1: First digit → 1",
+                        "Step 2: 1 + 1 = 2 → so far 12",
+                        "Step 3: Remainder = 2 + 7 = 9",
+                        "Step 4: Remainder is 9, so add 1 → 13",
+                        "Answer: 13"
+                    ]
+                ),
+                TrickExample(
+                    problem: "342 ÷ 9",
+                    solution: "38",
+                    stepByStepExplanation: [
+                        "Step 1: First digit → 3",
+                        "Step 2: 3 + 4 = 7 → so far 37",
+                        "Step 3: Remainder = 7 + 2 = 9",
+                        "Step 4: Remainder is 9, so add 1 → 38",
+                        "Answer: 38"
+                    ]
+                )
+            ]
+        ),
+        operations: [.division],
+        difficulty: .hard,
+        pattern: ProblemPattern.divideByNine(quotientRange: 12...99)
+    )
+
+    private static let remainderBySevenLesson = Lesson(
+        id: "mod_7",
+        title: "Remainder After 7",
+        description: "Find what's left over after dividing by 7 — without dividing.",
+        trick: MathTrick(
+            name: "The 7 Cycle",
+            steps: [
+                "Each place value has a fixed weight for 7. From the right they run 1, 3, 2, 6, 4, 5 — then repeat.",
+                "Multiply each digit by its weight and add everything up.",
+                "Take that total's remainder after 7. That's the answer.",
+                "If the total is still big, run the same trick on it.",
+                "A remainder of 0 means the number divides by 7 exactly — this is the divisibility test nobody knows."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "528 mod 7",
+                    solution: "3",
+                    stepByStepExplanation: [
+                        "Step 1: Weights from the right → 8×1, 2×3, 5×2",
+                        "Step 2: 8 + 6 + 10 = 24",
+                        "Step 3: 24 − 21 = 3",
+                        "Answer: 3"
+                    ]
+                ),
+                TrickExample(
+                    problem: "1234 mod 7",
+                    solution: "2",
+                    stepByStepExplanation: [
+                        "Step 1: Weights from the right → 4×1, 3×3, 2×2, 1×6",
+                        "Step 2: 4 + 9 + 4 + 6 = 23",
+                        "Step 3: 23 − 21 = 2",
+                        "Answer: 2"
+                    ]
+                )
+            ]
+        ),
+        operations: [.remainder],
+        difficulty: .hard,
+        pattern: ProblemPattern.remainder(divisor: 7, range: 100...9999)
     )
 
     // MARK: - Percentage Tricks
@@ -711,110 +1100,5 @@ nonisolated enum LessonCatalog {
         operations: [.percentage],
         difficulty: .medium,
         pattern: ProblemPattern.percentage(percents: [25], multiplierRange: 2...25)
-    )
-
-    // MARK: - Crosswise Multiplication
-
-    /// The Vedic "vertically and crosswise" method. Unlike the other
-    /// multiplication groups, these tricks need no special shape of number —
-    /// they work on any two-digit pair — so they sit at the end of the
-    /// progression as the general-purpose finisher.
-    static let crosswiseMultiplicationGroup = LessonGroup(
-        id: "crosswise_multiplication",
-        title: "Crosswise Multiplication",
-        description: "Multiply any two 2-digit numbers in three columns — no special shape required.",
-        iconName: "arrow.triangle.swap",
-        lessons: [
-            crosswiseBasicsLesson,
-            crosswiseCarryLesson
-        ],
-        requiredGroupId: "percentage_tricks"
-    )
-
-    private static let crosswiseBasicsLesson = Lesson(
-        id: "mult_crosswise",
-        title: "Vertically and Crosswise",
-        description: "Any two 2-digit numbers, read off as three columns.",
-        trick: MathTrick(
-            name: "Three Columns",
-            steps: [
-                "Write the numbers one above the other, digits lined up.",
-                "Right column: multiply the two units digits.",
-                "Middle column: multiply crosswise — top tens × bottom units, plus top units × bottom tens — and add the two.",
-                "Left column: multiply the two tens digits.",
-                "Read the three results left to right.",
-                "Every column is a small times-table fact, so you never write out a long multiplication."
-            ],
-            examples: [
-                TrickExample(
-                    problem: "23 × 13",
-                    solution: "299",
-                    stepByStepExplanation: [
-                        "Step 1: Units → 3 × 3 = 9",
-                        "Step 2: Crosswise → 2 × 3 + 3 × 1 = 9",
-                        "Step 3: Tens → 2 × 1 = 2",
-                        "Step 4: Read left to right → 2 | 9 | 9",
-                        "Answer: 299"
-                    ]
-                ),
-                TrickExample(
-                    problem: "31 × 22",
-                    solution: "682",
-                    stepByStepExplanation: [
-                        "Step 1: Units → 1 × 2 = 2",
-                        "Step 2: Crosswise → 3 × 2 + 1 × 2 = 8",
-                        "Step 3: Tens → 3 × 2 = 6",
-                        "Step 4: Read left to right → 6 | 8 | 2",
-                        "Answer: 682"
-                    ]
-                )
-            ]
-        ),
-        operations: [.multiplication],
-        difficulty: .medium,
-        pattern: ProblemPattern.crosswise(kind: .carryFree)
-    )
-
-    private static let crosswiseCarryLesson = Lesson(
-        id: "mult_crosswise_carry",
-        title: "Crosswise with Carries",
-        description: "The same three columns, now carrying from one column into the next.",
-        trick: MathTrick(
-            name: "Three Columns — Carry Left",
-            steps: [
-                "Work the same three columns, but start from the right.",
-                "Keep only the last digit of each column.",
-                "Carry everything above 9 into the column to its left, and add it there.",
-                "The left column plus its carry becomes the front of the answer.",
-                "Only one digit is ever written down per column, so you can hold the running answer in your head."
-            ],
-            examples: [
-                TrickExample(
-                    problem: "47 × 63",
-                    solution: "2961",
-                    stepByStepExplanation: [
-                        "Step 1: Units → 7 × 3 = 21 → write 1, carry 2",
-                        "Step 2: Crosswise → 4 × 3 + 7 × 6 = 54, plus carry 2 = 56 → write 6, carry 5",
-                        "Step 3: Tens → 4 × 6 = 24, plus carry 5 = 29",
-                        "Step 4: Read left to right → 29 | 6 | 1",
-                        "Answer: 2961"
-                    ]
-                ),
-                TrickExample(
-                    problem: "86 × 74",
-                    solution: "6364",
-                    stepByStepExplanation: [
-                        "Step 1: Units → 6 × 4 = 24 → write 4, carry 2",
-                        "Step 2: Crosswise → 8 × 4 + 6 × 7 = 74, plus carry 2 = 76 → write 6, carry 7",
-                        "Step 3: Tens → 8 × 7 = 56, plus carry 7 = 63",
-                        "Step 4: Read left to right → 63 | 6 | 4",
-                        "Answer: 6364"
-                    ]
-                )
-            ]
-        ),
-        operations: [.multiplication],
-        difficulty: .hard,
-        pattern: ProblemPattern.crosswise(kind: .carrying)
     )
 }

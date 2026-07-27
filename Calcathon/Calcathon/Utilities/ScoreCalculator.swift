@@ -86,7 +86,7 @@ nonisolated enum ScoreCalculator {
         case .addition, .subtraction:
             let largest = max(problem.operandA, problem.operandB)
             return largest >= 100 ? arenaThreeDigitPoints : arenaTwoDigitPoints
-        case .percentage:
+        case .percentage, .remainder:
             return 0 // not used in the Arena
         }
     }

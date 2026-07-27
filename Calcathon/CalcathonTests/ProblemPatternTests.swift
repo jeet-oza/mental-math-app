@@ -190,6 +190,109 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    func testCrosswiseThreeDigitUsesNonZeroDigits() {
+        let engine = MathEngine(seed: "crosswise3", pattern: .crosswiseThreeDigit)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .multiplication)
+            for operand in [problem.operandA, problem.operandB] {
+                XCTAssertTrue((111...999).contains(operand))
+                // A zero digit would collapse a column into a freebie.
+                XCTAssertNotEqual(operand / 100 % 10, 0)
+                XCTAssertNotEqual(operand / 10 % 10, 0)
+                XCTAssertNotEqual(operand % 10, 0)
+            }
+        }
+    }
+
+    func testNearBaseKeepsBothOperandsOnTheSameSide() {
+        for (base, deviations) in [(50, 1...8), (1000, 1...19)] {
+            let pattern = ProblemPattern.nearBase(base: base, deviationRange: deviations)
+            let engine = MathEngine(seed: "base\(base)", pattern: pattern)
+            for problem in engine.generateBatch(count: 200) {
+                XCTAssertEqual(problem.operation, .multiplication)
+                let d1 = problem.operandA - base
+                let d2 = problem.operandB - base
+                XCTAssertEqual(d1 > 0, d2 > 0, "both operands must sit on the same side of \(base)")
+                XCTAssertTrue(deviations.contains(abs(d1)))
+                XCTAssertTrue(deviations.contains(abs(d2)))
+                // Same side means the tail (the deviations multiplied) is
+                // positive, so the method never needs a borrow.
+                XCTAssertGreaterThan(d1 * d2, 0)
+            }
+        }
+    }
+
+    func testSameTensUnitsSumTenMatchesTheShortcut() {
+        let pattern = ProblemPattern.sameTensUnitsSumTen(tensRange: 1...9)
+        let engine = MathEngine(seed: "sameTens", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            let t = problem.operandA / 10
+            let u = problem.operandA % 10
+            XCTAssertEqual(problem.operandB / 10, t, "tens digits must match")
+            XCTAssertEqual(u + problem.operandB % 10, 10, "units must sum to 10")
+            // The taught rule: T×(T+1) then the units product, padded to two.
+            XCTAssertEqual(problem.correctAnswer, t * (t + 1) * 100 + u * (10 - u))
+        }
+    }
+
+    func testSquareNearBaseStaysInRangeAndSkipsTheBase() {
+        let pattern = ProblemPattern.squareNearBase(base: 100, deviationRange: 1...9)
+        let engine = MathEngine(seed: "sqNear100", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operandA, problem.operandB)
+            XCTAssertTrue((91...109).contains(problem.operandA))
+            XCTAssertNotEqual(problem.operandA, 100, "the base itself is not a puzzle")
+            // The taught rule: (n + d) × base + d².
+            let d = problem.operandA - 100
+            XCTAssertEqual(problem.correctAnswer, (problem.operandA + d) * 100 + d * d)
+        }
+    }
+
+    func testDivideByNineIsExactAndCarryFree() {
+        let pattern = ProblemPattern.divideByNine(quotientRange: 12...99)
+        let engine = MathEngine(seed: "div9", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .division)
+            XCTAssertEqual(problem.operandB, 9)
+            XCTAssertEqual(problem.operandA % 9, 0, "must divide exactly")
+
+            // Digits summing to 9 is what keeps every running sum below 10 and
+            // makes the remainder land on 9 every time, so the lesson's final
+            // "add 1" step always applies.
+            var digits: [Int] = [], value = problem.operandA
+            while value > 0 { digits.append(value % 10); value /= 10 }
+            XCTAssertEqual(digits.reduce(0, +), 9)
+
+            var running = 0
+            for digit in digits.reversed() {
+                running += digit
+                XCTAssertLessThanOrEqual(running, 9, "no running sum may carry")
+            }
+        }
+    }
+
+    func testRemainderMatchesTheCycleWeights() {
+        let pattern = ProblemPattern.remainder(divisor: 7, range: 100...9999)
+        let engine = MathEngine(seed: "mod7", pattern: pattern)
+        let weights = [1, 3, 2, 6, 4, 5] // place values mod 7, from the right
+
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .remainder)
+            XCTAssertEqual(problem.operandB, 7)
+            XCTAssertTrue((0...6).contains(problem.correctAnswer))
+            XCTAssertEqual(problem.correctAnswer, problem.operandA % 7)
+
+            // The taught method must agree with the real remainder.
+            var total = 0, value = problem.operandA, place = 0
+            while value > 0 {
+                total += (value % 10) * weights[place % weights.count]
+                value /= 10
+                place += 1
+            }
+            XCTAssertEqual(total % 7, problem.correctAnswer)
+        }
+    }
+
     func testDivisorAlwaysDividesCleanly() {
         let pattern = ProblemPattern.divisor(divisors: [4, 5], quotientRange: 2...40)
         let engine = MathEngine(seed: "div", pattern: pattern)

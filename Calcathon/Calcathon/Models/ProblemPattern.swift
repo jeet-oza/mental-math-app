@@ -80,6 +80,33 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// the crosswise sum, then tens × tens.
     case crosswise(kind: CrosswiseKind)
 
+    /// Three-digit × three-digit products, solved with the same crosswise
+    /// idea widened to five columns. Every digit is 1–9, so no column
+    /// collapses to a freebie.
+    case crosswiseThreeDigit
+
+    /// Products of two numbers sitting near a round `base` other than 100
+    /// (50, 1000, …), both on the same side of it so the tail stays positive.
+    /// Deviations are drawn from `deviationRange`.
+    case nearBase(base: Int, deviationRange: ClosedRange<Int>)
+
+    /// `ab × ac` where the tens digits match and the units digits sum to 10,
+    /// e.g. `43 × 47`. Products split cleanly into `t(t+1) | u(10−u)`.
+    case sameTensUnitsSumTen(tensRange: ClosedRange<Int>)
+
+    /// Squares of numbers within `deviationRange` of a round `base`,
+    /// e.g. base 100 → 91…109. The base itself is never generated.
+    case squareNearBase(base: Int, deviationRange: ClosedRange<Int>)
+
+    /// Exact division by 9 whose dividend's digits sum to exactly 9. That
+    /// keeps every running sum below 10, so the method needs no carrying and
+    /// the remainder always lands on 9 (i.e. "add 1 to the quotient").
+    case divideByNine(quotientRange: ClosedRange<Int>)
+
+    /// `n mod divisor`, found with the divisor's place-value cycle rather
+    /// than by dividing.
+    case remainder(divisor: Int, range: ClosedRange<Int>)
+
     /// An even operand (drawn from `evenRange`) times a fixed value, e.g.
     /// "even × 6" → the left operand is always even.
     case evenTimes(fixed: Int, evenRange: ClosedRange<Int>)
@@ -178,6 +205,57 @@ enum ProblemPattern: Codable, Equatable, Sendable {
                 return MathProblem(operandA: 47, operandB: 63, operation: .multiplication)
             }
 
+        case .crosswiseThreeDigit:
+            func threeDigit() -> Int {
+                (100 * Int.random(in: 1...9, using: &rng))
+                    + (10 * Int.random(in: 1...9, using: &rng))
+                    + Int.random(in: 1...9, using: &rng)
+            }
+            return MathProblem(operandA: threeDigit(), operandB: threeDigit(), operation: .multiplication)
+
+        case let .nearBase(base, deviationRange):
+            // Both numbers land on the same side of the base, so the tail
+            // (the two deviations multiplied) stays positive and no borrow
+            // is ever needed.
+            let above = Bool.random(using: &rng)
+            let d1 = Int.random(in: deviationRange, using: &rng)
+            let d2 = Int.random(in: deviationRange, using: &rng)
+            let sign = above ? 1 : -1
+            return MathProblem(
+                operandA: base + sign * d1,
+                operandB: base + sign * d2,
+                operation: .multiplication
+            )
+
+        case let .sameTensUnitsSumTen(tensRange):
+            let t = Int.random(in: tensRange, using: &rng)
+            let u = Int.random(in: 1...9, using: &rng)
+            return MathProblem(
+                operandA: t * 10 + u,
+                operandB: t * 10 + (10 - u),
+                operation: .multiplication
+            )
+
+        case let .squareNearBase(base, deviationRange):
+            let d = Int.random(in: deviationRange, using: &rng)
+            let n = Bool.random(using: &rng) ? base + d : base - d
+            return MathProblem(operandA: n, operandB: n, operation: .multiplication)
+
+        case let .divideByNine(quotientRange):
+            // Keep only the quotients whose dividend digits sum to 9 — those
+            // are exactly the ones the running-sum method handles carry-free.
+            for _ in 0..<64 {
+                let q = Int.random(in: quotientRange, using: &rng)
+                if Self.digitSum(q * 9) == 9 {
+                    return MathProblem(operandA: q * 9, operandB: 9, operation: .division)
+                }
+            }
+            return MathProblem(operandA: 117, operandB: 9, operation: .division)
+
+        case let .remainder(divisor, range):
+            let n = Int.random(in: range, using: &rng)
+            return MathProblem(operandA: n, operandB: divisor, operation: .remainder)
+
         case let .evenTimes(fixed, evenRange):
             // Pick an even value in the range: choose a half, then double it.
             let half = Int.random(in: (evenRange.lowerBound + 1) / 2 ... evenRange.upperBound / 2, using: &rng)
@@ -205,6 +283,12 @@ enum ProblemPattern: Codable, Equatable, Sendable {
             let base = step * Int.random(in: multiplierRange, using: &rng)
             return MathProblem(operandA: p, operandB: base, operation: .percentage)
         }
+    }
+
+    private static func digitSum(_ n: Int) -> Int {
+        var value = abs(n), sum = 0
+        while value > 0 { sum += value % 10; value /= 10 }
+        return sum
     }
 
     private static func gcd(_ a: Int, _ b: Int) -> Int {

@@ -15,6 +15,14 @@ struct PracticeView: View {
     @EnvironmentObject var curriculumVM: CurriculumViewModel
     @Environment(\.dismiss) private var dismiss
 
+    /// Whether the scribble pad is showing. Remembered across sessions so a
+    /// player who works things out on paper doesn't re-open it every question.
+    @AppStorage("practice_scratchpad_visible") private var isScratchPadVisible = false
+
+    /// Cleared whenever the problem changes — each question starts on a
+    /// blank pad.
+    @State private var scratchStrokes: [ScratchStroke] = []
+
     init(lesson: Lesson) {
         _viewModel = StateObject(wrappedValue: PracticeViewModel(lesson: lesson))
     }
@@ -59,7 +67,12 @@ struct PracticeView: View {
                 feedbackBanner(feedback)
             }
 
-            Spacer()
+            if isScratchPadVisible {
+                ScratchPad(strokes: $scratchStrokes)
+                    .frame(minHeight: 140)
+            } else {
+                Spacer()
+            }
 
             // Input and actions
             inputSection
@@ -68,6 +81,9 @@ struct PracticeView: View {
             scoreBar
         }
         .padding()
+        .onChange(of: viewModel.currentProblem?.id) { _, _ in
+            scratchStrokes.removeAll()
+        }
     }
 
     // MARK: - Subviews
@@ -83,6 +99,17 @@ struct PracticeView: View {
             Text(viewModel.accuracyText)
                 .font(.subheadline.bold())
                 .foregroundStyle(Color.brandAccent)
+
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    isScratchPadVisible.toggle()
+                }
+            } label: {
+                Image(systemName: isScratchPadVisible ? "pencil.circle.fill" : "pencil.circle")
+                    .font(.title3)
+                    .foregroundStyle(isScratchPadVisible ? Color.brandAccent : .secondary)
+            }
+            .accessibilityLabel(Text(isScratchPadVisible ? "Hide scratch pad" : "Show scratch pad"))
         }
     }
 
