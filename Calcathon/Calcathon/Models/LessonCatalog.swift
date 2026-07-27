@@ -18,7 +18,10 @@ nonisolated enum LessonCatalog {
         multiplicationTricksGroup,
         advancedMultiplicationGroup,
         squaringShortcutsGroup,
+        powersAndRootsGroup,
         divisionTricksGroup,
+        advancedDivisionGroup,
+        numberChecksGroup,
         percentageTricksGroup
     ]
 
@@ -32,7 +35,8 @@ nonisolated enum LessonCatalog {
         lessons: [
             addingNineLesson,
             addingElevenLesson,
-            addingNearHundredLesson
+            addingNearHundredLesson,
+            leftToRightAdditionLesson
         ]
     )
 
@@ -124,7 +128,8 @@ nonisolated enum LessonCatalog {
         lessons: [
             subtractingNineLesson,
             subtractingNearHundredLesson,
-            subtractingFromRoundNumbersLesson
+            subtractingFromRoundNumbersLesson,
+            leftToRightSubtractionLesson
         ],
         requiredGroupId: "basic_addition"
     )
@@ -243,6 +248,7 @@ nonisolated enum LessonCatalog {
             multiplyNearHundredLesson,
             multiplyNearHundredCarryLesson,
             multiplyNearFiftyLesson,
+            multiplyNearTwoHundredLesson,
             multiplyNearThousandLesson,
             crosswiseBasicsLesson,
             crosswiseCarryLesson,
@@ -943,6 +949,395 @@ nonisolated enum LessonCatalog {
         pattern: ProblemPattern.square(range: 21...99)
     )
 
+    private static let leftToRightAdditionLesson = Lesson(
+        id: "add_left_right",
+        title: "Add From the Left",
+        description: "Start with the big digits — you'll know roughly the answer straight away.",
+        trick: MathTrick(
+            name: "Big Digits First",
+            steps: [
+                "School teaches right to left. Do the opposite.",
+                "Add the hundreds first and hold that running total.",
+                "Add the tens onto it, then the units.",
+                "Each step updates one number in your head, so there's nothing to remember but the total.",
+                "You get the size of the answer immediately, which makes a slip obvious."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "456 + 378",
+                    solution: "834",
+                    stepByStepExplanation: [
+                        "Step 1: 400 + 300 = 700",
+                        "Step 2: 700 + 50 + 70 = 820",
+                        "Step 3: 820 + 6 + 8 = 834",
+                        "Answer: 834"
+                    ]
+                ),
+                TrickExample(
+                    problem: "247 + 185",
+                    solution: "432",
+                    stepByStepExplanation: [
+                        "Step 1: 200 + 100 = 300",
+                        "Step 2: 300 + 40 + 80 = 420",
+                        "Step 3: 420 + 7 + 5 = 432",
+                        "Answer: 432"
+                    ]
+                )
+            ]
+        ),
+        operations: [.addition],
+        difficulty: .medium,
+        pattern: ProblemPattern.twoOperand(operation: .addition, leftRange: 111...899, rightRange: 111...899)
+    )
+
+    private static let leftToRightSubtractionLesson = Lesson(
+        id: "sub_left_right",
+        title: "Subtract From the Left",
+        description: "Same idea going down — and borrowing stops being a problem.",
+        trick: MathTrick(
+            name: "Big Digits First",
+            steps: [
+                "Take the hundreds away first and hold that running total.",
+                "Then the tens, then the units.",
+                "When a step goes the wrong way, just take the difference off — no borrowing needed.",
+                "For example 30 − 70 simply means dropping 40 from the running total.",
+                "One number to hold the whole way through."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "834 − 378",
+                    solution: "456",
+                    stepByStepExplanation: [
+                        "Step 1: 800 − 300 = 500",
+                        "Step 2: 30 − 70 is 40 short → 500 − 40 = 460",
+                        "Step 3: 4 − 8 is 4 short → 460 − 4 = 456",
+                        "Answer: 456"
+                    ]
+                ),
+                TrickExample(
+                    problem: "725 − 348",
+                    solution: "377",
+                    stepByStepExplanation: [
+                        "Step 1: 700 − 300 = 400",
+                        "Step 2: 20 − 40 is 20 short → 400 − 20 = 380",
+                        "Step 3: 5 − 8 is 3 short → 380 − 3 = 377",
+                        "Answer: 377"
+                    ]
+                )
+            ]
+        ),
+        operations: [.subtraction],
+        difficulty: .medium,
+        pattern: ProblemPattern.twoOperand(operation: .subtraction, leftRange: 111...899, rightRange: 111...899)
+    )
+
+    private static let multiplyNearTwoHundredLesson = Lesson(
+        id: "mult_near200",
+        title: "Multiply Near 200",
+        description: "A working base of 200 — same method, but the front doubles instead of halving.",
+        trick: MathTrick(
+            name: "Sub-Base 200",
+            steps: [
+                "Measure how far each number is from 200 (203 → 3 above).",
+                "Front = one number plus the other's distance.",
+                "Because 200 is twice 100, double that front.",
+                "Tail = the two distances multiplied, padded to two digits.",
+                "Write the front, then the tail.",
+                "The same idea covers any working base: halve for 50, double for 200, triple for 300."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "203 × 204",
+                    solution: "41412",
+                    stepByStepExplanation: [
+                        "Step 1: Distances 3 and 4, both above",
+                        "Step 2: Front = 203 + 4 = 207",
+                        "Step 3: Double it → 414",
+                        "Step 4: Tail = 3 × 4 = 12",
+                        "Answer: 41412"
+                    ]
+                ),
+                TrickExample(
+                    problem: "196 × 197",
+                    solution: "38612",
+                    stepByStepExplanation: [
+                        "Step 1: Distances 4 and 3, both below",
+                        "Step 2: Front = 196 − 3 = 193",
+                        "Step 3: Double it → 386",
+                        "Step 4: Tail = 4 × 3 = 12",
+                        "Answer: 38612"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.nearBase(base: 200, deviationRange: 1...9)
+    )
+
+    private static let divideByEightLesson = Lesson(
+        id: "div_8",
+        title: "Divide by 8",
+        description: "Halve it three times.",
+        trick: MathTrick(
+            name: "Halve Three Times",
+            steps: [
+                "Halve the number.",
+                "Halve the result.",
+                "Halve it once more — 8 is just 2 × 2 × 2.",
+                "Three easy halvings beat one hard division."
+            ],
+            example: TrickExample(
+                problem: "184 ÷ 8",
+                solution: "23",
+                stepByStepExplanation: [
+                    "Step 1: 184 ÷ 2 = 92",
+                    "Step 2: 92 ÷ 2 = 46",
+                    "Step 3: 46 ÷ 2 = 23",
+                    "Answer: 23"
+                ]
+            )
+        ),
+        operations: [.division],
+        difficulty: .medium,
+        pattern: ProblemPattern.divisor(divisors: [8], quotientRange: 2...40)
+    )
+
+    // MARK: - Powers & Roots
+
+    /// Cubes and roots. Roots are the reverse-engineering lessons: the answer
+    /// is read off the number's last digit and its leading group, with no
+    /// division or trial multiplication anywhere.
+    static let powersAndRootsGroup = LessonGroup(
+        id: "powers_and_roots",
+        title: "Powers & Roots",
+        description: "Cube numbers, and read square and cube roots straight off the digits.",
+        iconName: "function",
+        lessons: [
+            differenceOfSquaresLesson,
+            cubeNearHundredLesson,
+            cubeAnyTwoDigitLesson,
+            squareRootLesson,
+            cubeRootLesson
+        ],
+        requiredGroupId: "squaring_shortcuts"
+    )
+
+    private static let differenceOfSquaresLesson = Lesson(
+        id: "sq_difference",
+        title: "Difference of Two Squares",
+        description: "Never square either number — turn the whole thing into one small product.",
+        trick: MathTrick(
+            name: "Sum Times Difference",
+            steps: [
+                "You're asked for one square minus another.",
+                "Add the two numbers together.",
+                "Subtract the smaller from the larger.",
+                "Multiply those two results — that's the answer.",
+                "Both squares disappear, which is why this beats working them out."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "47² − 43²",
+                    solution: "360",
+                    stepByStepExplanation: [
+                        "Step 1: 47 + 43 = 90",
+                        "Step 2: 47 − 43 = 4",
+                        "Step 3: 90 × 4 = 360",
+                        "Answer: 360"
+                    ]
+                ),
+                TrickExample(
+                    problem: "85² − 15²",
+                    solution: "7000",
+                    stepByStepExplanation: [
+                        "Step 1: 85 + 15 = 100",
+                        "Step 2: 85 − 15 = 70",
+                        "Step 3: 100 × 70 = 7000",
+                        "Answer: 7000"
+                    ]
+                )
+            ]
+        ),
+        operations: [.differenceOfSquares],
+        difficulty: .medium,
+        pattern: ProblemPattern.differenceOfSquares(range: 21...99, gapRange: 2...12)
+    )
+
+    private static let cubeNearHundredLesson = Lesson(
+        id: "cube_near100",
+        title: "Cube a Number Near 100",
+        description: "Three parts, built from the distance above 100.",
+        trick: MathTrick(
+            name: "Yavadunam for Cubes",
+            steps: [
+                "Find the distance d above 100 (104 → 4).",
+                "First part: the number plus twice that distance.",
+                "Second part: three times the distance squared.",
+                "Third part: the distance cubed.",
+                "Write the three parts side by side, each of the last two padded to two digits.",
+                "Carry left out of any part that overflows two digits."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "104³",
+                    solution: "1124864",
+                    stepByStepExplanation: [
+                        "Step 1: d = 4",
+                        "Step 2: First → 104 + 8 = 112",
+                        "Step 3: Second → 3 × 16 = 48",
+                        "Step 4: Third → 4³ = 64",
+                        "Step 5: 112 | 48 | 64",
+                        "Answer: 1124864"
+                    ]
+                ),
+                TrickExample(
+                    problem: "106³",
+                    solution: "1191016",
+                    stepByStepExplanation: [
+                        "Step 1: d = 6",
+                        "Step 2: First → 106 + 12 = 118",
+                        "Step 3: Second → 3 × 36 = 108",
+                        "Step 4: Third → 6³ = 216",
+                        "Step 5: 216 → write 16, carry 2; 108 + 2 = 110 → write 10, carry 1; 118 + 1 = 119",
+                        "Answer: 1191016"
+                    ]
+                )
+            ]
+        ),
+        operations: [.cube],
+        difficulty: .hard,
+        pattern: ProblemPattern.cubeNearBase(base: 100, deviationRange: 1...9)
+    )
+
+    private static let cubeAnyTwoDigitLesson = Lesson(
+        id: "cube_any",
+        title: "Cube Any 2-Digit Number",
+        description: "Four columns in a fixed ratio — works on any two digits.",
+        trick: MathTrick(
+            name: "Ratio and Double",
+            steps: [
+                "Write four numbers: the tens digit cubed, then each next one multiplied by (units ÷ tens).",
+                "In practice: t³, then t²u, then tu², then u³.",
+                "Double the middle two and add each doubling onto itself.",
+                "Now add down the four columns, carrying left as usual.",
+                "The ratio between neighbours is always the same, which is what makes the four numbers quick to write."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "24³",
+                    solution: "13824",
+                    stepByStepExplanation: [
+                        "Step 1: Four terms → 8, 16, 32, 64",
+                        "Step 2: Double the middle two → 32 and 64",
+                        "Step 3: Add them on → 8 | 48 | 96 | 64",
+                        "Step 4: Carry right to left → 13824",
+                        "Answer: 13824"
+                    ]
+                ),
+                TrickExample(
+                    problem: "13³",
+                    solution: "2197",
+                    stepByStepExplanation: [
+                        "Step 1: Four terms → 1, 3, 9, 27",
+                        "Step 2: Double the middle two → 6 and 18",
+                        "Step 3: Add them on → 1 | 9 | 27 | 27",
+                        "Step 4: Carry right to left → 2197",
+                        "Answer: 2197"
+                    ]
+                )
+            ]
+        ),
+        operations: [.cube],
+        difficulty: .hard,
+        pattern: ProblemPattern.cube(range: 11...39)
+    )
+
+    private static let squareRootLesson = Lesson(
+        id: "root_square",
+        title: "Square Root of a Perfect Square",
+        description: "Read the root off the ends — no dividing, no guessing.",
+        trick: MathTrick(
+            name: "Ends and Bracket",
+            steps: [
+                "The last digit tells you the root's last digit: 1→1 or 9, 4→2 or 8, 9→3 or 7, 6→4 or 6, 5→5, 0→0.",
+                "Ignore the last two digits and look at what's left.",
+                "Find the biggest square that fits inside it — its root is your first digit.",
+                "That leaves two candidates. Square the one ending in 5 between them.",
+                "If the number is below that, take the smaller candidate; above it, take the larger."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "√5329",
+                    solution: "73",
+                    stepByStepExplanation: [
+                        "Step 1: Ends in 9 → root ends in 3 or 7",
+                        "Step 2: Leading part is 53; 7² = 49 fits, 8² = 64 doesn't → first digit 7",
+                        "Step 3: Candidates 73 and 77",
+                        "Step 4: 75² = 5625, and 5329 is below it → take 73",
+                        "Answer: 73"
+                    ]
+                ),
+                TrickExample(
+                    problem: "√3364",
+                    solution: "58",
+                    stepByStepExplanation: [
+                        "Step 1: Ends in 4 → root ends in 2 or 8",
+                        "Step 2: Leading part is 33; 5² = 25 fits, 6² = 36 doesn't → first digit 5",
+                        "Step 3: Candidates 52 and 58",
+                        "Step 4: 55² = 3025, and 3364 is above it → take 58",
+                        "Answer: 58"
+                    ]
+                )
+            ]
+        ),
+        operations: [.squareRoot],
+        difficulty: .medium,
+        pattern: ProblemPattern.perfectSquareRoot(range: 11...99)
+    )
+
+    private static let cubeRootLesson = Lesson(
+        id: "root_cube",
+        title: "Cube Root of an Exact Cube",
+        description: "The party trick: a five-digit cube root at a glance.",
+        trick: MathTrick(
+            name: "Last Digit, First Group",
+            steps: [
+                "Cube endings never collide, so the last digit gives the root's last digit outright.",
+                "Most match themselves — 1→1, 4→4, 5→5, 6→6, 9→9, 0→0.",
+                "Only two pairs swap: 8→2 and 2→8, 7→3 and 3→7.",
+                "Now cross off the last three digits and look at what's left.",
+                "The biggest cube that fits inside it gives the first digit.",
+                "Put the two digits together — that's the whole root."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "∛39304",
+                    solution: "34",
+                    stepByStepExplanation: [
+                        "Step 1: Ends in 4 → root ends in 4",
+                        "Step 2: Cross off 304, leaving 39",
+                        "Step 3: 3³ = 27 fits, 4³ = 64 doesn't → first digit 3",
+                        "Answer: 34"
+                    ]
+                ),
+                TrickExample(
+                    problem: "∛103823",
+                    solution: "47",
+                    stepByStepExplanation: [
+                        "Step 1: Ends in 3 → root ends in 7 (the swapping pair)",
+                        "Step 2: Cross off 823, leaving 103",
+                        "Step 3: 4³ = 64 fits, 5³ = 125 doesn't → first digit 4",
+                        "Answer: 47"
+                    ]
+                )
+            ]
+        ),
+        operations: [.cubeRoot],
+        difficulty: .medium,
+        pattern: ProblemPattern.exactCubeRoot(range: 11...99)
+    )
+
     // MARK: - Division Tricks
 
     static let divisionTricksGroup = LessonGroup(
@@ -953,11 +1348,10 @@ nonisolated enum LessonCatalog {
         lessons: [
             divideByFourLesson,
             divideByFiveLesson,
-            divideByNineLesson,
-            remainderByNineLesson,
-            remainderBySevenLesson
+            divideByEightLesson,
+            divideByNineLesson
         ],
-        requiredGroupId: "squaring_shortcuts"
+        requiredGroupId: "powers_and_roots"
     )
 
     private static let divideByFourLesson = Lesson(
@@ -1051,6 +1445,222 @@ nonisolated enum LessonCatalog {
         operations: [.division],
         difficulty: .hard,
         pattern: ProblemPattern.divideByNine(quotientRange: 12...99)
+    )
+
+
+
+    // MARK: - Advanced Division
+
+    /// The methods that replace long division. All three answer with a
+    /// quotient *and* a remainder, because that is what these methods actually
+    /// produce — forcing exact division would hide how they work.
+    static let advancedDivisionGroup = LessonGroup(
+        id: "advanced_division",
+        title: "Advanced Division",
+        description: "Replace long division: add the complement, transpose, or fly a flag.",
+        iconName: "divide.square.fill",
+        lessons: [
+            nikhilamDivisionLesson,
+            paravartyaDivisionLesson,
+            flagDivisionLesson
+        ],
+        requiredGroupId: "division_tricks"
+    )
+
+    private static let nikhilamDivisionLesson = Lesson(
+        id: "div_nikhilam",
+        title: "Divide by 88, 97, 993…",
+        description: "Divisors just below a round number — add the complement instead of subtracting.",
+        trick: MathTrick(
+            name: "Nikhilam Division",
+            steps: [
+                "Find how far the divisor sits below the round number: 88 → 12, 97 → 3.",
+                "Split the dividend so the right-hand part has as many digits as the divisor.",
+                "Bring the first digit down — that's your first quotient digit.",
+                "Multiply it by the complement and add the result into the columns to its right.",
+                "Take the next column total down as the next quotient digit, and repeat to the split.",
+                "Whatever sits right of the split is the remainder. If it comes out bigger than the divisor, move one more into the quotient."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "1104 ÷ 88",
+                    solution: "12 r 48",
+                    stepByStepExplanation: [
+                        "Step 1: 88 is 12 below 100 → complement 12",
+                        "Step 2: Split 11 | 04",
+                        "Step 3: Bring down 1 → 1 × 12 = 12 added right",
+                        "Step 4: Next column 1 + 1 = 2 → 2 × 12 = 24 added right",
+                        "Step 5: Right of the split → 0 + 2 + 2 = 4, then 4 + 4 = 8",
+                        "Answer: 12 r 48"
+                    ]
+                ),
+                TrickExample(
+                    problem: "2345 ÷ 97",
+                    solution: "24 r 17",
+                    stepByStepExplanation: [
+                        "Step 1: 97 is 3 below 100 → complement 3",
+                        "Step 2: Split 23 | 45, working through gives 23 r 114",
+                        "Step 3: 114 is bigger than 97, so take one more",
+                        "Step 4: 23 + 1 = 24, and 114 − 97 = 17",
+                        "Answer: 24 r 17"
+                    ]
+                )
+            ]
+        ),
+        operations: [.divisionWithRemainder],
+        difficulty: .hard,
+        pattern: ProblemPattern.nearBaseDivision(
+            base: 100, side: .below, offsetRange: 2...12, quotientRange: 11...49)
+    )
+
+    private static let paravartyaDivisionLesson = Lesson(
+        id: "div_paravartya",
+        title: "Divide by 112, 123, 104…",
+        description: "Divisors just above a round number — flip the signs and add.",
+        trick: MathTrick(
+            name: "Paravartya Yojayet — Transpose and Apply",
+            steps: [
+                "Drop the divisor's leading 1 and flip the sign of every digit left: 112 → −1, −2.",
+                "Split the dividend so the right-hand part has as many digits as those flipped digits.",
+                "Bring the first digit down as the first quotient digit.",
+                "Multiply it by the flipped digits and add them into the columns to the right — they're negative, so this subtracts.",
+                "Carry on to the split; what's left of it is the quotient, right of it the remainder.",
+                "If the remainder lands negative, drop the quotient by 1 and add the divisor back onto it."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "1234 ÷ 112",
+                    solution: "11 r 2",
+                    stepByStepExplanation: [
+                        "Step 1: 112 → flipped digits −1, −2",
+                        "Step 2: Split 12 | 34",
+                        "Step 3: Bring down 1 → adds −1, −2 to the right",
+                        "Step 4: Next column 2 − 1 = 1 → adds −1, −2 again",
+                        "Step 5: Right of the split → 3 − 2 − 1 = 0, then 4 − 2 = 2",
+                        "Answer: 11 r 2"
+                    ]
+                ),
+                TrickExample(
+                    problem: "1345 ÷ 112",
+                    solution: "12 r 1",
+                    stepByStepExplanation: [
+                        "Step 1: Flipped digits −1, −2",
+                        "Step 2: Split 13 | 45",
+                        "Step 3: Bring down 1 → next column 3 − 1 = 2",
+                        "Step 4: Right of the split → 4 − 2 − 2 = 0, then 5 − 4 = 1",
+                        "Answer: 12 r 1"
+                    ]
+                )
+            ]
+        ),
+        operations: [.divisionWithRemainder],
+        difficulty: .hard,
+        pattern: ProblemPattern.nearBaseDivision(
+            base: 100, side: .above, offsetRange: 2...23, quotientRange: 11...39)
+    )
+
+    private static let flagDivisionLesson = Lesson(
+        id: "div_flag",
+        title: "Straight Division",
+        description: "The general method — any divisor, one digit of the answer at a time.",
+        trick: MathTrick(
+            name: "Dhwajanka — The Flag Method",
+            steps: [
+                "Split the divisor: the first digit does the dividing, the last digit becomes the flag.",
+                "Divide the dividend's first two digits by the main digit — that's your first answer digit, with something left over.",
+                "Write that leftover in front of the dividend's next digit to make the running number.",
+                "Subtract the flag times the answer digit you just wrote.",
+                "Divide what's left by the main digit again for the next answer digit, and repeat.",
+                "After the last digit, whatever remains is the remainder.",
+                "If a step ever goes negative, back the previous answer digit down by 1 and redo it."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "1234 ÷ 52",
+                    solution: "23 r 38",
+                    stepByStepExplanation: [
+                        "Step 1: Main digit 5, flag 2",
+                        "Step 2: 12 ÷ 5 = 2 remainder 2 → first digit 2",
+                        "Step 3: Running number 23, minus flag 2 × 2 = 4 → 19",
+                        "Step 4: 19 ÷ 5 = 3 remainder 4 → next digit 3",
+                        "Step 5: Running number 44, minus 2 × 3 = 6 → 38",
+                        "Answer: 23 r 38"
+                    ]
+                ),
+                TrickExample(
+                    problem: "2345 ÷ 31",
+                    solution: "75 r 20",
+                    stepByStepExplanation: [
+                        "Step 1: Main digit 3, flag 1",
+                        "Step 2: 23 ÷ 3 = 7 remainder 2 → first digit 7",
+                        "Step 3: Running number 24, minus 1 × 7 = 7 → 17",
+                        "Step 4: 17 ÷ 3 = 5 remainder 2 → next digit 5",
+                        "Step 5: Running number 25, minus 1 × 5 = 5 → 20",
+                        "Answer: 75 r 20"
+                    ]
+                )
+            ]
+        ),
+        operations: [.divisionWithRemainder],
+        difficulty: .hard,
+        pattern: ProblemPattern.flagDivision(divisorRange: 21...79, quotientRange: 11...79)
+    )
+
+    // MARK: - Number Checks
+
+    /// Remainder tricks. Each one turns "divide and see what's left" into a
+    /// digit game, and together they're how you check your own arithmetic.
+    static let numberChecksGroup = LessonGroup(
+        id: "number_checks",
+        title: "Number Checks",
+        description: "Find remainders from the digits alone — and use them to check your work.",
+        iconName: "checkmark.seal.fill",
+        lessons: [
+            remainderByNineLesson,
+            remainderByElevenLesson,
+            remainderBySevenLesson
+        ],
+        requiredGroupId: "advanced_division"
+    )
+
+    private static let remainderByElevenLesson = Lesson(
+        id: "mod_11",
+        title: "The 11 Check",
+        description: "Alternate plus and minus across the digits.",
+        trick: MathTrick(
+            name: "Alternating Sum",
+            steps: [
+                "Start at the right-hand digit and add it.",
+                "Subtract the next one, add the one after, and keep alternating.",
+                "The total is the remainder after 11.",
+                "If it comes out negative, add 11 to it.",
+                "A total of 0 means the number divides by 11 exactly."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "1234 mod 11",
+                    solution: "2",
+                    stepByStepExplanation: [
+                        "Step 1: From the right → 4 − 3 + 2 − 1",
+                        "Step 2: That comes to 2",
+                        "Answer: 2"
+                    ]
+                ),
+                TrickExample(
+                    problem: "1099 mod 11",
+                    solution: "10",
+                    stepByStepExplanation: [
+                        "Step 1: From the right → 9 − 9 + 0 − 1",
+                        "Step 2: That comes to −1",
+                        "Step 3: Negative, so add 11 → 10",
+                        "Answer: 10"
+                    ]
+                )
+            ]
+        ),
+        operations: [.remainder],
+        difficulty: .medium,
+        pattern: ProblemPattern.remainder(divisor: 11, range: 100...9999)
     )
 
     private static let remainderByNineLesson = Lesson(
@@ -1148,7 +1758,7 @@ nonisolated enum LessonCatalog {
             fivePercentLesson,
             twentyFivePercentLesson
         ],
-        requiredGroupId: "division_tricks"
+        requiredGroupId: "number_checks"
     )
 
     private static let tenPercentLesson = Lesson(

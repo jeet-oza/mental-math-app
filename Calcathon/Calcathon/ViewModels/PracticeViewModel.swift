@@ -25,8 +25,27 @@ final class PracticeViewModel: ObservableObject {
     @Published private(set) var answers: [AnswerResult] = []
     @Published private(set) var isSessionComplete: Bool = false
     @Published var userInput: String = ""
+    /// Second field, used only by problems that want a remainder alongside
+    /// the quotient. Ignored for every other problem.
+    @Published var userRemainderInput: String = ""
     @Published private(set) var feedbackMessage: String?
     @Published private(set) var isCorrectFeedback: Bool?
+
+    // MARK: - Answer Shape
+
+    /// Whether the current problem wants a remainder as well as a quotient.
+    var wantsRemainder: Bool {
+        guard case .quotientRemainder = currentProblem?.answer else { return false }
+        return true
+    }
+
+    /// Whether there is enough typed in to submit. A remainder problem needs
+    /// both fields; everything else needs one.
+    var canSubmit: Bool {
+        let hasPrimary = !userInput.trimmingCharacters(in: .whitespaces).isEmpty
+        guard wantsRemainder else { return hasPrimary }
+        return hasPrimary && !userRemainderInput.trimmingCharacters(in: .whitespaces).isEmpty
+    }
 
     // MARK: - Properties
 
@@ -114,7 +133,17 @@ final class PracticeViewModel: ObservableObject {
         else { return }
 
         let elapsed = Date().timeIntervalSince(problemStartTime)
-        let isCorrect = userAnswer == problem.correctAnswer
+        let isCorrect: Bool
+        switch problem.answer {
+        case let .single(value):
+            isCorrect = userAnswer == value
+        case let .quotientRemainder(quotient, remainder):
+            // Both halves have to land; a right quotient with a wrong
+            // remainder means the method was not carried through.
+            guard let userRemainder = Int(userRemainderInput.trimmingCharacters(in: .whitespaces))
+            else { return }
+            isCorrect = userAnswer == quotient && userRemainder == remainder
+        }
         let points = ScoreCalculator.calculatePoints(
             isCorrect: isCorrect,
             timeElapsed: elapsed,
@@ -132,7 +161,7 @@ final class PracticeViewModel: ObservableObject {
         )
 
         answers.append(result)
-        showFeedback(isCorrect: isCorrect, correctAnswer: problem.correctAnswer)
+        showFeedback(isCorrect: isCorrect, answer: problem.answer)
         scheduleAdvance()
     }
 
@@ -152,7 +181,7 @@ final class PracticeViewModel: ObservableObject {
         )
 
         answers.append(result)
-        showFeedback(isCorrect: false, correctAnswer: problem.correctAnswer)
+        showFeedback(isCorrect: false, answer: problem.answer)
         scheduleAdvance()
     }
 
@@ -179,15 +208,16 @@ final class PracticeViewModel: ObservableObject {
         currentProblem = problems[problemNumber]
         problemNumber += 1
         userInput = ""
+        userRemainderInput = ""
         problemStartTime = Date()
     }
 
     /// Shows correct/incorrect feedback temporarily.
-    private func showFeedback(isCorrect: Bool, correctAnswer: Int) {
+    private func showFeedback(isCorrect: Bool, answer: ProblemAnswer) {
         isCorrectFeedback = isCorrect
         feedbackMessage = isCorrect
             ? "Correct! ✓"
-            : "Incorrect. The answer is \(correctAnswer)."
+            : "Incorrect. The answer is \(answer.displayText)."
     }
 
     /// Clears feedback and moves to the next problem.

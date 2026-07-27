@@ -27,6 +27,9 @@ extension Color {
     static let brandRust = Color(red: 0.812, green: 0.294, blue: 0.0)        // #CF4B00
     /// Warm neutral background option.
     static let brandBeige = Color(red: 0.961, green: 0.937, blue: 0.902)     // #F5EFE6
+
+    /// Faint separator on dark card surfaces (dividers, borders).
+    static let hairline = Color.white.opacity(0.10)
 }
 
 extension ShapeStyle where Self == LinearGradient {

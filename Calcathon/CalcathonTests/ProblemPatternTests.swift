@@ -340,6 +340,117 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    // MARK: - Powers & Roots
+
+    func testPerfectSquareRootIsExact() {
+        let engine = MathEngine(seed: "sqrt", pattern: .perfectSquareRoot(range: 11...99))
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .squareRoot)
+            XCTAssertEqual(problem.correctAnswer * problem.correctAnswer, problem.operandA)
+            XCTAssertTrue((11...99).contains(problem.correctAnswer))
+            XCTAssertEqual(problem.displayText, "√\(problem.operandA)")
+        }
+    }
+
+    func testExactCubeRootIsExactAndLastDigitDeterminesTheRoot() {
+        // The lesson leans entirely on cube endings being unique, so that has
+        // to hold for every number the pattern can produce.
+        let endings = [0: 0, 1: 1, 8: 2, 7: 3, 4: 4, 5: 5, 6: 6, 3: 7, 2: 8, 9: 9]
+        let engine = MathEngine(seed: "cbrt", pattern: .exactCubeRoot(range: 11...99))
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .cubeRoot)
+            let root = problem.correctAnswer
+            XCTAssertEqual(root * root * root, problem.operandA)
+            XCTAssertEqual(endings[problem.operandA % 10], root % 10,
+                           "cube ending must pin down the root's last digit")
+        }
+    }
+
+    func testCubeNearBaseStaysAboveTheBase() {
+        let engine = MathEngine(seed: "cubeNear", pattern: .cubeNearBase(base: 100, deviationRange: 1...9))
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .cube)
+            XCTAssertTrue((101...109).contains(problem.operandA),
+                          "below-base cubes are excluded: their last part goes negative")
+            XCTAssertEqual(problem.correctAnswer, problem.operandA * problem.operandA * problem.operandA)
+
+            // The taught parts: (n + 2d) | 3d² | d³, in hundreds-of-hundreds.
+            let d = problem.operandA - 100
+            XCTAssertEqual(
+                problem.correctAnswer,
+                (problem.operandA + 2 * d) * 10_000 + 3 * d * d * 100 + d * d * d)
+        }
+    }
+
+    func testDifferenceOfSquaresMatchesSumTimesDifference() {
+        let pattern = ProblemPattern.differenceOfSquares(range: 21...99, gapRange: 2...12)
+        let engine = MathEngine(seed: "sqDiff", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operation, .differenceOfSquares)
+            let (a, b) = (problem.operandA, problem.operandB)
+            XCTAssertGreaterThan(a, b, "the larger square must come first")
+            XCTAssertGreaterThan(b, 0)
+            XCTAssertEqual(problem.correctAnswer, (a + b) * (a - b))
+            XCTAssertEqual(problem.displayText, "\(a)² − \(b)²")
+        }
+    }
+
+    // MARK: - Division With Remainder
+
+    func testNearBaseDivisionAlwaysLeavesARemainder() {
+        for side in [ProblemPattern.DivisorSide.below, .above] {
+            let pattern = ProblemPattern.nearBaseDivision(
+                base: 100, side: side, offsetRange: 2...12, quotientRange: 11...49)
+            let engine = MathEngine(seed: "nearDiv\(side)", pattern: pattern)
+
+            for problem in engine.generateBatch(count: 200) {
+                XCTAssertEqual(problem.operation, .divisionWithRemainder)
+                let divisor = problem.operandB
+                XCTAssertEqual(side == .below, divisor < 100)
+
+                guard case let .quotientRemainder(quotient, remainder) = problem.answer else {
+                    return XCTFail("must answer with a quotient and a remainder")
+                }
+                // A zero remainder would let a player skip the method's last
+                // step and still be right.
+                XCTAssertGreaterThan(remainder, 0)
+                XCTAssertLessThan(remainder, divisor)
+                XCTAssertEqual(divisor * quotient + remainder, problem.operandA)
+            }
+        }
+    }
+
+    func testFlagDivisionAlwaysLeavesARemainder() {
+        let pattern = ProblemPattern.flagDivision(divisorRange: 21...79, quotientRange: 11...79)
+        let engine = MathEngine(seed: "flag", pattern: pattern)
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operation, .divisionWithRemainder)
+            guard case let .quotientRemainder(quotient, remainder) = problem.answer else {
+                return XCTFail("must answer with a quotient and a remainder")
+            }
+            XCTAssertTrue((21...79).contains(problem.operandB))
+            XCTAssertGreaterThan(remainder, 0)
+            XCTAssertLessThan(remainder, problem.operandB)
+            XCTAssertEqual(problem.operandB * quotient + remainder, problem.operandA)
+        }
+    }
+
+    func testElevenCheckMatchesTheAlternatingSum() {
+        let engine = MathEngine(seed: "mod11", pattern: .remainder(divisor: 11, range: 100...9999))
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertEqual(problem.operandB, 11)
+
+            var total = 0, value = problem.operandA, sign = 1
+            while value > 0 {
+                total += sign * (value % 10)
+                value /= 10
+                sign = -sign
+            }
+            // The lesson's fix-up: a negative alternating sum gets 11 added.
+            XCTAssertEqual((total % 11 + 11) % 11, problem.correctAnswer)
+        }
+    }
+
     func testDivisorAlwaysDividesCleanly() {
         let pattern = ProblemPattern.divisor(divisors: [4, 5], quotientRange: 2...40)
         let engine = MathEngine(seed: "div", pattern: pattern)

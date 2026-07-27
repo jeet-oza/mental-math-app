@@ -3,10 +3,11 @@
 //  Calcathon
 //
 //  Profile + settings: identity, combined stats, sound/haptics preferences,
-//  about, and account actions.
+//  legal/support links, and account actions.
 //
 
 import SwiftUI
+import MessageUI
 
 struct SettingsView: View {
     @EnvironmentObject var auth: AuthService
@@ -19,29 +20,29 @@ struct SettingsView: View {
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
 
     @State private var showDeleteConfirm = false
-
-    /// Hosted from /docs via GitHub Pages (enable Pages on the repo).
-    private let privacyPolicyURL = URL(string: "https://jeet-oza.github.io/mental-math-app/privacy.html")!
-
-    /// Where problem reports and support questions are delivered.
-    private let supportEmail = "jeet.oza.trioza@outlook.com"
+    @State private var showMailCompose = false
+    @State private var showMailUnavailable = false
 
     var body: some View {
         NavigationStack {
-            List {
-                profileSection
-                statsSection
-                preferencesSection
-                aboutSection
-                accountSection
-                #if DEBUG
-                debugSection
-                #endif
+            ZStack {
+                BrandBackground()
+                ScrollView {
+                    VStack(spacing: 20) {
+                        profileCard
+                        statsCard
+                        preferencesCard
+                        legalCard
+                        accountActions
+                        #if DEBUG
+                        debugCard
+                        #endif
+                    }
+                    .padding()
+                }
             }
             .navigationTitle("Profile")
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
@@ -57,81 +58,135 @@ struct SettingsView: View {
             } message: {
                 Text("This permanently deletes your account and all saved progress. This can't be undone.")
             }
-        }
-    }
-
-    private var profileSection: some View {
-        Section {
-            HStack(spacing: 16) {
-                BrandMark(size: 56)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(auth.user?.displayName ?? "Player")
-                        .font(.headline)
-                    Text("Calcathon player")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            .sheet(isPresented: $showMailCompose) {
+                MailComposeView(
+                    recipient: IssueReport.recipient,
+                    subject: IssueReport.subject,
+                    body: IssueReport.body(uid: auth.user?.uid)
+                )
             }
-            .padding(.vertical, 4)
+            .alert("No Mail account set up", isPresented: $showMailUnavailable) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Email us directly at \(IssueReport.recipient) to report a problem.")
+            }
         }
     }
 
-    private var statsSection: some View {
-        Section("Your Stats") {
+    private var profileCard: some View {
+        VStack(spacing: 12) {
+            AvatarView(name: auth.user?.displayName ?? "Player", size: 72)
+            Text(auth.user?.displayName ?? "Player")
+                .font(.title2.bold())
+                .foregroundStyle(.white)
+            Text("Calcathon player")
+                .font(.subheadline)
+                .foregroundStyle(Color.brandAccent)
+        }
+        .frame(maxWidth: .infinity)
+        .card(padding: 20)
+    }
+
+    private var statsCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Your Stats").font(.headline).foregroundStyle(.white)
             statRow("Lessons completed", "\(lessonsCompleted) / \(totalLessons)")
             statRow("Equation games", "\(equationStats.stats.gamesPlayed)")
             statRow("Equation best", "\(equationStats.stats.bestGameScore)")
             statRow("Grid games", "\(gridStats.stats.gamesPlayed)")
             statRow("Grid best", "\(gridStats.stats.bestGameScore)")
         }
+        .card()
     }
 
-    private var preferencesSection: some View {
-        Section("Preferences") {
-            Toggle("Sound", isOn: $soundEnabled)
-            Toggle("Haptics", isOn: $hapticsEnabled)
+    private var preferencesCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Preferences").font(.headline).foregroundStyle(.white)
+            Toggle("Sound", isOn: $soundEnabled).tint(Color.brandAccent)
+            Toggle("Haptics", isOn: $hapticsEnabled).tint(Color.brandAccent)
+        }
+        .foregroundStyle(.white)
+        .card()
+    }
+
+    private var legalCard: some View {
+        VStack(spacing: 0) {
+            NavigationLink { PrivacyPolicyView() } label: {
+                linkRowLabel("Privacy Policy", systemImage: "hand.raised.fill")
+            }
+            Divider().overlay(Color.hairline)
+            Button(action: reportProblemTapped) {
+                linkRowLabel("Report a Problem", systemImage: "exclamationmark.bubble.fill")
+            }
+            Divider().overlay(Color.hairline)
+            HStack {
+                Label("Version", systemImage: "info.circle")
+                Spacer()
+                Text(appVersion).foregroundStyle(.white.opacity(0.6))
+            }
+            .foregroundStyle(.white)
+            .padding()
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.appBackground)
+                .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
+        )
+    }
+
+    private func linkRowLabel(_ title: String, systemImage: String) -> some View {
+        HStack {
+            Label(title, systemImage: systemImage).foregroundStyle(.white)
+            Spacer()
+            Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.5))
+        }
+        .padding()
+    }
+
+    private func reportProblemTapped() {
+        if MFMailComposeViewController.canSendMail() {
+            showMailCompose = true
+        } else if let url = IssueReport.mailtoURL(uid: auth.user?.uid), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        } else {
+            showMailUnavailable = true
         }
     }
 
-    private var aboutSection: some View {
-        Section("About") {
-            Link(destination: privacyPolicyURL) {
-                Label("Privacy Policy", systemImage: "hand.raised")
-            }
-            if let reportURL = reportProblemURL {
-                Link(destination: reportURL) {
-                    Label("Report a Problem", systemImage: "exclamationmark.bubble")
-                }
-            }
-            statRow("Version", appVersion)
-        }
-    }
-
-    private var accountSection: some View {
-        Section {
+    private var accountActions: some View {
+        VStack(spacing: 12) {
             Button {
                 curriculum.disableCloudSync()
                 auth.signOut()
                 dismiss()
             } label: {
                 Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.bordered)
+            .tint(Color.brandAccent)
+
             Button(role: .destructive) {
                 showDeleteConfirm = true
             } label: {
                 Label("Delete Account", systemImage: "trash")
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.bordered)
+            .tint(.red)
         }
     }
 
     #if DEBUG
-    private var debugSection: some View {
-        Section("Debug") {
+    private var debugCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Debug").font(.headline).foregroundStyle(.white)
             // Verifies Crashlytics: crash, then relaunch to upload the report.
             Button("Trigger Test Crash", role: .destructive) {
                 fatalError("Test crash from Settings")
             }
         }
+        .card()
     }
     #endif
 
@@ -139,9 +194,9 @@ struct SettingsView: View {
 
     private func statRow(_ label: String, _ value: String) -> some View {
         HStack {
-            Text(label)
+            Text(label).foregroundStyle(.white.opacity(0.85))
             Spacer()
-            Text(value).foregroundStyle(.secondary).monospacedDigit()
+            Text(value).foregroundStyle(.white.opacity(0.6)).monospacedDigit()
         }
     }
 
@@ -160,26 +215,5 @@ struct SettingsView: View {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(v) (\(b))"
-    }
-
-    /// A pre-addressed support email so a tapped report lands in the support
-    /// inbox, with app/OS context appended to make reports actionable.
-    private var reportProblemURL: URL? {
-        let body = """
-
-
-        ——
-        Please describe the problem above.
-        App: Calcathon \(appVersion)
-        OS: \(ProcessInfo.processInfo.operatingSystemVersionString)
-        """
-        var components = URLComponents()
-        components.scheme = "mailto"
-        components.path = supportEmail
-        components.queryItems = [
-            URLQueryItem(name: "subject", value: "Calcathon Problem Report"),
-            URLQueryItem(name: "body", value: body)
-        ]
-        return components.url
     }
 }

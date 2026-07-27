@@ -144,19 +144,7 @@ struct PracticeView: View {
 
     private var inputSection: some View {
         VStack(spacing: 12) {
-            // Text field
-            TextField("Your answer", text: $viewModel.userInput)
-                .font(.title2)
-                #if os(iOS)
-                .keyboardType(.numberPad)
-                #endif
-                .multilineTextAlignment(.center)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.appBackground)
-                        .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
-                )
+            answerFields
 
             // Action buttons
             HStack(spacing: 16) {
@@ -183,8 +171,59 @@ struct PracticeView: View {
                                 .fill(.accentGradient)
                         )
                 }
-                .disabled(viewModel.userInput.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(!viewModel.canSubmit)
             }
+        }
+    }
+
+    /// The answer entry, shaped by what the lesson asks for: an expression
+    /// built on the scientific keypad, a quotient and a remainder, or a single
+    /// whole number.
+    @ViewBuilder
+    private var answerFields: some View {
+        if viewModel.lesson.answerMode == .expression {
+            expressionField
+        } else if viewModel.wantsRemainder {
+            HStack(spacing: 12) {
+                numberField("Quotient", text: $viewModel.userInput)
+                numberField("Remainder", text: $viewModel.userRemainderInput)
+            }
+        } else {
+            numberField("Your answer", text: $viewModel.userInput)
+        }
+    }
+
+    private func numberField(_ prompt: String, text: Binding<String>) -> some View {
+        TextField(prompt, text: text)
+            .font(.title2)
+            #if os(iOS)
+            .keyboardType(.numberPad)
+            #endif
+            .multilineTextAlignment(.center)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.appBackground)
+                    .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
+            )
+    }
+
+    /// Expression lessons get a read-only display plus the scientific keypad —
+    /// the system keyboard cannot type √ or π.
+    private var expressionField: some View {
+        VStack(spacing: 12) {
+            Text(viewModel.userInput.isEmpty ? " " : viewModel.userInput)
+                .font(.title2.monospaced())
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.appBackground)
+                        .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
+                )
+                .accessibilityLabel(Text("Your answer: \(viewModel.userInput)"))
+
+            ScientificKeypad(expression: $viewModel.userInput)
         }
     }
 

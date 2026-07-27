@@ -107,6 +107,48 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// than by dividing.
     case remainder(divisor: Int, range: ClosedRange<Int>)
 
+    /// Cubes of numbers sitting `deviationRange` *above* a round `base`, solved
+    /// with the Yavadunam method. Below-base cubes are excluded on purpose:
+    /// their last part is negative, and the borrow that fixes it buries the
+    /// method the lesson is teaching.
+    case cubeNearBase(base: Int, deviationRange: ClosedRange<Int>)
+
+    /// Cubes of numbers drawn straight from `range`, for the general method.
+    case cube(range: ClosedRange<Int>)
+
+    /// Square roots of perfect squares: `n²` with `n` drawn from `range`.
+    case perfectSquareRoot(range: ClosedRange<Int>)
+
+    /// Cube roots of exact cubes: `n³` with `n` drawn from `range`.
+    case exactCubeRoot(range: ClosedRange<Int>)
+
+    /// `a² − b²`, solved as `(a + b)(a − b)`. `a` comes from `range` and `b`
+    /// sits `gapRange` below it, so the difference is always positive.
+    case differenceOfSquares(range: ClosedRange<Int>, gapRange: ClosedRange<Int>)
+
+    /// Which side of the base a division method's divisor sits on.
+    enum DivisorSide: String, Codable, Equatable, Sendable {
+        /// Just below (88, 97) — the Nikhilam case, where the complement is added.
+        case below
+        /// Just above (104, 123) — the Paravartya case, where it is subtracted.
+        case above
+    }
+
+    /// Inexact division by a divisor near a power of ten, answered as a
+    /// quotient and a remainder. `dividendRange` is the multiplier applied to
+    /// the divisor before a remainder is sprinkled on, which keeps the
+    /// quotient in a sane range whatever the divisor.
+    case nearBaseDivision(
+        base: Int,
+        side: DivisorSide,
+        offsetRange: ClosedRange<Int>,
+        quotientRange: ClosedRange<Int>
+    )
+
+    /// Inexact division by an arbitrary two-digit divisor, for the general
+    /// (flag) method. Answered as a quotient and a remainder.
+    case flagDivision(divisorRange: ClosedRange<Int>, quotientRange: ClosedRange<Int>)
+
     /// An even operand (drawn from `evenRange`) times a fixed value, e.g.
     /// "even × 6" → the left operand is always even.
     case evenTimes(fixed: Int, evenRange: ClosedRange<Int>)
@@ -255,6 +297,52 @@ enum ProblemPattern: Codable, Equatable, Sendable {
         case let .remainder(divisor, range):
             let n = Int.random(in: range, using: &rng)
             return MathProblem(operandA: n, operandB: divisor, operation: .remainder)
+
+        case let .cubeNearBase(base, deviationRange):
+            let n = base + Int.random(in: deviationRange, using: &rng)
+            return MathProblem(operandA: n, operandB: n, operation: .cube)
+
+        case let .cube(range):
+            let n = Int.random(in: range, using: &rng)
+            return MathProblem(operandA: n, operandB: n, operation: .cube)
+
+        case let .perfectSquareRoot(range):
+            let n = Int.random(in: range, using: &rng)
+            return MathProblem(operandA: n * n, operandB: n, operation: .squareRoot)
+
+        case let .exactCubeRoot(range):
+            let n = Int.random(in: range, using: &rng)
+            return MathProblem(operandA: n * n * n, operandB: n, operation: .cubeRoot)
+
+        case let .differenceOfSquares(range, gapRange):
+            let a = Int.random(in: range, using: &rng)
+            let gap = Int.random(in: gapRange, using: &rng)
+            // Keep b positive so the shortcut stays a plain two-number product.
+            let b = max(1, a - gap)
+            return MathProblem(operandA: a, operandB: b, operation: .differenceOfSquares)
+
+        case let .nearBaseDivision(base, side, offsetRange, quotientRange):
+            let offset = Int.random(in: offsetRange, using: &rng)
+            let divisor = side == .below ? base - offset : base + offset
+            let quotient = Int.random(in: quotientRange, using: &rng)
+            // A non-zero remainder is the whole point of these methods, so
+            // draw one strictly inside the divisor.
+            let remainder = Int.random(in: 1..<divisor, using: &rng)
+            return MathProblem(
+                operandA: divisor * quotient + remainder,
+                operandB: divisor,
+                operation: .divisionWithRemainder
+            )
+
+        case let .flagDivision(divisorRange, quotientRange):
+            let divisor = Int.random(in: divisorRange, using: &rng)
+            let quotient = Int.random(in: quotientRange, using: &rng)
+            let remainder = Int.random(in: 1..<divisor, using: &rng)
+            return MathProblem(
+                operandA: divisor * quotient + remainder,
+                operandB: divisor,
+                operation: .divisionWithRemainder
+            )
 
         case let .evenTimes(fixed, evenRange):
             // Pick an even value in the range: choose a half, then double it.

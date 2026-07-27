@@ -15,17 +15,44 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     case division = "÷"
     case percentage = "%"
     case remainder = "mod"
+    /// Division that need not come out exact — the answer is a quotient *and*
+    /// a remainder. Displays like ordinary division; only the answer differs.
+    case divisionWithRemainder = "÷r"
+    case cube = "^3"
+    case squareRoot = "sqrt"
+    case cubeRoot = "cbrt"
+    /// `a² − b²`, displayed with both squares intact so the shortcut
+    /// `(a + b)(a − b)` is the thing being practised.
+    case differenceOfSquares = "sq-diff"
 
     /// The four arithmetic operations used for random/Arena generation.
-    /// `.percentage` and `.remainder` are intentionally excluded — they are
-    /// only used by concept patterns, never by generic random generation.
+    /// Everything else is concept-only: those operations belong to specific
+    /// lessons and must never appear in generic random generation.
     static var allCases: [MathOperation] {
         [.addition, .subtraction, .multiplication, .division]
     }
 
-    /// Returns the display symbol for the operation.
+    /// Operations that take a single operand. `operandB` is unused for these,
+    /// and they render as a prefix or suffix rather than as `a ∘ b`.
+    var isUnary: Bool {
+        switch self {
+        case .cube, .squareRoot, .cubeRoot:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Returns the display symbol for the operation. Raw values stay unique
+    /// for stable `Codable` encoding, so the two are not always the same.
     var symbol: String {
-        rawValue
+        switch self {
+        case .divisionWithRemainder: return "÷"
+        case .cube: return "³"
+        case .squareRoot: return "√"
+        case .cubeRoot: return "∛"
+        default: return rawValue
+        }
     }
 
     /// Evaluates the operation on two integer operands.
@@ -56,6 +83,21 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
         case .remainder:
             guard rhs != 0 else { return 0 }
             return lhs % rhs
+        case .divisionWithRemainder:
+            // The quotient is the primary answer; the remainder rides along in
+            // `MathProblem.answer`.
+            guard rhs != 0 else { return 0 }
+            return lhs / rhs
+        case .cube:
+            return lhs * lhs * lhs
+        case .squareRoot:
+            // Patterns only ever generate perfect squares, so this is exact.
+            return Int(Double(max(0, lhs)).squareRoot().rounded())
+        case .cubeRoot:
+            // Likewise: exact cubes only.
+            return Int(cbrt(Double(lhs)).rounded())
+        case .differenceOfSquares:
+            return lhs * lhs - rhs * rhs
         }
     }
 }
