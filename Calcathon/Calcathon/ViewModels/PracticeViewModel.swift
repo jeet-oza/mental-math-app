@@ -128,22 +128,26 @@ final class PracticeViewModel: ObservableObject {
 
     /// Submits the user's answer for the current problem.
     func submitAnswer() {
-        guard let problem = currentProblem,
-              let userAnswer = Int(userInput.trimmingCharacters(in: .whitespaces))
-        else { return }
+        guard let problem = currentProblem else { return }
+        let trimmed = userInput.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
 
         let elapsed = Date().timeIntervalSince(problemStartTime)
         let isCorrect: Bool
         switch problem.answer {
-        case let .single(value):
-            isCorrect = userAnswer == value
         case let .quotientRemainder(quotient, remainder):
             // Both halves have to land; a right quotient with a wrong
             // remainder means the method was not carried through.
-            guard let userRemainder = Int(userRemainderInput.trimmingCharacters(in: .whitespaces))
+            guard let userQuotient = Int(trimmed),
+                  let userRemainder = Int(userRemainderInput.trimmingCharacters(in: .whitespaces))
             else { return }
-            isCorrect = userAnswer == quotient && userRemainder == remainder
+            isCorrect = userQuotient == quotient && userRemainder == remainder
+        case .single, .rational, .approximate:
+            isCorrect = problem.answer.accepts(trimmed)
         }
+        // Only whole-number answers survive the trip into `AnswerResult`;
+        // fractions and approximations record as "not a plain number".
+        let userAnswer = Int(trimmed)
         let points = ScoreCalculator.calculatePoints(
             isCorrect: isCorrect,
             timeElapsed: elapsed,

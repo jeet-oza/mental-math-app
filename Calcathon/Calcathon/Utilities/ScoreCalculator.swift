@@ -87,7 +87,10 @@ nonisolated enum ScoreCalculator {
             let largest = max(problem.operandA, problem.operandB)
             return largest >= 100 ? arenaThreeDigitPoints : arenaTwoDigitPoints
         case .percentage, .remainder, .divisionWithRemainder,
-             .cube, .squareRoot, .cubeRoot, .differenceOfSquares:
+             .cube, .squareRoot, .cubeRoot, .differenceOfSquares,
+             .fractionAddition, .fractionSubtraction,
+             .fractionMultiplication, .fractionDivision,
+             .approximateSquareRoot, .approximateCubeRoot:
             return 0 // concept-only: never generated in the Arena
         }
     }

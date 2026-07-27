@@ -24,6 +24,17 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     /// `a² − b²`, displayed with both squares intact so the shortcut
     /// `(a + b)(a − b)` is the thing being practised.
     case differenceOfSquares = "sq-diff"
+    /// The four fraction operations. Both operands carry a denominator, and
+    /// the answer is an exact `Fraction` rather than an `Int`.
+    case fractionAddition = "frac+"
+    case fractionSubtraction = "frac−"
+    case fractionMultiplication = "frac×"
+    case fractionDivision = "frac÷"
+    /// A square root that does not come out whole, answered to within a
+    /// tolerance rather than exactly.
+    case approximateSquareRoot = "sqrt~"
+    /// A cube root that does not come out whole. Same tolerance treatment.
+    case approximateCubeRoot = "cbrt~"
 
     /// The four arithmetic operations used for random/Arena generation.
     /// Everything else is concept-only: those operations belong to specific
@@ -36,10 +47,34 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     /// and they render as a prefix or suffix rather than as `a ∘ b`.
     var isUnary: Bool {
         switch self {
-        case .cube, .squareRoot, .cubeRoot:
+        case .cube, .squareRoot, .cubeRoot, .approximateSquareRoot, .approximateCubeRoot:
             return true
         default:
             return false
+        }
+    }
+
+    /// Operations whose operands are fractions, so both denominators matter.
+    var isFractional: Bool {
+        switch self {
+        case .fractionAddition, .fractionSubtraction,
+             .fractionMultiplication, .fractionDivision:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// How close an answer must be to count as right, for the operations that
+    /// are answered approximately. Three significant figures is what the
+    /// estimation methods actually deliver, so demanding more would fail a
+    /// player who applied the method correctly.
+    var tolerance: Double? {
+        switch self {
+        case .approximateSquareRoot, .approximateCubeRoot:
+            return 0.05
+        default:
+            return nil
         }
     }
 
@@ -49,8 +84,12 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
         switch self {
         case .divisionWithRemainder: return "÷"
         case .cube: return "³"
-        case .squareRoot: return "√"
-        case .cubeRoot: return "∛"
+        case .squareRoot, .approximateSquareRoot: return "√"
+        case .cubeRoot, .approximateCubeRoot: return "∛"
+        case .fractionAddition: return "+"
+        case .fractionSubtraction: return "−"
+        case .fractionMultiplication: return "×"
+        case .fractionDivision: return "÷"
         default: return rawValue
         }
     }
@@ -98,6 +137,30 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
             return Int(cbrt(Double(lhs)).rounded())
         case .differenceOfSquares:
             return lhs * lhs - rhs * rhs
+        case .approximateSquareRoot:
+            // Rounded only so the Arena's integer-shaped plumbing has
+            // something to hold; grading goes through `ProblemAnswer`.
+            return Int(Double(max(0, lhs)).squareRoot().rounded())
+        case .approximateCubeRoot:
+            return Int(cbrt(Double(lhs)).rounded())
+        case .fractionAddition, .fractionSubtraction,
+             .fractionMultiplication, .fractionDivision:
+            // Fractions carry denominators this signature cannot see, so the
+            // real answer comes from `MathProblem.answer`. Returning the
+            // numerator alone would be a plausible-looking lie, so return 0.
+            return 0
+        }
+    }
+
+    /// Applies this operation to two fractions. Only meaningful when
+    /// `isFractional`; anything else falls back to the left operand.
+    func evaluate(lhs: Fraction, rhs: Fraction) -> Fraction {
+        switch self {
+        case .fractionAddition: return lhs + rhs
+        case .fractionSubtraction: return lhs - rhs
+        case .fractionMultiplication: return lhs * rhs
+        case .fractionDivision: return lhs / rhs
+        default: return lhs
         }
     }
 }
