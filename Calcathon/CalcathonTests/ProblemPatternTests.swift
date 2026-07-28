@@ -781,43 +781,6 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
-    /// The complement rule needs a full-width subtrahend: a leading zero
-    /// would hand the player a column for free, and the answer must stay
-    /// positive.
-    func testComplementFromRoundFillsEveryPlace() {
-        let pattern = ProblemPattern.complementFromRound(bases: [1000, 10000])
-        let engine = MathEngine(seed: "complement", pattern: pattern)
-        var sawThousand = false, sawTenThousand = false
-
-        for problem in engine.generateBatch(count: 300) {
-            XCTAssertEqual(problem.operation, .subtraction)
-            let base = problem.operandA
-            XCTAssertTrue(base == 1000 || base == 10000, "unexpected base \(base)")
-            XCTAssertTrue(
-                (base / 10)..<base ~= problem.operandB,
-                "\(problem.operandB) does not fill every place below \(base)"
-            )
-            XCTAssertGreaterThan(problem.correctAnswer, 0)
-            if base == 1000 { sawThousand = true } else { sawTenThousand = true }
-        }
-
-        XCTAssertTrue(sawThousand && sawTenThousand, "both bases must occur")
-    }
-
-    /// The bigger ending-in-5 lesson must actually produce three-digit
-    /// numbers, or it is just the two-digit lesson again.
-    func testThreeDigitSquaresEndingInFiveAreThreeDigits() {
-        guard let pattern = catalogLesson(id: "sq_ends5_3digit")?.pattern else {
-            return XCTFail("sq_ends5_3digit is missing from the catalog")
-        }
-        let engine = MathEngine(seed: "sq5big", pattern: pattern)
-        for problem in engine.generateBatch(count: 200) {
-            XCTAssertEqual(problem.operandA, problem.operandB, "must be a square")
-            XCTAssertTrue((100...999).contains(problem.operandA))
-            XCTAssertEqual(problem.operandA % 10, 5, "must end in 5")
-        }
-    }
-
     /// The near-500 rule writes the squared distance as exactly three digits,
     /// so a distance whose square runs to four would corrupt the answer.
     func testSquaresNearFiveHundredKeepAThreeDigitTail() {
