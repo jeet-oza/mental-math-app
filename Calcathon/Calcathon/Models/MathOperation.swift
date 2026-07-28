@@ -46,6 +46,10 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     /// A product of two decimals. Stored as fractions over powers of ten so
     /// the answer stays exact, but shown and answered in decimal.
     case decimalMultiplication = "dec×"
+    /// The repeating block of a fraction's decimal expansion, answered as the
+    /// block's digits — 3/7 → 428571. A whole number, so it grades exactly
+    /// rather than by tolerance.
+    case repeatingBlock = "rep"
 
     /// The four arithmetic operations used for random/Arena generation.
     /// Everything else is concept-only: those operations belong to specific
@@ -159,6 +163,8 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
             return lhs * lhs - rhs * rhs
         case .estimateProduct:
             return lhs * rhs
+        case .repeatingBlock:
+            return Self.repeatingBlock(of: lhs, over: rhs)
         case .percentageIncrease:
             return rhs + lhs * rhs / 100
         case .percentageDecrease:
@@ -176,6 +182,29 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
             // numerator alone would be a plausible-looking lie, so return 0.
             return 0
         }
+    }
+
+    /// The repeating digits of `numerator / denominator`, read as a whole
+    /// number: 3/7 → 428571.
+    ///
+    /// Long division, remembering which remainders have been seen. A repeat
+    /// means the digits from that point are the cycle. Returns 0 for an
+    /// expansion that terminates, which has no repeating block at all.
+    private static func repeatingBlock(of numerator: Int, over denominator: Int) -> Int {
+        guard denominator > 0 else { return 0 }
+        var remainder = numerator % denominator
+        var firstSeenAt: [Int: Int] = [:]
+        var digits: [Int] = []
+
+        while remainder != 0, firstSeenAt[remainder] == nil {
+            firstSeenAt[remainder] = digits.count
+            remainder *= 10
+            digits.append(remainder / denominator)
+            remainder %= denominator
+        }
+
+        guard let start = firstSeenAt[remainder] else { return 0 }
+        return digits[start...].reduce(0) { $0 * 10 + $1 }
     }
 
     /// Applies this operation to two fractions. Only meaningful when

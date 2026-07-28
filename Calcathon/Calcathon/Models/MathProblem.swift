@@ -154,6 +154,8 @@ struct MathProblem: Identifiable, Equatable, Codable, Sendable {
             return "\(operandA)% of \(operandB)"
         case .estimateProduct:
             return "\(operandA) × \(operandB), roughly"
+        case .repeatingBlock:
+            return "\(operandA)/\(operandB) — repeating digits"
         case .percentageIncrease:
             return "\(operandB) up \(operandA)%"
         case .percentageDecrease:

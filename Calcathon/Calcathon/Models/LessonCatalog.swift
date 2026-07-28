@@ -3006,9 +3006,51 @@ nonisolated enum LessonCatalog {
             subtractFractionsLesson,
             multiplyFractionsLesson,
             divideFractionsLesson,
-            multiplyDecimalsLesson
+            multiplyDecimalsLesson,
+            seventhsLesson
         ],
         requiredGroupId: "percentage_tricks"
+    )
+
+    private static let seventhsLesson = Lesson(
+        id: "dec_sevenths",
+        title: "Sevenths as Decimals",
+        description: "Every seventh uses the same six digits, in the same order — learn one, get all six.",
+        trick: MathTrick(
+            name: "One Cycle, Six Starting Points",
+            steps: [
+                "1/7 = 0.142857, repeating forever.",
+                "Every other seventh is that same cycle 142857, just begun at a different digit.",
+                "To find which, compare against the sevenths you know: 3/7 is a bit over 0.4, so start at the 4.",
+                "Reading on from there and wrapping around gives 428571.",
+                "The halves of the cycle add to 9 — 142 + 857 — which is a quick way to check you have it right."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "3/7 — repeating digits",
+                    solution: "428571",
+                    stepByStepExplanation: [
+                        "Step 1: The cycle is 142857",
+                        "Step 2: 3/7 ≈ 0.43, so it begins at the 4",
+                        "Step 3: Read on from the 4 and wrap → 4, 2, 8, 5, 7, 1",
+                        "Answer: 428571"
+                    ]
+                ),
+                TrickExample(
+                    problem: "5/7 — repeating digits",
+                    solution: "714285",
+                    stepByStepExplanation: [
+                        "Step 1: The cycle is 142857",
+                        "Step 2: 5/7 ≈ 0.71, so it begins at the 7",
+                        "Step 3: Read on from the 7 and wrap → 7, 1, 4, 2, 8, 5",
+                        "Answer: 714285"
+                    ]
+                )
+            ]
+        ),
+        operations: [.repeatingBlock],
+        difficulty: .hard,
+        pattern: ProblemPattern.repeatingBlock(numerators: [1, 2, 3, 4, 5, 6], denominator: 7)
     )
 
     private static let multiplyDecimalsLesson = Lesson(

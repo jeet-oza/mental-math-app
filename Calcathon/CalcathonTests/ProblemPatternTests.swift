@@ -706,14 +706,33 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
-    /// Fraction lessons must ask for the scientific keypad, which is the only
-    /// one with a division key — otherwise the answer cannot be typed at all.
-    func testFractionLessonsUseTheExpressionKeypad() {
-        for lesson in LessonCatalog.fractionsGroup.lessons {
-            XCTAssertEqual(
-                lesson.answerMode, .expression,
-                "\(lesson.id) cannot type a fraction on the plain digit pad"
-            )
+    /// A lesson whose answer is not a whole number needs the scientific
+    /// keypad, which is the only one with a division key and a decimal point.
+    /// Get this wrong and the lesson is simply unanswerable — nothing else
+    /// catches it, since both keypads look fine in isolation.
+    ///
+    /// Checked across the whole catalog by answer shape rather than by group:
+    /// the sevenths lesson lives with the fractions but answers with a plain
+    /// six-digit number, so group membership is the wrong thing to key on.
+    func testLessonsNeedingMoreThanDigitsUseTheExpressionKeypad() {
+        for group in LessonCatalog.allGroups {
+            for lesson in group.lessons {
+                guard let pattern = lesson.pattern else { continue }
+                let problem = MathEngine(seed: lesson.id, pattern: pattern).generateBatch(count: 1)[0]
+
+                switch problem.answer {
+                case .rational, .decimal, .approximate:
+                    XCTAssertEqual(
+                        lesson.answerMode, .expression,
+                        "\(lesson.id) answers \(problem.answer.displayText), which the digit pad cannot type"
+                    )
+                case .single, .quotientRemainder:
+                    XCTAssertEqual(
+                        lesson.answerMode, .integer,
+                        "\(lesson.id) answers a whole number but asks for the scientific keypad"
+                    )
+                }
+            }
         }
     }
 
@@ -896,6 +915,42 @@ final class ProblemPatternTests: XCTestCase {
             XCTAssertTrue(problem.answer.accepts(result.decimalText))
             XCTAssertTrue(problem.answer.accepts(result.displayText))
         }
+    }
+
+    /// The sevenths lesson claims every seventh is one cycle read from a
+    /// different starting point. That is the whole lesson, so it is worth
+    /// asserting rather than trusting: all six must be rotations of 142857,
+    /// six digits long, with no leading zero to lose when typed.
+    func testEverySeventhIsARotationOfTheSameCycle() {
+        guard let pattern = catalogLesson(id: "dec_sevenths")?.pattern else {
+            return XCTFail("dec_sevenths is missing from the catalog")
+        }
+        let engine = MathEngine(seed: "sevenths", pattern: pattern)
+        var seen: Set<Int> = []
+
+        for problem in engine.generateBatch(count: 200) {
+            XCTAssertEqual(problem.operandB, 7)
+            let block = problem.correctAnswer
+            let digits = String(block)
+            XCTAssertEqual(digits.count, 6, "\(problem.displayText) → \(block) is not six digits")
+            // A rotation of 142857 is exactly a substring of it doubled.
+            XCTAssertTrue(
+                "142857142857".contains(digits),
+                "\(problem.displayText) → \(block) is not a rotation of 142857"
+            )
+            seen.insert(problem.operandA)
+        }
+
+        XCTAssertEqual(seen, [1, 2, 3, 4, 5, 6], "every seventh should appear")
+    }
+
+    /// Spot-check the long division itself against values that can be read
+    /// off by hand, including one that terminates and so has no cycle.
+    func testRepeatingBlockLongDivision() {
+        XCTAssertEqual(MathOperation.repeatingBlock.evaluate(lhs: 1, rhs: 7), 142857)
+        XCTAssertEqual(MathOperation.repeatingBlock.evaluate(lhs: 3, rhs: 7), 428571)
+        XCTAssertEqual(MathOperation.repeatingBlock.evaluate(lhs: 1, rhs: 3), 3)
+        XCTAssertEqual(MathOperation.repeatingBlock.evaluate(lhs: 1, rhs: 4), 0, "1/4 terminates")
     }
 
     func testPatternGenerationIsDeterministic() {

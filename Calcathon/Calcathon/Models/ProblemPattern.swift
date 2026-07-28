@@ -223,6 +223,12 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// lands on a whole number.
     case percentageChange(percents: [Int], multiplierRange: ClosedRange<Int>, increase: Bool)
 
+    /// The repeating block of `n / denominator`, answered as the block's
+    /// digits. Only denominators whose every block starts with a non-zero
+    /// digit are usable: 1/13 repeats as 076923, and a leading zero cannot
+    /// survive being typed as a whole number.
+    case repeatingBlock(numerators: [Int], denominator: Int)
+
     /// A product of two decimals, each with one or two places. Stored as
     /// fractions over powers of ten, so the answer stays exact and the
     /// player can type it either way.
@@ -569,6 +575,10 @@ enum ProblemPattern: Codable, Equatable, Sendable {
                 operandB: base,
                 operation: increase ? .percentageIncrease : .percentageDecrease
             )
+
+        case let .repeatingBlock(numerators, denominator):
+            let n = numerators[Int.random(in: 0..<numerators.count, using: &rng)]
+            return MathProblem(operandA: n, operandB: denominator, operation: .repeatingBlock)
 
         case let .decimalProduct(digitRange, placeRange):
             func scale() -> Int {
