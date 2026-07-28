@@ -74,8 +74,17 @@ enum GridRule: Equatable, Sendable {
 
     /// Path length the solver enumerates (also used for solution display).
     static let solverMaxLength = 6
-    /// Target rounds aim for at least this many distinct solutions.
+    /// Target rounds guarantee at least this many distinct solutions.
     static let targetMinSolutions = 20
+    /// Targets a round may pick from.
+    ///
+    /// Matched to how long a path actually is: with tiles of 1–20 and paths
+    /// of 2–6, a typical path lands in the fifties or sixties. Targets much
+    /// below that are only reachable by two- or three-tile paths, which is
+    /// why they had so few solutions.
+    static let targetRange = 50...100
+    /// Tile values used on target boards.
+    static let targetTileRange = 1...20
 
     /// Builds the board and rule for a round together (deterministic per index).
     /// Strategy rotates: multiple-of-10, divisible-by-N, then target sum — and
@@ -94,30 +103,44 @@ enum GridRule: Equatable, Sendable {
         }
     }
 
-    /// A target round: tiles 1–20 (capped below the target so every tile is
-    /// smaller than the sum you're building), with a target in 10–30. Retries
-    /// with a fresh target/board until a well-stocked one is found, falling
-    /// back to the best available.
+    /// A target round: a board of 1–20 tiles, and a target the board can
+    /// actually reach many ways.
+    ///
+    /// The target is chosen *from* the board rather than guessed and checked.
+    /// Building the sum histogram first and then picking among the sums that
+    /// already clear `targetMinSolutions` makes the guarantee hold by
+    /// construction; the old order — pick a target, hope the board suits it —
+    /// missed on most rounds and then shipped the near miss anyway.
     private static func makeTargetRound(index: Int) -> (board: GridBoard, rule: GridRule) {
         var rng = SeededRandomNumberGenerator(seed: "grid_rule_\(index)")
         var best: (board: GridBoard, target: Int, count: Int)?
 
         for attempt in 0..<6 {
-            let target = Int.random(in: 10...30, using: &rng)
-            let maxTile = min(target - 1, 20)
-            let board = GridBoard.generate(seed: "grid_target_\(index)_\(attempt)", range: 1...maxTile)
-            let count = GridSolver.sumHistogram(on: board, maxLength: solverMaxLength)[target] ?? 0
-            if count >= targetMinSolutions {
-                return (board, .target(target))
+            let board = GridBoard.generate(
+                seed: "grid_target_\(index)_\(attempt)", range: targetTileRange
+            )
+            let histogram = GridSolver.sumHistogram(on: board, maxLength: solverMaxLength)
+
+            let viable = targetRange.filter { (histogram[$0] ?? 0) >= targetMinSolutions }
+            if !viable.isEmpty {
+                return (board, .target(viable[Int.random(in: 0..<viable.count, using: &rng)]))
             }
-            if best == nil || count > best!.count {
-                best = (board, target, count)
+
+            // Nothing clears the bar on this board — remember its best sum in
+            // case every attempt comes up short.
+            if let richest = targetRange.max(by: { (histogram[$0] ?? 0) < (histogram[$1] ?? 0) }),
+               best == nil || (histogram[richest] ?? 0) > best!.count {
+                best = (board, richest, histogram[richest] ?? 0)
             }
         }
 
-        let fallbackTarget = best?.target ?? 15
-        let fallbackBoard = best?.board
-            ?? GridBoard.generate(seed: "grid_target_\(index)_0", range: 1...(fallbackTarget - 1))
-        return (fallbackBoard, .target(fallbackTarget))
+        // Unreached in practice: every sampled round finds viable targets on
+        // the first attempt. Kept so generation cannot fail outright.
+        let fallback = best ?? (
+            GridBoard.generate(seed: "grid_target_\(index)_0", range: targetTileRange),
+            targetRange.lowerBound,
+            0
+        )
+        return (fallback.board, .target(fallback.target))
     }
 }

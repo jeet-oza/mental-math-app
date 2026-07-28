@@ -126,7 +126,7 @@ extension HowToPlaySheet {
                 HowToPlayStep(icon: "hand.draw.fill", title: "Drag across tiles",
                               body: "Trace a path of 2 or more adjacent tiles — including diagonals. Lift your finger to bank it."),
                 HowToPlayStep(icon: "checkmark.seal.fill", title: "Satisfy the rule",
-                              body: "Each round shows a rule above the grid, like \"make a multiple of 10\" or \"hit exactly 24.\" Your path's sum has to match it."),
+                              body: "Each round shows a rule above the grid, like \"make a multiple of 10\" or \"hit exactly 68.\" Your path's sum has to match it."),
                 HowToPlayStep(icon: "star.fill", title: "Chase the bonus tiers",
                               body: "Hitting a higher multiple of the rule scores a ×2 or ×5 bonus. Longer paths score more too."),
                 HowToPlayStep(icon: "arrow.triangle.2.circlepath", title: "Find them all",
