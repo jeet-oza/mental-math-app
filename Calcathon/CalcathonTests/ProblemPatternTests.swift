@@ -869,6 +869,35 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    /// The decimal lesson is about placing the point, so the total number of
+    /// places in the answer has to be the sum of the two operands' places —
+    /// that is exactly the rule being taught.
+    func testDecimalProductPlacesThePointCorrectly() {
+        guard let pattern = catalogLesson(id: "dec_multiply")?.pattern else {
+            return XCTFail("dec_multiply is missing from the catalog")
+        }
+        let engine = MathEngine(seed: "decimal", pattern: pattern)
+        for problem in engine.generateBatch(count: 300) {
+            XCTAssertTrue([10, 100].contains(problem.denominatorA))
+            XCTAssertTrue([10, 100].contains(problem.denominatorB))
+            // A trailing zero would make the point placement trivial.
+            XCTAssertNotEqual(problem.operandA % 10, 0)
+            XCTAssertNotEqual(problem.operandB % 10, 0)
+
+            guard case let .decimal(result) = problem.answer else {
+                return XCTFail("expected a decimal answer for \(problem.displayText)")
+            }
+            let expected = Fraction(
+                problem.operandA * problem.operandB,
+                problem.denominatorA * problem.denominatorB
+            )
+            XCTAssertEqual(result, expected, "wrong product for \(problem.displayText)")
+            // Both forms must grade correct, since both are the same number.
+            XCTAssertTrue(problem.answer.accepts(result.decimalText))
+            XCTAssertTrue(problem.answer.accepts(result.displayText))
+        }
+    }
+
     func testPatternGenerationIsDeterministic() {
         let pattern = ProblemPattern.fixedOperand(
             operation: .addition,

@@ -3005,9 +3005,52 @@ nonisolated enum LessonCatalog {
             addFractionsLesson,
             subtractFractionsLesson,
             multiplyFractionsLesson,
-            divideFractionsLesson
+            divideFractionsLesson,
+            multiplyDecimalsLesson
         ],
         requiredGroupId: "percentage_tricks"
+    )
+
+    private static let multiplyDecimalsLesson = Lesson(
+        id: "dec_multiply",
+        title: "Multiply Decimals",
+        description: "Ignore the points entirely, then count them back in at the end.",
+        trick: MathTrick(
+            name: "Multiply, Then Place the Point",
+            steps: [
+                "Ignore both decimal points and multiply the numbers as whole numbers.",
+                "Count how many digits sit after the point across *both* original numbers.",
+                "Put the point back that many digits from the right of your answer.",
+                "Sanity-check the size: 2.5 × 3.4 has to be near 2 × 3, so 8.5 is right and 85 is not.",
+                "You can answer in decimal or as a fraction — 8.5 and 17/2 both count."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "2.5 × 3.4",
+                    solution: "8.5",
+                    stepByStepExplanation: [
+                        "Step 1: Ignore the points → 25 × 34 = 850",
+                        "Step 2: One decimal place each, so two in total",
+                        "Step 3: Two digits from the right of 850 → 8.50",
+                        "Answer: 8.5"
+                    ]
+                ),
+                TrickExample(
+                    problem: "1.2 × 0.45",
+                    solution: "0.54",
+                    stepByStepExplanation: [
+                        "Step 1: Ignore the points → 12 × 45 = 540",
+                        "Step 2: One place plus two places, so three in total",
+                        "Step 3: Three digits from the right of 540 → 0.540",
+                        "Answer: 0.54"
+                    ]
+                )
+            ]
+        ),
+        operations: [.decimalMultiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.decimalProduct(digitRange: 11...99, placeRange: 1...2),
+        answerMode: .expression
     )
 
     /// Shared closing note: every fraction lesson grades by value, so there

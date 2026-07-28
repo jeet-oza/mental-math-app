@@ -18,6 +18,10 @@ enum ProblemAnswer: Equatable, Codable, Sendable {
     /// An exact rational answer. Graded by value, so an unreduced fraction
     /// is still correct.
     case rational(Fraction)
+    /// The same exact value, but read back in decimal. Graded identically —
+    /// the split exists only so a decimal lesson does not answer "17/2" at a
+    /// player who was asked about 8.5.
+    case decimal(Fraction)
     /// An answer the taught method only reaches approximately — square and
     /// cube roots of numbers that are not perfect powers. Anything within
     /// `tolerance` counts.
@@ -30,7 +34,8 @@ enum ProblemAnswer: Equatable, Codable, Sendable {
         switch self {
         case let .single(value): return value
         case let .quotientRemainder(quotient, _): return quotient
-        case let .rational(fraction): return fraction.numerator / fraction.denominator
+        case let .rational(fraction), let .decimal(fraction):
+            return fraction.numerator / fraction.denominator
         case let .approximate(value, _): return Int(value.rounded())
         }
     }
@@ -44,6 +49,8 @@ enum ProblemAnswer: Equatable, Codable, Sendable {
             return "\(quotient) r \(remainder)"
         case let .rational(fraction):
             return fraction.displayText
+        case let .decimal(fraction):
+            return fraction.decimalText
         case let .approximate(value, _):
             return String(format: "%.2f", value)
         }
@@ -61,7 +68,7 @@ enum ProblemAnswer: Equatable, Codable, Sendable {
         switch self {
         case .single, .quotientRemainder:
             return Int(trimmed) != nil
-        case .rational:
+        case .rational, .decimal:
             return Fraction.parse(trimmed) != nil
         case .approximate:
             return (try? ExpressionEvaluator.evaluate(trimmed)) != nil
@@ -79,7 +86,7 @@ enum ProblemAnswer: Equatable, Codable, Sendable {
         case .quotientRemainder:
             // Needs two fields, so the view model handles it directly.
             return false
-        case let .rational(fraction):
+        case let .rational(fraction), let .decimal(fraction):
             return Fraction.parse(trimmed) == fraction
         case let .approximate(value, tolerance):
             guard let entered = try? ExpressionEvaluator.evaluate(trimmed) else { return false }
@@ -114,7 +121,8 @@ struct MathProblem: Identifiable, Equatable, Codable, Sendable {
     /// a fraction, or a value within a tolerance.
     var answer: ProblemAnswer {
         if operation.isFractional {
-            return .rational(operation.evaluate(lhs: fractionA, rhs: fractionB))
+            let result = operation.evaluate(lhs: fractionA, rhs: fractionB)
+            return operation.showsAsDecimal ? .decimal(result) : .rational(result)
         }
         if operation == .estimateProduct {
             // A fifth of the answer, not a fixed amount: rounding both
@@ -159,6 +167,8 @@ struct MathProblem: Identifiable, Equatable, Codable, Sendable {
         case .fractionAddition, .fractionSubtraction,
              .fractionMultiplication, .fractionDivision:
             return "\(fractionA.displayText) \(operation.symbol) \(fractionB.displayText)"
+        case .decimalMultiplication:
+            return "\(fractionA.decimalText) × \(fractionB.decimalText)"
         default:
             return "\(operandA) \(operation.symbol) \(operandB)"
         }

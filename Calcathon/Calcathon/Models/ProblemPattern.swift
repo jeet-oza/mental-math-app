@@ -223,6 +223,11 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// lands on a whole number.
     case percentageChange(percents: [Int], multiplierRange: ClosedRange<Int>, increase: Bool)
 
+    /// A product of two decimals, each with one or two places. Stored as
+    /// fractions over powers of ten, so the answer stays exact and the
+    /// player can type it either way.
+    case decimalProduct(digitRange: ClosedRange<Int>, placeRange: ClosedRange<Int>)
+
     /// A three-digit by two-digit product wanted only to the right ballpark.
     /// The second operand starts at 40: below that, rounding it to the
     /// nearest ten moves it by enough to blow past any sane tolerance.
@@ -563,6 +568,30 @@ enum ProblemPattern: Codable, Equatable, Sendable {
                 operandA: p,
                 operandB: base,
                 operation: increase ? .percentageIncrease : .percentageDecrease
+            )
+
+        case let .decimalProduct(digitRange, placeRange):
+            func scale() -> Int {
+                var value = 1
+                for _ in 0..<Int.random(in: placeRange, using: &rng) { value *= 10 }
+                return value
+            }
+            // Reject digits ending in 0: "2.0 × 3.4" would put the decimal
+            // point question the lesson asks about back into trivial
+            // territory.
+            func digits() -> Int {
+                for _ in 0..<16 {
+                    let n = Int.random(in: digitRange, using: &rng)
+                    if n % 10 != 0 { return n }
+                }
+                return digitRange.lowerBound | 1
+            }
+            return MathProblem(
+                operandA: digits(),
+                operandB: digits(),
+                operation: .decimalMultiplication,
+                denominatorA: scale(),
+                denominatorB: scale()
             )
 
         case let .estimateProduct(leftRange, rightRange):

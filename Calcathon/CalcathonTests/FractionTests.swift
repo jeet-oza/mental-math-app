@@ -66,6 +66,34 @@ final class FractionTests: XCTestCase {
         XCTAssertEqual(Fraction.parse("-3/4"), Fraction(-3, 4))
     }
 
+    /// 0.75 and 3/4 are the same number, so a decimal is accepted wherever a
+    /// fraction is. Insisting on one form would fail a player who is right.
+    func testParsesDecimals() {
+        XCTAssertEqual(Fraction.parse("0.75"), Fraction(3, 4))
+        XCTAssertEqual(Fraction.parse(".5"), Fraction(1, 2))
+        XCTAssertEqual(Fraction.parse("8.5"), Fraction(17, 2))
+        XCTAssertEqual(Fraction.parse("3.0"), Fraction(3, 1))
+        // The sign lives on the whole part even when that part is zero.
+        XCTAssertEqual(Fraction.parse("-0.5"), Fraction(-1, 2))
+        XCTAssertEqual(Fraction.parse("-1.25"), Fraction(-5, 4))
+    }
+
+    func testDecimalTextTrimsTrailingZeros() {
+        XCTAssertEqual(Fraction(17, 2).decimalText, "8.5")
+        XCTAssertEqual(Fraction(27, 50).decimalText, "0.54")
+        XCTAssertEqual(Fraction(6, 2).decimalText, "3")
+    }
+
+    /// A decimal problem must not answer "17/2" at a player who was asked
+    /// about 8.5 — but both forms still grade correct.
+    func testDecimalAnswersReadBackAsDecimals() {
+        let answer = ProblemAnswer.decimal(Fraction(17, 2))
+        XCTAssertEqual(answer.displayText, "8.5")
+        XCTAssertTrue(answer.accepts("8.5"))
+        XCTAssertTrue(answer.accepts("17/2"))
+        XCTAssertFalse(answer.accepts("8.6"))
+    }
+
     func testRejectsMalformedInput() {
         XCTAssertNil(Fraction.parse(""))
         XCTAssertNil(Fraction.parse("3/"))

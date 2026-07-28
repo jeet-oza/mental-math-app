@@ -91,7 +91,8 @@ nonisolated enum ScoreCalculator {
              .fractionAddition, .fractionSubtraction,
              .fractionMultiplication, .fractionDivision,
              .approximateSquareRoot, .approximateCubeRoot,
-             .estimateProduct, .percentageIncrease, .percentageDecrease:
+             .estimateProduct, .percentageIncrease, .percentageDecrease,
+             .decimalMultiplication:
             return 0 // concept-only: never generated in the Arena
         }
     }

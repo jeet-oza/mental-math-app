@@ -43,6 +43,9 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     /// percent and `operandB` the base, matching `percentage`.
     case percentageIncrease = "%+"
     case percentageDecrease = "%−"
+    /// A product of two decimals. Stored as fractions over powers of ten so
+    /// the answer stays exact, but shown and answered in decimal.
+    case decimalMultiplication = "dec×"
 
     /// The four arithmetic operations used for random/Arena generation.
     /// Everything else is concept-only: those operations belong to specific
@@ -62,16 +65,21 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Operations whose operands are fractions, so both denominators matter.
+    /// Operations whose operands carry a denominator, so both halves of each
+    /// operand matter. Decimal problems are fractions over powers of ten —
+    /// only the rendering differs.
     var isFractional: Bool {
         switch self {
         case .fractionAddition, .fractionSubtraction,
-             .fractionMultiplication, .fractionDivision:
+             .fractionMultiplication, .fractionDivision, .decimalMultiplication:
             return true
         default:
             return false
         }
     }
+
+    /// Whether operands and answers read as decimals rather than fractions.
+    var showsAsDecimal: Bool { self == .decimalMultiplication }
 
     /// How close an answer must be to count as right, for the operations that
     /// are answered approximately.
@@ -162,7 +170,7 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
         case .approximateCubeRoot:
             return Int(cbrt(Double(lhs)).rounded())
         case .fractionAddition, .fractionSubtraction,
-             .fractionMultiplication, .fractionDivision:
+             .fractionMultiplication, .fractionDivision, .decimalMultiplication:
             // Fractions carry denominators this signature cannot see, so the
             // real answer comes from `MathProblem.answer`. Returning the
             // numerator alone would be a plausible-looking lie, so return 0.
@@ -176,7 +184,7 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
         switch self {
         case .fractionAddition: return lhs + rhs
         case .fractionSubtraction: return lhs - rhs
-        case .fractionMultiplication: return lhs * rhs
+        case .fractionMultiplication, .decimalMultiplication: return lhs * rhs
         case .fractionDivision: return lhs / rhs
         default: return lhs
         }

@@ -144,7 +144,7 @@ final class PracticeViewModel: ObservableObject {
                   let userRemainder = Int(userRemainderInput.trimmingCharacters(in: .whitespaces))
             else { return }
             isCorrect = userQuotient == quotient && userRemainder == remainder
-        case .single, .rational, .approximate:
+        case .single, .rational, .decimal, .approximate:
             isCorrect = problem.answer.accepts(trimmed)
         }
         // Only whole-number answers survive the trip into `AnswerResult`;
