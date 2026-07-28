@@ -90,7 +90,8 @@ nonisolated enum ScoreCalculator {
              .cube, .squareRoot, .cubeRoot, .differenceOfSquares,
              .fractionAddition, .fractionSubtraction,
              .fractionMultiplication, .fractionDivision,
-             .approximateSquareRoot, .approximateCubeRoot:
+             .approximateSquareRoot, .approximateCubeRoot,
+             .estimateProduct, .percentageIncrease, .percentageDecrease:
             return 0 // concept-only: never generated in the Arena
         }
     }

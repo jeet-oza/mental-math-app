@@ -818,6 +818,57 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    /// Same trap as the roots: the estimation lesson must accept what its own
+    /// method produces. Rounding both operands to the nearest ten is off by
+    /// as much as 15% over this range, so the tolerance has to clear that.
+    func testRoundingToTensAlwaysSatisfiesTheEstimateGrader() {
+        guard let pattern = catalogLesson(id: "est_product")?.pattern else {
+            return XCTFail("est_product is missing from the catalog")
+        }
+        let engine = MathEngine(seed: "estimate", pattern: pattern)
+        for problem in engine.generateBatch(count: 400) {
+            let rounded = { (n: Int) in Int((Double(n) / 10).rounded()) * 10 }
+            let estimate = rounded(problem.operandA) * rounded(problem.operandB)
+            XCTAssertTrue(
+                problem.answer.accepts("\(estimate)"),
+                "\(problem.displayText): rounding gives \(estimate), which its own grader rejects"
+            )
+        }
+    }
+
+    /// An estimate is only useful if it still rules things out, so the
+    /// tolerance must not be so wide that a wrong order of magnitude passes.
+    func testEstimateStillRejectsTheWrongMagnitude() {
+        guard let pattern = catalogLesson(id: "est_product")?.pattern else {
+            return XCTFail("est_product is missing from the catalog")
+        }
+        let engine = MathEngine(seed: "estimatereject", pattern: pattern)
+        for problem in engine.generateBatch(count: 200) {
+            let exact = problem.operandA * problem.operandB
+            XCTAssertFalse(problem.answer.accepts("\(exact * 10)"), "10× too big was accepted")
+            XCTAssertFalse(problem.answer.accepts("\(exact / 10)"), "10× too small was accepted")
+            XCTAssertTrue(problem.answer.accepts("\(exact)"), "the exact answer must always pass")
+        }
+    }
+
+    /// Both percentage-change lessons must land on whole numbers, since the
+    /// answer is typed on the plain digit pad.
+    func testPercentageChangeStaysWhole() {
+        for (lessonId, increase) in [("pct_increase", true), ("pct_decrease", false)] {
+            guard let pattern = catalogLesson(id: lessonId)?.pattern else {
+                return XCTFail("\(lessonId) is missing from the catalog")
+            }
+            let engine = MathEngine(seed: lessonId, pattern: pattern)
+            for problem in engine.generateBatch(count: 300) {
+                let percent = problem.operandA, base = problem.operandB
+                XCTAssertEqual((percent * base) % 100, 0, "\(problem.displayText) is not exact")
+                let change = percent * base / 100
+                XCTAssertEqual(problem.correctAnswer, increase ? base + change : base - change)
+                XCTAssertGreaterThan(problem.correctAnswer, 0, "\(problem.displayText) went negative")
+            }
+        }
+    }
+
     func testPatternGenerationIsDeterministic() {
         let pattern = ProblemPattern.fixedOperand(
             operation: .addition,

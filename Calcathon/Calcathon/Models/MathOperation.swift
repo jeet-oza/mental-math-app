@@ -35,6 +35,14 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     case approximateSquareRoot = "sqrt~"
     /// A cube root that does not come out whole. Same tolerance treatment.
     case approximateCubeRoot = "cbrt~"
+    /// A product wanted only to the right ballpark. Unlike the roots, its
+    /// tolerance is a fraction of the answer rather than a fixed amount —
+    /// see `MathProblem.answer`.
+    case estimateProduct = "est×"
+    /// Raising and lowering a value by a percentage. `operandA` is the
+    /// percent and `operandB` the base, matching `percentage`.
+    case percentageIncrease = "%+"
+    case percentageDecrease = "%−"
 
     /// The four arithmetic operations used for random/Arena generation.
     /// Everything else is concept-only: those operations belong to specific
@@ -141,6 +149,12 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
             return Int(cbrt(Double(lhs)).rounded())
         case .differenceOfSquares:
             return lhs * lhs - rhs * rhs
+        case .estimateProduct:
+            return lhs * rhs
+        case .percentageIncrease:
+            return rhs + lhs * rhs / 100
+        case .percentageDecrease:
+            return rhs - lhs * rhs / 100
         case .approximateSquareRoot:
             // Rounded only so the Arena's integer-shaped plumbing has
             // something to hold; grading goes through `ProblemAnswer`.

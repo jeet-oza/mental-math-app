@@ -116,6 +116,14 @@ struct MathProblem: Identifiable, Equatable, Codable, Sendable {
         if operation.isFractional {
             return .rational(operation.evaluate(lhs: fractionA, rhs: fractionB))
         }
+        if operation == .estimateProduct {
+            // A fifth of the answer, not a fixed amount: rounding both
+            // operands to the nearest ten is off by up to 15% over the range
+            // this lesson generates, so anything tighter would fail a player
+            // who estimated exactly as taught.
+            let value = Double(correctAnswer)
+            return .approximate(value: value, tolerance: abs(value) * 0.2)
+        }
         if let tolerance = operation.tolerance {
             let value = operation == .approximateSquareRoot
                 ? Double(max(0, operandA)).squareRoot()
@@ -136,6 +144,12 @@ struct MathProblem: Identifiable, Equatable, Codable, Sendable {
         switch operation {
         case .percentage:
             return "\(operandA)% of \(operandB)"
+        case .estimateProduct:
+            return "\(operandA) × \(operandB), roughly"
+        case .percentageIncrease:
+            return "\(operandB) up \(operandA)%"
+        case .percentageDecrease:
+            return "\(operandB) down \(operandA)%"
         case .cube:
             return "\(operandA)³"
         case .squareRoot, .cubeRoot, .approximateSquareRoot, .approximateCubeRoot:

@@ -219,6 +219,15 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// `p%` of a base value, where the base is chosen so the result is exact.
     case percentage(percents: [Int], multiplierRange: ClosedRange<Int>)
 
+    /// Raising or lowering a base by `p%`, with the base chosen so the change
+    /// lands on a whole number.
+    case percentageChange(percents: [Int], multiplierRange: ClosedRange<Int>, increase: Bool)
+
+    /// A three-digit by two-digit product wanted only to the right ballpark.
+    /// The second operand starts at 40: below that, rounding it to the
+    /// nearest ten moves it by enough to blow past any sane tolerance.
+    case estimateProduct(leftRange: ClosedRange<Int>, rightRange: ClosedRange<Int>)
+
     /// Builds a single problem from this pattern using the given RNG.
     /// Deterministic for a given RNG state.
     func makeProblem<G: RandomNumberGenerator>(using rng: inout G) -> MathProblem {
@@ -545,6 +554,23 @@ enum ProblemPattern: Codable, Equatable, Sendable {
             let step = 100 / Self.gcd(p, 100)
             let base = step * Int.random(in: multiplierRange, using: &rng)
             return MathProblem(operandA: p, operandB: base, operation: .percentage)
+
+        case let .percentageChange(percents, multiplierRange, increase):
+            let p = percents[Int.random(in: 0..<percents.count, using: &rng)]
+            let step = 100 / Self.gcd(p, 100)
+            let base = step * Int.random(in: multiplierRange, using: &rng)
+            return MathProblem(
+                operandA: p,
+                operandB: base,
+                operation: increase ? .percentageIncrease : .percentageDecrease
+            )
+
+        case let .estimateProduct(leftRange, rightRange):
+            return MathProblem(
+                operandA: Int.random(in: leftRange, using: &rng),
+                operandB: Int.random(in: rightRange, using: &rng),
+                operation: .estimateProduct
+            )
         }
     }
 

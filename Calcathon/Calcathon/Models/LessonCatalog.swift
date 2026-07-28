@@ -2761,7 +2761,10 @@ nonisolated enum LessonCatalog {
             tenPercentLesson,
             onePercentLesson,
             fivePercentLesson,
-            twentyFivePercentLesson
+            twentyFivePercentLesson,
+            percentageIncreaseLesson,
+            percentageDecreaseLesson,
+            estimateProductLesson
         ],
         requiredGroupId: "number_checks"
     )
@@ -2861,6 +2864,130 @@ nonisolated enum LessonCatalog {
         operations: [.percentage],
         difficulty: .medium,
         pattern: ProblemPattern.percentage(percents: [25], multiplierRange: 2...25)
+    )
+
+    private static let percentageIncreaseLesson = Lesson(
+        id: "pct_increase",
+        title: "Increase by a Percentage",
+        description: "Prices, tips, markups — find the part, then add it on.",
+        trick: MathTrick(
+            name: "Find It, Then Add It",
+            steps: [
+                "Work out the percentage of the number, using whichever shortcut fits.",
+                "Add that to the original.",
+                "For a round percentage there is a faster way: 20% up is the same as ×1.2, which is the number plus a fifth of itself."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "80 up 25%",
+                    solution: "100",
+                    stepByStepExplanation: [
+                        "Step 1: 25% of 80 → 80 ÷ 4 = 20",
+                        "Step 2: 80 + 20 = 100",
+                        "Answer: 100"
+                    ]
+                ),
+                TrickExample(
+                    problem: "60 up 10%",
+                    solution: "66",
+                    stepByStepExplanation: [
+                        "Step 1: 10% of 60 → 6",
+                        "Step 2: 60 + 6 = 66",
+                        "Answer: 66"
+                    ]
+                )
+            ]
+        ),
+        operations: [.percentageIncrease],
+        difficulty: .medium,
+        pattern: ProblemPattern.percentageChange(
+            percents: [10, 20, 25, 50], multiplierRange: 2...30, increase: true
+        )
+    )
+
+    private static let percentageDecreaseLesson = Lesson(
+        id: "pct_decrease",
+        title: "Decrease by a Percentage",
+        description: "Discounts and sale prices — find the part, then take it off.",
+        trick: MathTrick(
+            name: "Find It, Then Take It Off",
+            steps: [
+                "Work out the percentage of the number.",
+                "Subtract it from the original.",
+                "For a big discount it is quicker to find what's left: 25% off means you pay 75%, which is three quarters.",
+                "Careful — 20% off then 20% off again is not 40% off. Each cut applies to what's left."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "80 down 25%",
+                    solution: "60",
+                    stepByStepExplanation: [
+                        "Step 1: 25% of 80 → 20",
+                        "Step 2: 80 − 20 = 60",
+                        "Step 3: Or straight to it — three quarters of 80 is 60",
+                        "Answer: 60"
+                    ]
+                ),
+                TrickExample(
+                    problem: "150 down 20%",
+                    solution: "120",
+                    stepByStepExplanation: [
+                        "Step 1: 20% of 150 → 30",
+                        "Step 2: 150 − 30 = 120",
+                        "Answer: 120"
+                    ]
+                )
+            ]
+        ),
+        operations: [.percentageDecrease],
+        difficulty: .medium,
+        pattern: ProblemPattern.percentageChange(
+            percents: [10, 20, 25, 50], multiplierRange: 2...30, increase: false
+        )
+    )
+
+    // MARK: - Estimating
+
+    private static let estimateProductLesson = Lesson(
+        id: "est_product",
+        title: "Estimate a Product",
+        description: "Get the size of an answer in one second — the skill that catches your own mistakes.",
+        trick: MathTrick(
+            name: "Round and Multiply",
+            steps: [
+                "Round each number to the nearest ten.",
+                "Multiply the rounded pair — the zeros make it a single-digit product with zeros stuck on.",
+                "That's your estimate. It is not the answer, and it is not meant to be.",
+                "Rounding one number up and the other down keeps the error small, since the two mistakes pull opposite ways.",
+                "Anything within about a fifth counts here — the point is the magnitude, not the digits."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "347 × 62, roughly",
+                    solution: "21000",
+                    stepByStepExplanation: [
+                        "Step 1: Round → 350 and 60",
+                        "Step 2: 35 × 6 = 210",
+                        "Step 3: Put the zeros back → 21000",
+                        "Answer: about 21000 (the exact value is 21514)"
+                    ]
+                ),
+                TrickExample(
+                    problem: "489 × 71, roughly",
+                    solution: "35000",
+                    stepByStepExplanation: [
+                        "Step 1: Round → 490 and 70",
+                        "Step 2: 49 × 7 = 343",
+                        "Step 3: Put the zeros back → 34300",
+                        "Answer: about 34300 (the exact value is 34719)"
+                    ]
+                )
+            ]
+        ),
+        operations: [.estimateProduct],
+        difficulty: .easy,
+        pattern: ProblemPattern.estimateProduct(leftRange: 100...999, rightRange: 40...99),
+        answerMode: .expression
     )
 
     // MARK: - Fractions
