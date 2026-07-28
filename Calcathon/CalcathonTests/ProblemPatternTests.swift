@@ -647,6 +647,76 @@ final class ProblemPatternTests: XCTestCase {
         XCTAssertTrue(sawCorrectionCase, "the remainder-too-big case must occur")
     }
 
+    /// Every fraction problem must read as a genuine fraction — a numerator
+    /// at or above its denominator would be a whole number in disguise — and
+    /// the answer must match the arithmetic the lesson teaches.
+    func testFractionOperandsAreProperAndCorrectlyAnswered() {
+        let operations: [MathOperation] = [
+            .fractionAddition, .fractionSubtraction,
+            .fractionMultiplication, .fractionDivision
+        ]
+        for operation in operations {
+            let pattern = ProblemPattern.fractionOperands(operation: operation, denominatorRange: 3...9)
+            let engine = MathEngine(seed: operation.rawValue, pattern: pattern)
+            for problem in engine.generateBatch(count: 200) {
+                XCTAssertTrue((3...9).contains(problem.denominatorA))
+                XCTAssertTrue((3...9).contains(problem.denominatorB))
+                XCTAssertTrue(
+                    problem.operandA > 0 && problem.operandA < problem.denominatorA,
+                    "\(problem.displayText) is not a proper fraction"
+                )
+                XCTAssertTrue(
+                    problem.operandB > 0 && problem.operandB < problem.denominatorB,
+                    "\(problem.displayText) is not a proper fraction"
+                )
+                XCTAssertEqual(
+                    problem.answer,
+                    .rational(operation.evaluate(lhs: problem.fractionA, rhs: problem.fractionB)),
+                    "wrong answer for \(problem.displayText)"
+                )
+            }
+        }
+    }
+
+    /// Crossing is the whole method, so a shared denominator would let the
+    /// player add straight across and never learn it.
+    func testAddedAndSubtractedFractionsNeverShareADenominator() {
+        for operation in [MathOperation.fractionAddition, .fractionSubtraction] {
+            let pattern = ProblemPattern.fractionOperands(operation: operation, denominatorRange: 3...9)
+            let engine = MathEngine(seed: "cross\(operation.rawValue)", pattern: pattern)
+            for problem in engine.generateBatch(count: 300) {
+                XCTAssertNotEqual(
+                    problem.denominatorA, problem.denominatorB,
+                    "\(problem.displayText) needs no crossing"
+                )
+            }
+        }
+    }
+
+    /// Nothing else in the app produces a negative answer, and the method is
+    /// identical either way, so subtraction is always ordered larger first.
+    func testSubtractedFractionsStayPositive() {
+        let pattern = ProblemPattern.fractionOperands(operation: .fractionSubtraction, denominatorRange: 3...9)
+        let engine = MathEngine(seed: "fracsub", pattern: pattern)
+        for problem in engine.generateBatch(count: 300) {
+            guard case let .rational(result) = problem.answer else {
+                return XCTFail("expected a rational answer")
+            }
+            XCTAssertGreaterThan(result.numerator, 0, "\(problem.displayText) went negative")
+        }
+    }
+
+    /// Fraction lessons must ask for the scientific keypad, which is the only
+    /// one with a division key — otherwise the answer cannot be typed at all.
+    func testFractionLessonsUseTheExpressionKeypad() {
+        for lesson in LessonCatalog.fractionsGroup.lessons {
+            XCTAssertEqual(
+                lesson.answerMode, .expression,
+                "\(lesson.id) cannot type a fraction on the plain digit pad"
+            )
+        }
+    }
+
     func testPatternGenerationIsDeterministic() {
         let pattern = ProblemPattern.fixedOperand(
             operation: .addition,

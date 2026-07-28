@@ -193,6 +193,15 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// Clean division `a ÷ d` where `d` is a chosen divisor and `a = d × q`.
     case divisor(divisors: [Int], quotientRange: ClosedRange<Int>)
 
+    /// A pair of proper fractions, for the four fraction operations. Both
+    /// numerators sit strictly below their denominator, so every problem
+    /// reads as a genuine fraction rather than a disguised whole number.
+    ///
+    /// Addition and subtraction force the two denominators apart — sharing
+    /// one would remove the crossing step the lesson exists to teach — and
+    /// subtraction orders the pair so the answer stays positive.
+    case fractionOperands(operation: MathOperation, denominatorRange: ClosedRange<Int>)
+
     /// `p%` of a base value, where the base is chosen so the result is exact.
     case percentage(percents: [Int], multiplierRange: ClosedRange<Int>)
 
@@ -439,6 +448,55 @@ enum ProblemPattern: Codable, Equatable, Sendable {
             let d = divisors[Int.random(in: 0..<divisors.count, using: &rng)]
             let q = Int.random(in: quotientRange, using: &rng)
             return MathProblem(operandA: d * q, operandB: d, operation: .division)
+
+        case let .fractionOperands(operation, denominatorRange):
+            func properFraction() -> (numerator: Int, denominator: Int) {
+                let denominator = Int.random(in: denominatorRange, using: &rng)
+                return (Int.random(in: 1..<denominator, using: &rng), denominator)
+            }
+
+            var first = properFraction()
+            var second = properFraction()
+
+            if operation == .fractionAddition || operation == .fractionSubtraction {
+                // Matching denominators would let the player add straight
+                // across and never cross, so redraw until they differ.
+                for _ in 0..<16 where first.denominator == second.denominator {
+                    second = properFraction()
+                }
+                if first.denominator == second.denominator {
+                    second.denominator = denominatorRange.contains(second.denominator + 1)
+                        ? second.denominator + 1
+                        : second.denominator - 1
+                    second.numerator = min(second.numerator, second.denominator - 1)
+                }
+            }
+
+            if operation == .fractionSubtraction {
+                // Different denominators can still hold the same value
+                // (2/4 and 3/6), which would subtract to zero — a legal but
+                // useless problem. Nudge one numerator until they differ.
+                for _ in 0..<16 where first.numerator * second.denominator
+                    == second.numerator * first.denominator {
+                    second.numerator = second.numerator > 1
+                        ? second.numerator - 1
+                        : second.numerator + 1
+                }
+                // Keep the answer positive: the app has no notion of a
+                // negative result anywhere else, and the method is the same.
+                if first.numerator * second.denominator
+                    < second.numerator * first.denominator {
+                    swap(&first, &second)
+                }
+            }
+
+            return MathProblem(
+                operandA: first.numerator,
+                operandB: second.numerator,
+                operation: operation,
+                denominatorA: first.denominator,
+                denominatorB: second.denominator
+            )
 
         case let .percentage(percents, multiplierRange):
             let p = percents[Int.random(in: 0..<percents.count, using: &rng)]

@@ -24,7 +24,8 @@ nonisolated enum LessonCatalog {
         divisionTricksGroup,
         advancedDivisionGroup,
         numberChecksGroup,
-        percentageTricksGroup
+        percentageTricksGroup,
+        fractionsGroup
     ]
 
     // MARK: - Basic Addition
@@ -2573,5 +2574,207 @@ nonisolated enum LessonCatalog {
         operations: [.percentage],
         difficulty: .medium,
         pattern: ProblemPattern.percentage(percents: [25], multiplierRange: 2...25)
+    )
+
+    // MARK: - Fractions
+
+    /// The first lessons whose answers are not whole numbers. Adding and
+    /// subtracting reuse the crossing pattern from `mult_crosswise` — the
+    /// point is that this is not a new technique, just the same one pointed
+    /// at a numerator and a denominator.
+    static let fractionsGroup = LessonGroup(
+        id: "fractions",
+        title: "Fractions",
+        description: "Cross for adding, straight across for multiplying — no common denominators to hunt for.",
+        iconName: "divide",
+        lessons: [
+            addFractionsLesson,
+            subtractFractionsLesson,
+            multiplyFractionsLesson,
+            divideFractionsLesson
+        ],
+        requiredGroupId: "percentage_tricks"
+    )
+
+    /// Shared closing note: every fraction lesson grades by value, so there
+    /// is never a reason to make a player reduce.
+    private static let fractionReducingNote =
+        "You don't have to reduce — 14/24 and 7/12 are both accepted."
+
+    private static let addFractionsLesson = Lesson(
+        id: "frac_add",
+        title: "Add Fractions Crosswise",
+        description: "No common denominator needed — cross-multiply and you have the answer.",
+        trick: MathTrick(
+            name: "Cross for the Top, Straight for the Bottom",
+            steps: [
+                "Multiply the first top by the second bottom.",
+                "Multiply the second top by the first bottom.",
+                "Add those two — that's your numerator.",
+                "Multiply the two bottoms together — that's your denominator.",
+                "This is the same crossing you already did for two-digit multiplication.",
+                fractionReducingNote
+            ],
+            examples: [
+                TrickExample(
+                    problem: "2/3 + 1/5",
+                    solution: "13/15",
+                    stepByStepExplanation: [
+                        "Step 1: Cross one way → 2 × 5 = 10",
+                        "Step 2: Cross the other → 1 × 3 = 3",
+                        "Step 3: Add them → 10 + 3 = 13",
+                        "Step 4: Bottoms → 3 × 5 = 15",
+                        "Answer: 13/15"
+                    ]
+                ),
+                TrickExample(
+                    problem: "1/4 + 2/5",
+                    solution: "13/20",
+                    stepByStepExplanation: [
+                        "Step 1: Cross one way → 1 × 5 = 5",
+                        "Step 2: Cross the other → 2 × 4 = 8",
+                        "Step 3: Add them → 5 + 8 = 13",
+                        "Step 4: Bottoms → 4 × 5 = 20",
+                        "Answer: 13/20"
+                    ]
+                )
+            ]
+        ),
+        operations: [.fractionAddition],
+        difficulty: .medium,
+        pattern: ProblemPattern.fractionOperands(operation: .fractionAddition, denominatorRange: 3...9),
+        answerMode: .expression
+    )
+
+    private static let subtractFractionsLesson = Lesson(
+        id: "frac_sub",
+        title: "Subtract Fractions Crosswise",
+        description: "The same crossing as adding, with a minus in the middle.",
+        trick: MathTrick(
+            name: "Cross and Subtract",
+            steps: [
+                "Multiply the first top by the second bottom.",
+                "Multiply the second top by the first bottom.",
+                "Subtract the second from the first — that's your numerator.",
+                "Multiply the two bottoms together — that's your denominator.",
+                "Order matters here in a way it didn't for adding: the first fraction's cross comes first.",
+                fractionReducingNote
+            ],
+            examples: [
+                TrickExample(
+                    problem: "3/4 − 1/6",
+                    solution: "7/12",
+                    stepByStepExplanation: [
+                        "Step 1: First top × second bottom → 3 × 6 = 18",
+                        "Step 2: Second top × first bottom → 1 × 4 = 4",
+                        "Step 3: Subtract → 18 − 4 = 14",
+                        "Step 4: Bottoms → 4 × 6 = 24",
+                        "Step 5: 14/24 reduces to 7/12",
+                        "Answer: 7/12"
+                    ]
+                ),
+                TrickExample(
+                    problem: "2/3 − 1/4",
+                    solution: "5/12",
+                    stepByStepExplanation: [
+                        "Step 1: First top × second bottom → 2 × 4 = 8",
+                        "Step 2: Second top × first bottom → 1 × 3 = 3",
+                        "Step 3: Subtract → 8 − 3 = 5",
+                        "Step 4: Bottoms → 3 × 4 = 12",
+                        "Answer: 5/12"
+                    ]
+                )
+            ]
+        ),
+        operations: [.fractionSubtraction],
+        difficulty: .medium,
+        pattern: ProblemPattern.fractionOperands(operation: .fractionSubtraction, denominatorRange: 3...9),
+        answerMode: .expression
+    )
+
+    private static let multiplyFractionsLesson = Lesson(
+        id: "frac_multiply",
+        title: "Multiply Fractions",
+        description: "The easiest one — straight across, tops and bottoms.",
+        trick: MathTrick(
+            name: "Straight Across",
+            steps: [
+                "Multiply the two tops together.",
+                "Multiply the two bottoms together.",
+                "That's it — no crossing, no common denominator.",
+                "Cancel before you multiply if you spot a shared factor; it keeps the numbers small.",
+                fractionReducingNote
+            ],
+            examples: [
+                TrickExample(
+                    problem: "2/3 × 3/4",
+                    solution: "1/2",
+                    stepByStepExplanation: [
+                        "Step 1: Tops → 2 × 3 = 6",
+                        "Step 2: Bottoms → 3 × 4 = 12",
+                        "Step 3: 6/12 reduces to 1/2",
+                        "Answer: 1/2"
+                    ]
+                ),
+                TrickExample(
+                    problem: "3/5 × 5/9",
+                    solution: "1/3",
+                    stepByStepExplanation: [
+                        "Step 1: The 5s cancel top and bottom",
+                        "Step 2: Left with 3/9",
+                        "Step 3: 3/9 reduces to 1/3",
+                        "Answer: 1/3"
+                    ]
+                )
+            ]
+        ),
+        operations: [.fractionMultiplication],
+        difficulty: .easy,
+        pattern: ProblemPattern.fractionOperands(operation: .fractionMultiplication, denominatorRange: 3...9),
+        answerMode: .expression
+    )
+
+    private static let divideFractionsLesson = Lesson(
+        id: "frac_divide",
+        title: "Divide Fractions",
+        description: "Flip the second one over, then multiply.",
+        trick: MathTrick(
+            name: "Invert and Multiply",
+            steps: [
+                "Turn the second fraction upside down.",
+                "Change the ÷ to a ×.",
+                "Now multiply straight across, as usual.",
+                "Flipping works because dividing by 4/9 is the same as multiplying by 9/4.",
+                fractionReducingNote
+            ],
+            examples: [
+                TrickExample(
+                    problem: "2/3 ÷ 4/9",
+                    solution: "3/2",
+                    stepByStepExplanation: [
+                        "Step 1: Flip the second → 9/4",
+                        "Step 2: Now 2/3 × 9/4",
+                        "Step 3: Tops → 2 × 9 = 18, bottoms → 3 × 4 = 12",
+                        "Step 4: 18/12 reduces to 3/2",
+                        "Answer: 3/2"
+                    ]
+                ),
+                TrickExample(
+                    problem: "3/4 ÷ 1/2",
+                    solution: "3/2",
+                    stepByStepExplanation: [
+                        "Step 1: Flip the second → 2/1",
+                        "Step 2: Now 3/4 × 2/1",
+                        "Step 3: Tops → 3 × 2 = 6, bottoms → 4 × 1 = 4",
+                        "Step 4: 6/4 reduces to 3/2",
+                        "Answer: 3/2"
+                    ]
+                )
+            ]
+        ),
+        operations: [.fractionDivision],
+        difficulty: .medium,
+        pattern: ProblemPattern.fractionOperands(operation: .fractionDivision, denominatorRange: 3...9),
+        answerMode: .expression
     )
 }
