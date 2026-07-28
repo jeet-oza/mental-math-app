@@ -717,6 +717,51 @@ final class ProblemPatternTests: XCTestCase {
         }
     }
 
+    /// The estimation lessons are the only ones where a correct application
+    /// of the taught method can still miss the true value. So the grader has
+    /// to accept what the method actually produces: run one Newton step off
+    /// the nearest whole root, exactly as the lesson describes, and require
+    /// that answer to pass. A tolerance tighter than the method's own error
+    /// would fail players who did everything right.
+    func testEstimationMethodAlwaysSatisfiesItsOwnGrader() {
+        func nearestRootEstimate(of n: Int, power: Int) -> Double {
+            let value = Double(n)
+            let guess = (power == 2 ? value.squareRoot() : cbrt(value)).rounded()
+            let slope = power == 2 ? 2 * guess : 3 * guess * guess
+            return guess + (value - pow(guess, Double(power))) / slope
+        }
+
+        for (lessonId, power) in [("root_square_estimate", 2), ("root_cube_estimate", 3)] {
+            guard let pattern = catalogLesson(id: lessonId)?.pattern else {
+                return XCTFail("\(lessonId) is missing from the catalog")
+            }
+            let engine = MathEngine(seed: lessonId, pattern: pattern)
+            for problem in engine.generateBatch(count: 400) {
+                let estimate = nearestRootEstimate(of: problem.operandA, power: power)
+                XCTAssertTrue(
+                    problem.answer.accepts(String(format: "%.2f", estimate)),
+                    "\(problem.displayText): the method gives \(estimate), which its own grader rejects"
+                )
+            }
+        }
+    }
+
+    /// A perfect square belongs to the exact lesson, where the answer is a
+    /// whole number — generating one here would teach the wrong thing.
+    func testApproximateRootsAreNeverExact() {
+        let squares = ProblemPattern.approximateSquareRoot(range: 10...500)
+        for problem in MathEngine(seed: "approxsq", pattern: squares).generateBatch(count: 300) {
+            let root = Int(Double(problem.operandA).squareRoot().rounded())
+            XCTAssertNotEqual(root * root, problem.operandA, "\(problem.operandA) is a perfect square")
+        }
+
+        let cubes = ProblemPattern.approximateCubeRoot(range: 100...9999)
+        for problem in MathEngine(seed: "approxcb", pattern: cubes).generateBatch(count: 300) {
+            let root = Int(cbrt(Double(problem.operandA)).rounded())
+            XCTAssertNotEqual(root * root * root, problem.operandA, "\(problem.operandA) is an exact cube")
+        }
+    }
+
     func testPatternGenerationIsDeterministic() {
         let pattern = ProblemPattern.fixedOperand(
             operation: .addition,

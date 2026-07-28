@@ -1703,9 +1703,110 @@ nonisolated enum LessonCatalog {
             cubeNearHundredLesson,
             cubeAnyTwoDigitLesson,
             squareRootLesson,
-            cubeRootLesson
+            cubeRootLesson,
+            estimateSquareRootLesson,
+            estimateCubeRootLesson
         ],
         requiredGroupId: "squaring_shortcuts"
+    )
+
+    /// Shared note for both estimation lessons: these are the first answers
+    /// in the app that are not exact, and a player needs telling.
+    private static let estimateAccuracyNote =
+        "This is an estimate, so close counts — you don't need more than two decimal places."
+
+    private static let estimateSquareRootLesson = Lesson(
+        id: "root_square_estimate",
+        title: "Estimate Any Square Root",
+        description: "√50 in your head, to two decimals — for the numbers that aren't perfect squares.",
+        trick: MathTrick(
+            name: "Nearest Square, Then Correct",
+            steps: [
+                "Find the nearest perfect square and take its root — that's your starting guess.",
+                "Subtract that square from your number. The gap may be negative; that's fine.",
+                "Divide the gap by twice your guess.",
+                "Add that correction to the guess.",
+                "The nearer the square, the better the answer — so always round to the *closest* one, above or below.",
+                estimateAccuracyNote
+            ],
+            examples: [
+                TrickExample(
+                    problem: "√50",
+                    solution: "7.07",
+                    stepByStepExplanation: [
+                        "Step 1: Nearest square is 49, so start at 7",
+                        "Step 2: Gap → 50 − 49 = 1",
+                        "Step 3: Twice the guess → 2 × 7 = 14",
+                        "Step 4: Correction → 1 ÷ 14 ≈ 0.07",
+                        "Step 5: 7 + 0.07 = 7.07",
+                        "Answer: 7.07"
+                    ]
+                ),
+                TrickExample(
+                    problem: "√60",
+                    solution: "7.75",
+                    stepByStepExplanation: [
+                        "Step 1: Nearest square is 64, so start at 8",
+                        "Step 2: Gap → 60 − 64 = −4",
+                        "Step 3: Twice the guess → 2 × 8 = 16",
+                        "Step 4: Correction → −4 ÷ 16 = −0.25",
+                        "Step 5: 8 − 0.25 = 7.75",
+                        "Answer: 7.75 (true value 7.746)"
+                    ]
+                )
+            ]
+        ),
+        operations: [.approximateSquareRoot],
+        difficulty: .hard,
+        pattern: ProblemPattern.approximateSquareRoot(range: 10...500),
+        answerMode: .expression
+    )
+
+    private static let estimateCubeRootLesson = Lesson(
+        id: "root_cube_estimate",
+        title: "Estimate Any Cube Root",
+        description: "The same correction, with the cube's own slope — three times the guess squared.",
+        trick: MathTrick(
+            name: "Nearest Cube, Then Correct",
+            steps: [
+                "Find the nearest exact cube and take its root — that's your starting guess.",
+                "Subtract that cube from your number, keeping the sign.",
+                "Divide the gap by three times your guess squared.",
+                "Add that correction to the guess.",
+                "It is the square-root method with 3n² where that one used 2n, for the same reason.",
+                estimateAccuracyNote
+            ],
+            examples: [
+                TrickExample(
+                    problem: "∛130",
+                    solution: "5.07",
+                    stepByStepExplanation: [
+                        "Step 1: Nearest cube is 125, so start at 5",
+                        "Step 2: Gap → 130 − 125 = 5",
+                        "Step 3: Three times the guess squared → 3 × 25 = 75",
+                        "Step 4: Correction → 5 ÷ 75 ≈ 0.07",
+                        "Step 5: 5 + 0.07 = 5.07",
+                        "Answer: 5.07"
+                    ]
+                ),
+                TrickExample(
+                    problem: "∛200",
+                    solution: "5.85",
+                    stepByStepExplanation: [
+                        "Step 1: Nearest cube is 216, so start at 6",
+                        "Step 2: Gap → 200 − 216 = −16",
+                        "Step 3: Three times the guess squared → 3 × 36 = 108",
+                        "Step 4: Correction → −16 ÷ 108 ≈ −0.15",
+                        "Step 5: 6 − 0.15 = 5.85",
+                        "Answer: 5.85 (true value 5.848)"
+                    ]
+                )
+            ]
+        ),
+        operations: [.approximateCubeRoot],
+        difficulty: .hard,
+        pattern: ProblemPattern.approximateCubeRoot(range: 100...9999),
+        answerMode: .expression
     )
 
     private static let differenceOfSquaresLesson = Lesson(

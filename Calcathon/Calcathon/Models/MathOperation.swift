@@ -66,15 +66,19 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     }
 
     /// How close an answer must be to count as right, for the operations that
-    /// are answered approximately. Three significant figures is what the
-    /// estimation methods actually deliver, so demanding more would fail a
-    /// player who applied the method correctly.
+    /// are answered approximately.
+    ///
+    /// These are set from the taught method's *worst* case over the range its
+    /// pattern generates, not from a general sense of "close enough" — a
+    /// tolerance tighter than the method's own error would fail a player who
+    /// applied it correctly. One Newton step off the nearest whole root is
+    /// good to about 0.036 for square roots over 10…500, but only to about
+    /// 0.051 for cube roots, which is why they differ.
     var tolerance: Double? {
         switch self {
-        case .approximateSquareRoot, .approximateCubeRoot:
-            return 0.05
-        default:
-            return nil
+        case .approximateSquareRoot: return 0.05
+        case .approximateCubeRoot: return 0.1
+        default: return nil
         }
     }
 

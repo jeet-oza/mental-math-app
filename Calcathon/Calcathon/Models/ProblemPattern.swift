@@ -148,6 +148,14 @@ enum ProblemPattern: Codable, Equatable, Sendable {
     /// Cube roots of exact cubes: `n³` with `n` drawn from `range`.
     case exactCubeRoot(range: ClosedRange<Int>)
 
+    /// Square roots of numbers that are *not* perfect squares, answered to
+    /// within a tolerance. Perfect squares are filtered out: they belong to
+    /// `perfectSquareRoot`, where the answer is exact.
+    case approximateSquareRoot(range: ClosedRange<Int>)
+
+    /// Cube roots of numbers that are not exact cubes. Same reasoning.
+    case approximateCubeRoot(range: ClosedRange<Int>)
+
     /// `a² − b²`, solved as `(a + b)(a − b)`. `a` comes from `range` and `b`
     /// sits `gapRange` below it, so the difference is always positive.
     case differenceOfSquares(range: ClosedRange<Int>, gapRange: ClosedRange<Int>)
@@ -398,6 +406,26 @@ enum ProblemPattern: Codable, Equatable, Sendable {
         case let .exactCubeRoot(range):
             let n = Int.random(in: range, using: &rng)
             return MathProblem(operandA: n * n * n, operandB: n, operation: .cubeRoot)
+
+        case let .approximateSquareRoot(range):
+            for _ in 0..<64 {
+                let n = Int.random(in: range, using: &rng)
+                let root = Int(Double(n).squareRoot().rounded())
+                if root * root != n {
+                    return MathProblem(operandA: n, operandB: 0, operation: .approximateSquareRoot)
+                }
+            }
+            return MathProblem(operandA: 50, operandB: 0, operation: .approximateSquareRoot)
+
+        case let .approximateCubeRoot(range):
+            for _ in 0..<64 {
+                let n = Int.random(in: range, using: &rng)
+                let root = Int(cbrt(Double(n)).rounded())
+                if root * root * root != n {
+                    return MathProblem(operandA: n, operandB: 0, operation: .approximateCubeRoot)
+                }
+            }
+            return MathProblem(operandA: 200, operandB: 0, operation: .approximateCubeRoot)
 
         case let .differenceOfSquares(range, gapRange):
             let a = Int.random(in: range, using: &rng)
