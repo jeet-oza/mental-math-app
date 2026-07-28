@@ -198,6 +198,12 @@ enum ProblemPattern: Codable, Equatable, Sendable {
         otherRange: ClosedRange<Int>
     )
 
+    /// A round power of ten minus a number with the same digit count, e.g.
+    /// `10000 − 3767`, solved by complementing each digit rather than
+    /// borrowing across the zeros. The subtrahend always fills every place,
+    /// so no digit is a freebie.
+    case complementFromRound(bases: [Int])
+
     /// Clean division `a ÷ d` where `d` is a chosen divisor and `a = d × q`.
     case divisor(divisors: [Int], quotientRange: ClosedRange<Int>)
 
@@ -471,6 +477,13 @@ enum ProblemPattern: Codable, Equatable, Sendable {
                 return MathProblem(operandA: a, operandB: b, operation: .subtraction)
             }
             return MathProblem(operandA: other, operandB: near, operation: operation)
+
+        case let .complementFromRound(bases):
+            let base = bases[Int.random(in: 0..<bases.count, using: &rng)]
+            // Draw from base/10 upwards so every place has a real digit —
+            // a leading zero would hand the player a free column.
+            let subtrahend = Int.random(in: (base / 10)..<base, using: &rng)
+            return MathProblem(operandA: base, operandB: subtrahend, operation: .subtraction)
 
         case let .divisor(divisors, quotientRange):
             let d = divisors[Int.random(in: 0..<divisors.count, using: &rng)]

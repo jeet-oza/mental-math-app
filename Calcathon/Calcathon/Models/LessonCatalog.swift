@@ -132,6 +132,7 @@ nonisolated enum LessonCatalog {
             subtractingNineLesson,
             subtractingNearHundredLesson,
             subtractingFromRoundNumbersLesson,
+            complementSubtractionLesson,
             leftToRightSubtractionLesson
         ],
         requiredGroupId: "basic_addition"
@@ -214,6 +215,47 @@ nonisolated enum LessonCatalog {
         operations: [.subtraction],
         difficulty: .easy,
         pattern: ProblemPattern.fixedOperand(operation: .subtraction, fixedValues: [100, 1000], position: .left, variableRange: 11...89)
+    )
+
+    private static let complementSubtractionLesson = Lesson(
+        id: "sub_complement",
+        title: "Subtract From 1000 and 10000",
+        description: "All the borrowing across those zeros disappears — take each digit from 9.",
+        trick: MathTrick(
+            name: "All From 9, Last From 10",
+            steps: [
+                "Take every digit from 9, working left to right.",
+                "Take the very last digit from 10 instead.",
+                "Write the results in order — that's the answer.",
+                "No borrowing anywhere, which is the whole point: a row of zeros is the worst case for ordinary subtraction and the easiest for this."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "10000 − 3767",
+                    solution: "6233",
+                    stepByStepExplanation: [
+                        "Step 1: 9 − 3 = 6",
+                        "Step 2: 9 − 7 = 2",
+                        "Step 3: 9 − 6 = 3",
+                        "Step 4: Last digit from 10 → 10 − 7 = 3",
+                        "Answer: 6233"
+                    ]
+                ),
+                TrickExample(
+                    problem: "1000 − 428",
+                    solution: "572",
+                    stepByStepExplanation: [
+                        "Step 1: 9 − 4 = 5",
+                        "Step 2: 9 − 2 = 7",
+                        "Step 3: Last digit from 10 → 10 − 8 = 2",
+                        "Answer: 572"
+                    ]
+                )
+            ]
+        ),
+        operations: [.subtraction],
+        difficulty: .medium,
+        pattern: ProblemPattern.complementFromRound(bases: [1000, 10000])
     )
 
     // MARK: - Multiplication Tricks
@@ -1311,9 +1353,92 @@ nonisolated enum LessonCatalog {
             squaresNearFiftyLesson,
             squaresNearHundredLesson,
             squareNeighbourLesson,
+            squaresNearFiveHundredLesson,
+            squaresEndingInFiveThreeDigitLesson,
             squareAnyTwoDigitLesson
         ],
         requiredGroupId: "problem_reshaping"
+    )
+
+    private static let squaresNearFiveHundredLesson = Lesson(
+        id: "sq_near500",
+        title: "Squares Near 500",
+        description: "513² without touching a big multiplication — 250 does the work.",
+        trick: MathTrick(
+            name: "250 Plus the Distance",
+            steps: [
+                "Take the number's signed distance from 500 (513 → +13, 492 → −8).",
+                "Add that distance to 250. Those are the leading digits.",
+                "Square the distance and write it as three digits, padding with zeros.",
+                "Put the two parts side by side.",
+                "It works because 500² is 250 thousands, and each step of 1 adds 1000."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "513 × 513",
+                    solution: "263169",
+                    stepByStepExplanation: [
+                        "Step 1: 513 is 13 above 500",
+                        "Step 2: 250 + 13 = 263",
+                        "Step 3: 13² = 169",
+                        "Answer: 263169"
+                    ]
+                ),
+                TrickExample(
+                    problem: "492 × 492",
+                    solution: "242064",
+                    stepByStepExplanation: [
+                        "Step 1: 492 is 8 below 500",
+                        "Step 2: 250 − 8 = 242",
+                        "Step 3: 8² = 64 → pad to 064",
+                        "Answer: 242064"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.squareNearBase(base: 500, deviationRange: 1...25)
+    )
+
+    private static let squaresEndingInFiveThreeDigitLesson = Lesson(
+        id: "sq_ends5_3digit",
+        title: "Squares Ending in 5 — Bigger",
+        description: "235² is no harder than 35²: treat everything left of the 5 as one number.",
+        trick: MathTrick(
+            name: "Same Rule, Wider",
+            steps: [
+                "Take everything to the left of the final 5 as a single number.",
+                "Multiply it by one more than itself.",
+                "Write 25 on the end.",
+                "The rule never cared how many digits sat to the left — only that the number ends in 5."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "235 × 235",
+                    solution: "55225",
+                    stepByStepExplanation: [
+                        "Step 1: Left of the 5 → 23",
+                        "Step 2: 23 × 24 = 552",
+                        "Step 3: Write 25 on the end",
+                        "Answer: 55225"
+                    ]
+                ),
+                TrickExample(
+                    problem: "145 × 145",
+                    solution: "21025",
+                    stepByStepExplanation: [
+                        "Step 1: Left of the 5 → 14",
+                        "Step 2: 14 × 15 = 210",
+                        "Step 3: Write 25 on the end",
+                        "Answer: 21025"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .medium,
+        pattern: ProblemPattern.squareEndingInFive(tensRange: 10...49)
     )
 
     private static let squareNeighbourLesson = Lesson(
