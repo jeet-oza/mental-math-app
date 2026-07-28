@@ -246,7 +246,7 @@ nonisolated enum LessonCatalog {
     /// can be any length.
     static let digitRulesGroup = LessonGroup(
         id: "digit_rules",
-        title: "Multiplication - Digit by Digit",
+        title: "Multiplication — Digit by Digit",
         description: "One mechanism for ×6, ×11 and ×12 — read each digit off its neighbour.",
         iconName: "list.number",
         lessons: [
@@ -361,7 +361,7 @@ nonisolated enum LessonCatalog {
     /// wearing the same "advanced" label.
     static let advancedMultiplicationGroup = LessonGroup(
         id: "advanced_multiplication",
-        title: "Multiplication - Near Base Method",
+        title: "Multiplication — Near Base Method",
         description: "Anchor both numbers to a round base — 50, 100, 200, 500, 1000 — and correct.",
         iconName: "arrow.triangle.swap",
         lessons: [
@@ -380,7 +380,7 @@ nonisolated enum LessonCatalog {
     /// when nothing else fits.
     static let crosswiseColumnsGroup = LessonGroup(
         id: "crosswise_columns",
-        title: "Multiplication - Vedic Math",
+        title: "Multiplication — Vedic Math",
         description: "Multiply digit by digit, one column at a time — works on any pair at all.",
         iconName: "square.grid.3x3",
         lessons: [
@@ -941,7 +941,7 @@ nonisolated enum LessonCatalog {
     /// none of them computed the problem they were handed.
     static let problemReshapingGroup = LessonGroup(
         id: "problem_reshaping",
-        title: "Multiplication - Advanced",
+        title: "Multiplication — Advanced",
         description: "Split it or re-base it — change the problem before you solve it.",
         iconName: "arrow.triangle.branch",
         lessons: [
