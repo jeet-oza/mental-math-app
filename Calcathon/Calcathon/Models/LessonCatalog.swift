@@ -191,7 +191,7 @@ nonisolated enum LessonCatalog {
 
     private static let subtractingFromRoundNumbersLesson = Lesson(
         id: "sub_round",
-        title: "Subtract from multiples of 10",
+        title: "Subtract From Multiples of 10",
         description: "Subtract from 100 or 1000 by taking each digit from 9, then adding 1.",
         trick: MathTrick(
             name: "Nines, Then Plus 1",
@@ -361,7 +361,7 @@ nonisolated enum LessonCatalog {
     /// wearing the same "advanced" label.
     static let advancedMultiplicationGroup = LessonGroup(
         id: "advanced_multiplication",
-        title: "Multiplication - Near base method",
+        title: "Multiplication - Near Base Method",
         description: "Anchor both numbers to a round base — 50, 100, 200, 500, 1000 — and correct.",
         iconName: "arrow.triangle.swap",
         lessons: [
@@ -380,7 +380,7 @@ nonisolated enum LessonCatalog {
     /// when nothing else fits.
     static let crosswiseColumnsGroup = LessonGroup(
         id: "crosswise_columns",
-        title: "Multiplication - Vedic math",
+        title: "Multiplication - Vedic Math",
         description: "Multiply digit by digit, one column at a time — works on any pair at all.",
         iconName: "square.grid.3x3",
         lessons: [
