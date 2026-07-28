@@ -18,6 +18,7 @@ nonisolated enum LessonCatalog {
         multiplicationTricksGroup,
         digitRulesGroup,
         advancedMultiplicationGroup,
+        crosswiseColumnsGroup,
         problemReshapingGroup,
         squaringShortcutsGroup,
         powersAndRootsGroup,
@@ -535,25 +536,85 @@ nonisolated enum LessonCatalog {
 
     // MARK: - Advanced Multiplication
 
-    /// Methods rather than shortcuts: pick a base and adjust, or work the
-    /// columns crosswise. These are not tied to a particular multiplier, so
-    /// they cover the pairs no single-number trick reaches.
+    /// Pick a round number near both operands and adjust. Not tied to a
+    /// particular multiplier, so these reach the pairs no single-number trick
+    /// does. Split from the crosswise lessons, which are a different idea
+    /// wearing the same "advanced" label.
     static let advancedMultiplicationGroup = LessonGroup(
         id: "advanced_multiplication",
-        title: "Advanced Multiplication",
-        description: "Base methods and crosswise columns — for numbers no simple shortcut fits.",
+        title: "Base Methods",
+        description: "Anchor both numbers to a round base — 50, 100, 200, 500, 1000 — and correct.",
         iconName: "arrow.triangle.swap",
         lessons: [
             multiplyNearHundredLesson,
             multiplyNearHundredCarryLesson,
             multiplyNearFiftyLesson,
             multiplyNearTwoHundredLesson,
-            multiplyNearThousandLesson,
+            multiplyNearFiveHundredLesson,
+            multiplyNearThousandLesson
+        ],
+        requiredGroupId: "digit_rules"
+    )
+
+    /// Column-by-column multiplication. Unlike the base methods these need no
+    /// round number anywhere nearby, which is what makes them the fallback
+    /// when nothing else fits.
+    static let crosswiseColumnsGroup = LessonGroup(
+        id: "crosswise_columns",
+        title: "Crosswise Columns",
+        description: "Multiply digit by digit, one column at a time — works on any pair at all.",
+        iconName: "square.grid.3x3",
+        lessons: [
             crosswiseBasicsLesson,
             crosswiseCarryLesson,
             crosswiseThreeDigitLesson
         ],
-        requiredGroupId: "digit_rules"
+        requiredGroupId: "advanced_multiplication"
+    )
+
+    private static let multiplyNearFiveHundredLesson = Lesson(
+        id: "mult_near500",
+        title: "Multiply Near 500",
+        description: "Numbers in the high 400s and low 500s — and ×500 is just halve, then three zeros.",
+        trick: MathTrick(
+            name: "Base 500",
+            steps: [
+                "Measure how far each number is from 500, both on the same side.",
+                "Cross-subtract: take one number and adjust it by the other's distance.",
+                "Multiply that by 500 — which is halving it and adding three zeros.",
+                "Multiply the two distances together and add that on.",
+                "Halving instead of multiplying is what makes 500 an easier base than it looks."
+            ],
+            examples: [
+                TrickExample(
+                    problem: "493 × 496",
+                    solution: "244528",
+                    stepByStepExplanation: [
+                        "Step 1: 493 is 7 below 500, 496 is 4 below",
+                        "Step 2: Cross-subtract → 493 − 4 = 489",
+                        "Step 3: 489 × 500 → half of 489 is 244.5, so 244500",
+                        "Step 4: Distances → 7 × 4 = 28",
+                        "Step 5: 244500 + 28 = 244528",
+                        "Answer: 244528"
+                    ]
+                ),
+                TrickExample(
+                    problem: "506 × 503",
+                    solution: "254518",
+                    stepByStepExplanation: [
+                        "Step 1: 506 is 6 above 500, 503 is 3 above",
+                        "Step 2: Cross-add → 506 + 3 = 509",
+                        "Step 3: 509 × 500 → half of 509 is 254.5, so 254500",
+                        "Step 4: Distances → 6 × 3 = 18",
+                        "Step 5: 254500 + 18 = 254518",
+                        "Answer: 254518"
+                    ]
+                )
+            ]
+        ),
+        operations: [.multiplication],
+        difficulty: .hard,
+        pattern: ProblemPattern.nearBase(base: 500, deviationRange: 1...12)
     )
 
     private static let multiplyBySixLesson = Lesson(
@@ -1072,7 +1133,7 @@ nonisolated enum LessonCatalog {
             anchorMethodLesson,
             midpointMethodLesson
         ],
-        requiredGroupId: "advanced_multiplication"
+        requiredGroupId: "crosswise_columns"
     )
 
     private static let doubleAndHalveLesson = Lesson(
