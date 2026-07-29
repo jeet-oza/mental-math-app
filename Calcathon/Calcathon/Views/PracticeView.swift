@@ -218,7 +218,9 @@ struct PracticeView: View {
     }
 
     /// Expression lessons get a read-only display plus the scientific keypad —
-    /// the system keyboard cannot type √ or π.
+    /// the system keyboard cannot type √ or π. The keypad stands down while the
+    /// scratch pad is open: it is six rows tall, and the two of them together
+    /// leave no room to write. The answer so far stays on screen either way.
     private var expressionField: some View {
         VStack(spacing: 12) {
             Text(viewModel.userInput.isEmpty ? " " : viewModel.userInput)
@@ -232,7 +234,10 @@ struct PracticeView: View {
                 )
                 .accessibilityLabel(Text("Your answer: \(viewModel.userInput)"))
 
-            ScientificKeypad(expression: $viewModel.userInput)
+            if !isScratchPadVisible {
+                ScientificKeypad(expression: $viewModel.userInput)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
         }
     }
 
