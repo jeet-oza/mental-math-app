@@ -20,6 +20,10 @@ struct ScratchStroke: Identifiable, Equatable {
 struct ScratchPad: View {
     @Binding var strokes: [ScratchStroke]
 
+    /// Called the moment a new stroke starts, so the parent can get the number
+    /// keyboard out of the way — it halves the pad the moment it appears.
+    var onDrawingBegan: () -> Void = {}
+
     /// Tracks whether the current drag is extending a stroke already started,
     /// so `onChanged` appends instead of beginning a new one every frame.
     @State private var isDrawing = false
@@ -60,6 +64,7 @@ struct ScratchPad: View {
                     if isDrawing, !strokes.isEmpty {
                         strokes[strokes.count - 1].points.append(value.location)
                     } else {
+                        onDrawingBegan()
                         strokes.append(ScratchStroke(points: [value.location]))
                         isDrawing = true
                     }

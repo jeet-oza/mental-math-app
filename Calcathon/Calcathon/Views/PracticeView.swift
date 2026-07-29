@@ -23,6 +23,13 @@ struct PracticeView: View {
     /// blank pad.
     @State private var scratchStrokes: [ScratchStroke] = []
 
+    /// Which answer field holds the keyboard, so drawing on the pad can let it go.
+    @FocusState private var focusedField: AnswerField?
+
+    private enum AnswerField: Hashable {
+        case answer, remainder
+    }
+
     init(lesson: Lesson) {
         _viewModel = StateObject(wrappedValue: PracticeViewModel(lesson: lesson))
     }
@@ -68,7 +75,7 @@ struct PracticeView: View {
             }
 
             if isScratchPadVisible {
-                ScratchPad(strokes: $scratchStrokes)
+                ScratchPad(strokes: $scratchStrokes, onDrawingBegan: { focusedField = nil })
                     .frame(minHeight: 140)
             } else {
                 Spacer()
@@ -101,6 +108,7 @@ struct PracticeView: View {
                 .foregroundStyle(Color.brandAccent)
 
             Button {
+                if !isScratchPadVisible { focusedField = nil }
                 withAnimation(.spring(response: 0.3)) {
                     isScratchPadVisible.toggle()
                 }
@@ -185,20 +193,21 @@ struct PracticeView: View {
             expressionField
         } else if viewModel.wantsRemainder {
             HStack(spacing: 12) {
-                numberField("Quotient", text: $viewModel.userInput)
-                numberField("Remainder", text: $viewModel.userRemainderInput)
+                numberField("Quotient", text: $viewModel.userInput, field: .answer)
+                numberField("Remainder", text: $viewModel.userRemainderInput, field: .remainder)
             }
         } else {
-            numberField("Your answer", text: $viewModel.userInput)
+            numberField("Your answer", text: $viewModel.userInput, field: .answer)
         }
     }
 
-    private func numberField(_ prompt: String, text: Binding<String>) -> some View {
+    private func numberField(_ prompt: String, text: Binding<String>, field: AnswerField) -> some View {
         TextField(prompt, text: text)
             .font(.title2)
             #if os(iOS)
             .keyboardType(.numberPad)
             #endif
+            .focused($focusedField, equals: field)
             .multilineTextAlignment(.center)
             .padding()
             .background(
