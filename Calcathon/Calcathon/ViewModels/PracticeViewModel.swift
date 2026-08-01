@@ -30,6 +30,10 @@ final class PracticeViewModel: ObservableObject {
     @Published var userRemainderInput: String = ""
     @Published private(set) var feedbackMessage: String?
     @Published private(set) var isCorrectFeedback: Bool?
+    /// True while a missed answer is on screen. A right answer rolls on by
+    /// itself; a miss holds the question, the answer given and the answer
+    /// wanted until the player taps Next, so there is time to read them.
+    @Published private(set) var isAwaitingNext: Bool = false
 
     // MARK: - Answer Shape
 
@@ -40,8 +44,10 @@ final class PracticeViewModel: ObservableObject {
     }
 
     /// Whether there is enough typed in to submit. A remainder problem needs
-    /// both fields; everything else needs one.
+    /// both fields; everything else needs one. Nothing is submittable while a
+    /// revealed answer is still being read.
     var canSubmit: Bool {
+        guard !isAwaitingNext else { return false }
         let hasPrimary = !userInput.trimmingCharacters(in: .whitespaces).isEmpty
         guard wantsRemainder else { return hasPrimary }
         return hasPrimary && !userRemainderInput.trimmingCharacters(in: .whitespaces).isEmpty
@@ -55,7 +61,8 @@ final class PracticeViewModel: ObservableObject {
     private var problemStartTime: Date = Date()
     private let difficulty: MathEngine.Difficulty
 
-    /// Seconds of feedback shown before advancing to the next problem.
+    /// Seconds a right answer's feedback shows before advancing. A miss has no
+    /// clock on it — see `isAwaitingNext`.
     private let feedbackDuration: TimeInterval = 1.0
 
     /// Pending advance work, cancelled if the session is torn down early.
@@ -128,7 +135,7 @@ final class PracticeViewModel: ObservableObject {
 
     /// Submits the user's answer for the current problem.
     func submitAnswer() {
-        guard let problem = currentProblem else { return }
+        guard let problem = currentProblem, !isAwaitingNext else { return }
         let trimmed = userInput.trimmingCharacters(in: .whitespaces)
         // Nonsense is ignored outright rather than graded wrong, so a fumbled
         // keypad does not cost an attempt.
@@ -168,12 +175,16 @@ final class PracticeViewModel: ObservableObject {
 
         answers.append(result)
         showFeedback(isCorrect: isCorrect, answer: problem.answer)
-        scheduleAdvance()
+        if isCorrect {
+            scheduleAdvance()
+        } else {
+            isAwaitingNext = true
+        }
     }
 
     /// Skips the current problem.
     func skipProblem() {
-        guard let problem = currentProblem else { return }
+        guard let problem = currentProblem, !isAwaitingNext else { return }
 
         let elapsed = Date().timeIntervalSince(problemStartTime)
         let result = AnswerResult(
@@ -188,7 +199,15 @@ final class PracticeViewModel: ObservableObject {
 
         answers.append(result)
         showFeedback(isCorrect: false, answer: problem.answer)
-        scheduleAdvance()
+        // A skip reveals the answer just as a miss does, so it waits too.
+        isAwaitingNext = true
+    }
+
+    /// Moves past a revealed answer. Only the Next button calls this — right
+    /// answers advance on their own.
+    func advancePastFeedback() {
+        guard isAwaitingNext else { return }
+        clearFeedbackAndAdvance()
     }
 
     // MARK: - Private Helpers
@@ -228,9 +247,11 @@ final class PracticeViewModel: ObservableObject {
 
     /// Clears feedback and moves to the next problem.
     private func clearFeedbackAndAdvance() {
+        pendingAdvance?.cancel()
         pendingAdvance = nil
         feedbackMessage = nil
         isCorrectFeedback = nil
+        isAwaitingNext = false
         advanceToNextProblem()
     }
 }

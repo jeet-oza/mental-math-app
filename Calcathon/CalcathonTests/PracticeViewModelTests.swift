@@ -171,4 +171,73 @@ final class PracticeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.isCorrectFeedback, false)
         XCTAssertTrue(vm.feedbackMessage?.contains(String(problem.correctAnswer)) ?? false)
     }
+
+    // MARK: - Waiting on Next
+
+    func testMissHoldsTheQuestionUntilNext() {
+        let vm = PracticeViewModel(lesson: makeSampleLesson())
+        guard let problem = vm.currentProblem else { return }
+
+        vm.userInput = String(problem.correctAnswer + 999)
+        vm.submitAnswer()
+
+        XCTAssertTrue(vm.isAwaitingNext)
+        XCTAssertEqual(vm.problemNumber, 1)
+        XCTAssertEqual(vm.currentProblem?.id, problem.id)
+        XCTAssertFalse(vm.canSubmit)
+    }
+
+    func testCorrectAnswerDoesNotWaitOnNext() {
+        let vm = PracticeViewModel(lesson: makeSampleLesson())
+        guard let problem = vm.currentProblem else { return }
+
+        vm.userInput = String(problem.correctAnswer)
+        vm.submitAnswer()
+
+        XCTAssertFalse(vm.isAwaitingNext)
+    }
+
+    func testNextMovesOnAndClearsFeedback() {
+        let vm = PracticeViewModel(lesson: makeSampleLesson())
+        guard let problem = vm.currentProblem else { return }
+
+        vm.userInput = String(problem.correctAnswer + 999)
+        vm.submitAnswer()
+        vm.advancePastFeedback()
+
+        XCTAssertFalse(vm.isAwaitingNext)
+        XCTAssertNil(vm.feedbackMessage)
+        XCTAssertNil(vm.isCorrectFeedback)
+        XCTAssertEqual(vm.problemNumber, 2)
+        XCTAssertEqual(vm.userInput, "")
+    }
+
+    func testSkipWaitsOnNext() {
+        let vm = PracticeViewModel(lesson: makeSampleLesson())
+        vm.skipProblem()
+
+        XCTAssertTrue(vm.isAwaitingNext)
+        XCTAssertEqual(vm.problemNumber, 1)
+    }
+
+    func testSecondSubmitIgnoredWhileAnswerIsRevealed() {
+        let vm = PracticeViewModel(lesson: makeSampleLesson())
+        guard let problem = vm.currentProblem else { return }
+
+        vm.userInput = String(problem.correctAnswer + 999)
+        vm.submitAnswer()
+        vm.userInput = String(problem.correctAnswer)
+        vm.submitAnswer()
+        vm.skipProblem()
+
+        XCTAssertEqual(vm.answers.count, 1)
+    }
+
+    func testNextDoesNothingWithoutARevealedAnswer() {
+        let vm = PracticeViewModel(lesson: makeSampleLesson())
+        vm.advancePastFeedback()
+
+        XCTAssertEqual(vm.problemNumber, 1)
+        XCTAssertTrue(vm.answers.isEmpty)
+    }
 }

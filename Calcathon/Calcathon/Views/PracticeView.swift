@@ -26,6 +26,11 @@ struct PracticeView: View {
     /// Which answer field holds the keyboard, so drawing on the pad can let it go.
     @FocusState private var focusedField: AnswerField?
 
+    /// Whether the scientific keypad is up. It costs real estate the way the
+    /// system keyboard does, so it plays by the same rule: a touch on the
+    /// scratch pad puts it away, a tap on the answer bar brings it back.
+    @State private var isKeypadUp = true
+
     private enum AnswerField: Hashable {
         case answer, remainder
     }
@@ -49,6 +54,11 @@ struct PracticeView: View {
             }
         }
         .navigationTitle("Practice")
+        .onAppear {
+            // A pad remembered from last time means the player wants room to
+            // write, so the keypad starts down; the answer bar calls it back.
+            if isScratchPadVisible { isKeypadUp = false }
+        }
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(!viewModel.isSessionComplete)
@@ -58,11 +68,13 @@ struct PracticeView: View {
     // MARK: - Practice Content
 
     private var practiceContent: some View {
-        VStack(spacing: 24) {
+        // The pad and a keypad together want every point they can get, so the
+        // gaps close up whenever the pad is out.
+        VStack(spacing: isScratchPadVisible ? 12 : 24) {
             // Progress header
             progressHeader
 
-            Spacer()
+            Spacer(minLength: 0)
 
             // Problem display
             if let problem = viewModel.currentProblem {
@@ -75,10 +87,13 @@ struct PracticeView: View {
             }
 
             if isScratchPadVisible {
-                ScratchPad(strokes: $scratchStrokes, onDrawingBegan: { focusedField = nil })
-                    .frame(minHeight: 140)
+                ScratchPad(strokes: $scratchStrokes, onDrawingBegan: dismissKeypad)
+                    .frame(
+                        minHeight: isKeypadShowing ? 80 : 140,
+                        maxHeight: isKeypadShowing ? 132 : nil
+                    )
             } else {
-                Spacer()
+                Spacer(minLength: 0)
             }
 
             // Input and actions
@@ -107,12 +122,7 @@ struct PracticeView: View {
                 .font(.subheadline.bold())
                 .foregroundStyle(Color.brandAccent)
 
-            Button {
-                if !isScratchPadVisible { focusedField = nil }
-                withAnimation(.spring(response: 0.3)) {
-                    isScratchPadVisible.toggle()
-                }
-            } label: {
+            Button(action: toggleScratchPad) {
                 Image(systemName: isScratchPadVisible ? "pencil.circle.fill" : "pencil.circle")
                     .font(.title3)
                     .foregroundStyle(isScratchPadVisible ? Color.brandAccent : .secondary)
@@ -154,34 +164,54 @@ struct PracticeView: View {
         VStack(spacing: 12) {
             answerFields
 
-            // Action buttons
-            HStack(spacing: 16) {
-                Button(action: viewModel.skipProblem) {
-                    Text("Skip")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .foregroundStyle(Color.brandAccent)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.brandPrimary, lineWidth: 2)
-                        )
-                }
+            // Action buttons. A revealed answer stays put until Next is
+            // pressed, so there is no clock on reading it.
+            if viewModel.isAwaitingNext {
+                nextButton
+            } else {
+                HStack(spacing: 16) {
+                    Button(action: viewModel.skipProblem) {
+                        Text("Skip")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .foregroundStyle(Color.brandAccent)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.brandPrimary, lineWidth: 2)
+                            )
+                    }
 
-                Button(action: viewModel.submitAnswer) {
-                    Text("Submit")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .foregroundStyle(.white)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.accentGradient)
-                        )
+                    Button(action: viewModel.submitAnswer) {
+                        Text("Submit")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .foregroundStyle(.white)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(.accentGradient)
+                            )
+                    }
+                    .disabled(!viewModel.canSubmit)
                 }
-                .disabled(!viewModel.canSubmit)
             }
         }
+    }
+
+    private var nextButton: some View {
+        Button(action: viewModel.advancePastFeedback) {
+            Text("Next")
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .foregroundStyle(.white)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.accentGradient)
+                )
+        }
+        .accessibilityHint(Text("Moves on to the next question"))
     }
 
     /// The answer entry, shaped by what the lesson asks for: an expression
@@ -218,9 +248,9 @@ struct PracticeView: View {
     }
 
     /// Expression lessons get a read-only display plus the scientific keypad —
-    /// the system keyboard cannot type √ or π. The keypad stands down while the
-    /// scratch pad is open: it is six rows tall, and the two of them together
-    /// leave no room to write. The answer so far stays on screen either way.
+    /// the system keyboard cannot type √ or π. The display doubles as the way
+    /// back to the keypad once the scratch pad has sent it away, so the answer
+    /// so far stays on screen either way.
     private var expressionField: some View {
         VStack(spacing: 12) {
             Text(viewModel.userInput.isEmpty ? " " : viewModel.userInput)
@@ -232,10 +262,15 @@ struct PracticeView: View {
                         .fill(Color.appBackground)
                         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
                 )
+                .contentShape(Rectangle())
+                .onTapGesture(perform: raiseKeypad)
                 .accessibilityLabel(Text("Your answer: \(viewModel.userInput)"))
+                .accessibilityHint(Text(isKeypadUp ? "" : "Double tap to show the keypad"))
 
-            if !isScratchPadVisible {
-                ScientificKeypad(expression: $viewModel.userInput)
+            if isKeypadUp {
+                // Shorter keys when the pad is out — the two of them share a
+                // screen that fits neither at full height.
+                ScientificKeypad(expression: $viewModel.userInput, isCompact: isScratchPadVisible)
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
@@ -251,6 +286,40 @@ struct PracticeView: View {
         }
         .font(.footnote)
         .padding(.horizontal)
+    }
+
+    // MARK: - Keypad
+
+    /// True when either keypad — the system number pad or the scientific one —
+    /// is taking up the bottom of the screen.
+    private var isKeypadShowing: Bool {
+        viewModel.lesson.answerMode == .expression ? isKeypadUp : focusedField != nil
+    }
+
+    /// Touching the scratch pad is the player asking for room to write, so
+    /// whichever keypad is up steps aside.
+    private func dismissKeypad() {
+        focusedField = nil
+        guard isKeypadUp else { return }
+        withAnimation(.spring(response: 0.3)) { isKeypadUp = false }
+    }
+
+    /// Tapping the answer bar calls the keypad back — the counterpart to
+    /// tapping a text field, which the system handles on its own.
+    private func raiseKeypad() {
+        guard !isKeypadUp else { return }
+        withAnimation(.spring(response: 0.3)) { isKeypadUp = true }
+    }
+
+    /// Opening the pad hands the screen over to writing; closing it hands the
+    /// screen back to the keypad.
+    private func toggleScratchPad() {
+        let willShow = !isScratchPadVisible
+        if willShow { focusedField = nil }
+        withAnimation(.spring(response: 0.3)) {
+            isScratchPadVisible = willShow
+            isKeypadUp = !willShow
+        }
     }
 
     // MARK: - Actions

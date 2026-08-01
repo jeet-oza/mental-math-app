@@ -59,8 +59,12 @@ struct ScientificKeySet: Equatable {
 struct ScientificKeypad: View {
     @Binding var expression: String
     var keySet: ScientificKeySet = .roots
+    /// Shorter keys and tighter rows, for when the keypad has to share the
+    /// screen with the scratch pad.
+    var isCompact: Bool = false
 
-    private let spacing: CGFloat = 8
+    private var spacing: CGFloat { isCompact ? 6 : 8 }
+    private var keyHeight: CGFloat { isCompact ? 40 : 48 }
 
     var body: some View {
         VStack(spacing: spacing) {
@@ -96,7 +100,7 @@ struct ScientificKeypad: View {
                 .font(.title3.bold())
                 .foregroundStyle(tint)
                 .frame(maxWidth: .infinity)
-                .frame(height: 48)
+                .frame(height: keyHeight)
                 .background(RoundedRectangle(cornerRadius: 10).fill(Color.appBackground))
         }
         .accessibilityLabel(Text(accessibilityName(for: key)))

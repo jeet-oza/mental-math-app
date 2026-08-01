@@ -20,8 +20,10 @@ struct ScratchStroke: Identifiable, Equatable {
 struct ScratchPad: View {
     @Binding var strokes: [ScratchStroke]
 
-    /// Called the moment a new stroke starts, so the parent can get the number
-    /// keyboard out of the way — it halves the pad the moment it appears.
+    /// Called the moment a new stroke starts, so the parent can get whichever
+    /// keypad is up out of the way — either one halves the pad the moment it
+    /// appears. Every stroke reports, so a second touch puts a keypad that was
+    /// called back away again.
     var onDrawingBegan: () -> Void = {}
 
     /// Tracks whether the current drag is extending a stroke already started,
