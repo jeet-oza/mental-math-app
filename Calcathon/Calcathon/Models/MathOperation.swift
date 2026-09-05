@@ -51,7 +51,7 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
     /// rather than by tolerance.
     case repeatingBlock = "rep"
 
-    /// The four arithmetic operations used for random/Arena generation.
+    /// The four arithmetic operations used for an open practice mix.
     /// Everything else is concept-only: those operations belong to specific
     /// lessons and must never appear in generic random generation.
     static var allCases: [MathOperation] {
@@ -114,6 +114,7 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
         case .fractionSubtraction: return "−"
         case .fractionMultiplication: return "×"
         case .fractionDivision: return "÷"
+        case .decimalMultiplication: return "×"
         default: return rawValue
         }
     }
@@ -170,8 +171,8 @@ enum MathOperation: String, CaseIterable, Codable, Sendable {
         case .percentageDecrease:
             return rhs - lhs * rhs / 100
         case .approximateSquareRoot:
-            // Rounded only so the Arena's integer-shaped plumbing has
-            // something to hold; grading goes through `ProblemAnswer`.
+            // Rounded for callers that need a whole-number summary; grading
+            // itself goes through `ProblemAnswer`.
             return Int(Double(max(0, lhs)).squareRoot().rounded())
         case .approximateCubeRoot:
             return Int(cbrt(Double(lhs)).rounded())

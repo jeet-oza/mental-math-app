@@ -83,7 +83,7 @@ final class MathOperationTests: XCTestCase {
 
     func testAllCasesCountExcludesConceptOnlyOperations() {
         // Percentage and remainder are concept-only: they belong to specific
-        // lessons and must never appear in random or Arena generation.
+        // lessons and must never appear in generic open-mix generation.
         XCTAssertEqual(MathOperation.allCases.count, 4)
         XCTAssertFalse(MathOperation.allCases.contains(.percentage))
         XCTAssertFalse(MathOperation.allCases.contains(.remainder))

@@ -4,7 +4,7 @@
 //
 //  Deterministic, seed-based math problem generator.
 //  Given the same seed, always produces the identical sequence of problems.
-//  This is critical for Arena Mode where all players must face the same questions.
+//  Determinism keeps lesson and timed-practice generation testable.
 //
 
 import Foundation

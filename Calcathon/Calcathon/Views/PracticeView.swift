@@ -30,6 +30,8 @@ struct PracticeView: View {
     /// system keyboard does, so it plays by the same rule: a touch on the
     /// scratch pad puts it away, a tap on the answer bar brings it back.
     @State private var isKeypadUp = true
+    /// Help is revealed in small layers and starts fresh for every question.
+    @State private var hintLevel = 0
 
     private enum AnswerField: Hashable {
         case answer, remainder
@@ -41,8 +43,7 @@ struct PracticeView: View {
 
     var body: some View {
         ZStack {
-            Color.groupedBackground
-                .ignoresSafeArea()
+            BrandBackground()
 
             if viewModel.isSessionComplete {
                 PracticeResultsView(
@@ -79,6 +80,12 @@ struct PracticeView: View {
             // Problem display
             if let problem = viewModel.currentProblem {
                 problemDisplay(problem)
+
+                PracticeHintView(
+                    lesson: viewModel.lesson,
+                    problem: problem,
+                    level: $hintLevel
+                )
             }
 
             // Feedback
@@ -105,6 +112,10 @@ struct PracticeView: View {
         .padding()
         .onChange(of: viewModel.currentProblem?.id) { _, _ in
             scratchStrokes.removeAll()
+            hintLevel = 0
+        }
+        .onChange(of: hintLevel) { _, newLevel in
+            if newLevel > 0 { dismissKeypad() }
         }
     }
 
@@ -132,15 +143,16 @@ struct PracticeView: View {
     }
 
     private func problemDisplay(_ problem: MathProblem) -> some View {
-        VStack(spacing: 8) {
-            Text(problem.displayText)
-                .font(.system(size: 48, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
-
-            Text("= ?")
-                .font(.title)
-                .foregroundStyle(.secondary)
-        }
+        MathProblemVisualView(problem: problem, compact: isScratchPadVisible)
+            .padding(.horizontal)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.appBackground.opacity(0.70))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                    )
+            )
         .transition(.scale.combined(with: .opacity))
         .animation(.spring(response: 0.3), value: problem.id)
     }
@@ -279,7 +291,7 @@ struct PracticeView: View {
     private var scoreBar: some View {
         HStack {
             Label("\(viewModel.correctCount)", systemImage: "checkmark.circle.fill")
-                .foregroundStyle(.green)
+                .foregroundStyle(Color.successGreen)
             Spacer()
             Label("\(viewModel.totalScore) pts", systemImage: "star.fill")
                 .foregroundStyle(Color.brandAccent)

@@ -6,12 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		C291C6A92FEA23230070960E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C291C6A82FEA23230070960E /* FirebaseAuth */; };
-		C291C6AB2FEA23290070960E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C291C6AA2FEA23290070960E /* FirebaseFirestore */; };
-		C291C7692FEF78210070960E /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C291C7682FEF78210070960E /* FirebaseCrashlytics */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		C20467FA2FC93B1F002EB970 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -58,9 +52,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C291C7692FEF78210070960E /* FirebaseCrashlytics in Frameworks */,
-				C291C6A92FEA23230070960E /* FirebaseAuth in Frameworks */,
-				C291C6AB2FEA23290070960E /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,7 +110,6 @@
 				C20467E82FC93B1F002EB970 /* Sources */,
 				C20467E92FC93B1F002EB970 /* Frameworks */,
 				C20467EA2FC93B1F002EB970 /* Resources */,
-				C291C76A2FEF783F0070960E /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -130,9 +120,6 @@
 			);
 			name = Calcathon;
 			packageProductDependencies = (
-				C291C6A82FEA23230070960E /* FirebaseAuth */,
-				C291C6AA2FEA23290070960E /* FirebaseFirestore */,
-				C291C7682FEF78210070960E /* FirebaseCrashlytics */,
 			);
 			productName = Calcathon;
 			productReference = C20467EC2FC93B1F002EB970 /* Calcathon.app */;
@@ -217,7 +204,6 @@
 			mainGroup = C20467E32FC93B1F002EB970;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C20467ED2FC93B1F002EB970 /* Products */;
@@ -254,28 +240,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		C291C76A2FEF783F0070960E /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
-				"$(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)",
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\" -gsp \"${PROJECT_DIR}/Calcathon/GoogleService-Info.plist\" -p ios\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C20467E82FC93B1F002EB970 /* Sources */ = {
@@ -436,7 +400,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Calcathon/Calcathon.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = T3GLYD39RJ;
@@ -483,7 +446,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Calcathon/Calcathon.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = T3GLYD39RJ;
@@ -667,35 +629,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.15.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		C291C6A82FEA23230070960E /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		C291C6AA2FEA23290070960E /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
-		};
-		C291C7682FEF78210070960E /* FirebaseCrashlytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C291C6A32FE9D6850070960E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCrashlytics;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C20467E42FC93B1F002EB970 /* Project object */;
 }

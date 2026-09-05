@@ -71,33 +71,12 @@ final class CurriculumViewModelTests: XCTestCase {
         }
     }
 
-    // MARK: - Unlock Logic Tests
+    // MARK: - Open Access Tests
 
-    func testFirstGroupIsUnlocked() {
-        let firstGroup = viewModel.lessonGroups[0]
-        XCTAssertTrue(viewModel.isGroupUnlocked(firstGroup))
-    }
-
-    func testSecondGroupIsLockedInitially() {
-        let secondGroup = viewModel.lessonGroups[1]
-        XCTAssertFalse(viewModel.isGroupUnlocked(secondGroup))
-    }
-
-    func testSecondGroupUnlocksAfterFirstCompleted() {
-        let firstGroup = viewModel.lessonGroups[0]
-
-        // Complete all lessons in the first group
-        for lesson in firstGroup.lessons {
-            viewModel.recordLessonAttempt(
-                lessonId: lesson.id,
-                groupId: firstGroup.id,
-                score: 10,
-                total: 10
-            )
+    func testEveryGroupIsAvailableImmediately() {
+        for group in viewModel.lessonGroups {
+            XCTAssertTrue(viewModel.isGroupUnlocked(group))
         }
-
-        let secondGroup = viewModel.lessonGroups[1]
-        XCTAssertTrue(viewModel.isGroupUnlocked(secondGroup))
     }
 
     // MARK: - Progress Recording Tests
@@ -174,7 +153,7 @@ final class CurriculumViewModelTests: XCTestCase {
     func testLoadAddsProgressEntriesForNewLessons() {
         // Simulate a save from an older app version that only knew one lesson
         // of the first group. The lesson added since must get an entry so it
-        // can be completed (and gate the next group correctly).
+        // can still be tracked correctly.
         let group = LessonCatalog.basicAdditionGroup
         let firstLessonId = group.lessons[0].id
         persist([group.id: GroupProgress(
@@ -190,9 +169,8 @@ final class CurriculumViewModelTests: XCTestCase {
                 "\(lesson.id) should have a progress entry after reconciliation"
             )
         }
-        // Only one of the group's lessons was complete, so the group is not
-        // finished and the next group stays locked.
-        XCTAssertFalse(vm.isGroupUnlocked(vm.lessonGroups[1]))
+        // Access stays open even when this group's progress is incomplete.
+        XCTAssertTrue(vm.isGroupUnlocked(vm.lessonGroups[1]))
     }
 
     func testNewLessonCanBeCompletedAfterReconciliation() {

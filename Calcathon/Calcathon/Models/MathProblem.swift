@@ -28,8 +28,7 @@ enum ProblemAnswer: Equatable, Codable, Sendable {
     case approximate(value: Double, tolerance: Double)
 
     /// The headline number, used wherever a single value is enough (feedback
-    /// text, Arena scoring). The approximate and rational cases round, since
-    /// neither is ever generated in the Arena.
+    /// text and legacy score summaries). Approximate and rational values round.
     var primary: Int {
         switch self {
         case let .single(value): return value

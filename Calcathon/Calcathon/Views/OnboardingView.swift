@@ -2,8 +2,7 @@
 //  OnboardingView.swift
 //  Calcathon
 //
-//  First-run walkthrough shown once before sign-in, explaining the modes —
-//  especially the Grid mechanic, which isn't obvious.
+//  First-run walkthrough for the local learning and practice experience.
 //
 
 import SwiftUI
@@ -23,16 +22,16 @@ struct OnboardingView: View {
     private let pages: [Page] = [
         Page(icon: "hexagon.fill",
              title: "",
-             body: "Learn the tricks, then race the clock against players worldwide."),
+             body: "Mental math made visual, playful, and private."),
         Page(icon: "book.fill",
              title: "Learn",
-             body: "Bite-size lessons teach shortcuts for addition, multiplication, squaring, division, and percentages."),
-        Page(icon: "flame.fill",
-             title: "Equation Arena",
-             body: "Answer as many as you can in 90 seconds. Multiplication and division are worth the most; a correct streak multiplies your score."),
-        Page(icon: "square.grid.3x3.fill",
-             title: "Number Grid",
-             body: "Drag across adjacent tiles to satisfy each round's rule — a multiple of 10, a target sum, or divisible by N. Longer paths and higher multiples score more.")
+             body: "Explore any bite-size lesson. Every topic is open from the start."),
+        Page(icon: "timer",
+             title: "Practice Your Way",
+             body: "Mix several techniques or choose your own operations and number sizes, then track your speed."),
+        Page(icon: "lock.shield.fill",
+             title: "Private by Design",
+             body: "No account, username, or internet connection. Your progress stays on this device.")
     ]
 
     var body: some View {

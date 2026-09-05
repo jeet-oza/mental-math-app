@@ -45,7 +45,7 @@ enum IssueReport {
     static let subject = "Calcathon Problem Report"
 
     /// Pre-filled diagnostics so reports are actionable without back-and-forth.
-    static func body(uid: String?) -> String {
+    static func body() -> String {
         let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
         let buildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
         return """
@@ -57,19 +57,18 @@ enum IssueReport {
         App version: \(appVersion) (\(buildNumber))
         iOS version: \(UIDevice.current.systemVersion)
         Device: \(UIDevice.current.model)
-        Account ID: \(uid ?? "not signed in")
         """
     }
 
     /// Opens the system Mail app pre-addressed, for devices with no Mail
     /// account configured (where MFMailComposeViewController can't be used).
-    static func mailtoURL(uid: String?) -> URL? {
+    static func mailtoURL() -> URL? {
         var components = URLComponents()
         components.scheme = "mailto"
         components.path = recipient
         components.queryItems = [
             URLQueryItem(name: "subject", value: subject),
-            URLQueryItem(name: "body", value: body(uid: uid)),
+            URLQueryItem(name: "body", value: body()),
         ]
         return components.url
     }

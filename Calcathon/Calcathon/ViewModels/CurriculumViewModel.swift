@@ -11,7 +11,7 @@ import Foundation
 import SwiftUI
 
 /// Manages the Learn Mode curriculum state.
-/// Handles group/lesson selection, progress persistence, and unlock gating.
+/// Handles group/lesson selection and on-device progress persistence.
 @MainActor
 final class CurriculumViewModel: ObservableObject {
 
@@ -26,10 +26,6 @@ final class CurriculumViewModel: ObservableObject {
 
     private let progressKey = "curriculum_progress"
 
-    /// Remote sync boundary. Defaults to offline; replaced once a user signs in.
-    private var sync: ProgressSyncing = NoopProgressSync()
-    private var isCloudSyncEnabled = false
-
     // MARK: - Initialization
 
     init(groups: [LessonGroup] = LessonCatalog.allGroups) {
@@ -37,44 +33,11 @@ final class CurriculumViewModel: ObservableObject {
         loadProgress()
     }
 
-    // MARK: - Cloud Sync
+    // MARK: - Group Access
 
-    /// Enables cloud sync for the signed-in user: pulls remote progress, merges
-    /// it with the local cache (keeping the strongest result per lesson), and
-    /// pushes the reconciled result back. Safe to call once per session.
-    func enableCloudSync(uid: String) async {
-        guard !isCloudSyncEnabled else { return }
-        isCloudSyncEnabled = true
-        sync = FirestoreProgressSync(uid: uid)
-
-        do {
-            if let remote = try await sync.fetch() {
-                progressMap = ProgressMerger.merge(local: progressMap, remote: remote)
-                reconcileWithCatalog() // merge can reintroduce lessons the catalog dropped
-                saveProgress() // persists locally and pushes the merged result
-            } else {
-                // First time on the cloud — seed it with whatever we have locally.
-                try await sync.push(progressMap)
-            }
-        } catch {
-            // Stay offline-first: a sync failure must never block local play.
-        }
-    }
-
-    /// Disables cloud sync (e.g. on sign-out) and reverts to local-only.
-    func disableCloudSync() {
-        sync = NoopProgressSync()
-        isCloudSyncEnabled = false
-    }
-
-    // MARK: - Group Unlock Logic
-
-    /// Checks whether a lesson group is unlocked for the user.
-    /// - Parameter group: The group to check.
-    /// - Returns: True if the group has no prerequisite or its prerequisite is completed.
+    /// Every topic is available immediately. Progress is encouragement, not a gate.
     func isGroupUnlocked(_ group: LessonGroup) -> Bool {
-        guard let requiredId = group.requiredGroupId else { return true }
-        return progressMap[requiredId]?.isGroupCompleted ?? false
+        true
     }
 
     /// Returns the completion percentage for a group.
@@ -117,8 +80,7 @@ final class CurriculumViewModel: ObservableObject {
 
     /// Marks a lesson complete without a practice session, for players who
     /// already know the trick. This counts toward group completion exactly
-    /// like a passing score, so skipping every lesson in a group unlocks the
-    /// next category. Leaves `bestScore` and `attemptsCount` untouched —
+    /// like a passing score. Leaves `bestScore` and `attemptsCount` untouched —
     /// a skip isn't a practice attempt.
     /// - Parameters:
     ///   - lessonId: The lesson the user chose to skip.
@@ -136,9 +98,8 @@ final class CurriculumViewModel: ObservableObject {
         saveProgress()
     }
 
-    /// Marks every lesson in a group complete at once, for players who already
-    /// know all of its tricks. Completing the group this way unlocks the next
-    /// category, same as practicing through it. Leaves scores and attempt
+    /// Marks every lesson in a group complete at once, for learners who already
+    /// know all of its tricks. Leaves scores and attempt
     /// counts untouched — skips aren't practice attempts.
     /// - Parameter groupId: The group to skip in full.
     func skipGroup(groupId: String) {
@@ -174,15 +135,11 @@ final class CurriculumViewModel: ObservableObject {
 
     // MARK: - Persistence
 
-    /// Saves all progress to UserDefaults and mirrors it to the cloud.
+    /// Saves all progress on this device.
     private func saveProgress() {
         if let data = try? JSONEncoder().encode(progressMap) {
             UserDefaults.standard.set(data, forKey: progressKey)
         }
-        // Fire-and-forget remote push; offline-first means we never block on it.
-        let snapshot = progressMap
-        let sync = sync
-        Task { try? await sync.push(snapshot) }
     }
 
     /// Loads progress from UserDefaults, then reconciles it with the current

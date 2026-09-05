@@ -2,24 +2,20 @@
 //  SettingsView.swift
 //  Calcathon
 //
-//  Profile + settings: identity, combined stats, sound/haptics preferences,
-//  legal/support links, and account actions.
+//  Local preferences, support, privacy, and progress controls.
 //
 
 import SwiftUI
 import MessageUI
 
 struct SettingsView: View {
-    @EnvironmentObject var auth: AuthService
-    @EnvironmentObject var curriculum: CurriculumViewModel
-    @EnvironmentObject var equationStats: EquationStatsStore
-    @EnvironmentObject var gridStats: GridStatsStore
+    @EnvironmentObject private var curriculum: CurriculumViewModel
     @Environment(\.dismiss) private var dismiss
 
     @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
 
-    @State private var showDeleteConfirm = false
+    @State private var showResetConfirm = false
     @State private var showMailCompose = false
     @State private var showMailUnavailable = false
 
@@ -29,40 +25,41 @@ struct SettingsView: View {
                 BrandBackground()
                 ScrollView {
                     VStack(spacing: 20) {
-                        profileCard
-                        statsCard
+                        localCard
+                        progressCard
                         preferencesCard
                         legalCard
-                        accountActions
-                        #if DEBUG
-                        debugCard
-                        #endif
+                        resetButton
                     }
                     .padding()
                 }
             }
-            .navigationTitle("Profile")
+            .navigationTitle("Settings")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
             }
-            .alert("Delete Account?", isPresented: $showDeleteConfirm) {
-                Button("Delete", role: .destructive) {
-                    curriculum.disableCloudSync()
-                    Task { await auth.deleteAccount() }
-                    dismiss()
+            .confirmationDialog(
+                "Reset all learning progress?",
+                isPresented: $showResetConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Reset Progress", role: .destructive) {
+                    curriculum.resetAllProgress()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This permanently deletes your account and all saved progress. This can't be undone.")
+                Text("This clears lesson checkmarks and best scores stored on this device.")
             }
             .sheet(isPresented: $showMailCompose) {
                 MailComposeView(
                     recipient: IssueReport.recipient,
                     subject: IssueReport.subject,
-                    body: IssueReport.body(uid: auth.user?.uid)
+                    body: IssueReport.body()
                 )
             }
             .alert("No Mail account set up", isPresented: $showMailUnavailable) {
@@ -73,28 +70,29 @@ struct SettingsView: View {
         }
     }
 
-    private var profileCard: some View {
+    private var localCard: some View {
         VStack(spacing: 12) {
-            AvatarView(name: auth.user?.displayName ?? "Player", size: 72)
-            Text(auth.user?.displayName ?? "Player")
+            Image(systemName: "lock.shield.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(Color.brandAccent)
+            Text("No account needed")
                 .font(.title2.bold())
                 .foregroundStyle(.white)
-            Text("Calcathon player")
+            Text("Your learning progress stays on this device.")
                 .font(.subheadline)
-                .foregroundStyle(Color.brandAccent)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white.opacity(0.75))
         }
         .frame(maxWidth: .infinity)
         .card(padding: 20)
     }
 
-    private var statsCard: some View {
+    private var progressCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Your Stats").font(.headline).foregroundStyle(.white)
+            Text("Learning Progress")
+                .font(.headline)
+                .foregroundStyle(.white)
             statRow("Lessons completed", "\(lessonsCompleted) / \(totalLessons)")
-            statRow("Equation games", "\(equationStats.stats.gamesPlayed)")
-            statRow("Equation best", "\(equationStats.stats.bestGameScore)")
-            statRow("Grid games", "\(gridStats.stats.gamesPlayed)")
-            statRow("Grid best", "\(gridStats.stats.bestGameScore)")
         }
         .card()
     }
@@ -112,7 +110,7 @@ struct SettingsView: View {
     private var legalCard: some View {
         VStack(spacing: 0) {
             NavigationLink { PrivacyPolicyView() } label: {
-                linkRowLabel("Privacy Policy", systemImage: "hand.raised.fill")
+                linkRowLabel("Privacy", systemImage: "hand.raised.fill")
             }
             Divider().overlay(Color.hairline)
             Button(action: reportProblemTapped) {
@@ -134,6 +132,17 @@ struct SettingsView: View {
         )
     }
 
+    private var resetButton: some View {
+        Button(role: .destructive) {
+            showResetConfirm = true
+        } label: {
+            Label("Reset Learning Progress", systemImage: "arrow.counterclockwise")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .tint(.red)
+    }
+
     private func linkRowLabel(_ title: String, systemImage: String) -> some View {
         HStack {
             Label(title, systemImage: systemImage).foregroundStyle(.white)
@@ -146,51 +155,12 @@ struct SettingsView: View {
     private func reportProblemTapped() {
         if MFMailComposeViewController.canSendMail() {
             showMailCompose = true
-        } else if let url = IssueReport.mailtoURL(uid: auth.user?.uid), UIApplication.shared.canOpenURL(url) {
+        } else if let url = IssueReport.mailtoURL(), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         } else {
             showMailUnavailable = true
         }
     }
-
-    private var accountActions: some View {
-        VStack(spacing: 12) {
-            Button {
-                curriculum.disableCloudSync()
-                auth.signOut()
-                dismiss()
-            } label: {
-                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(Color.brandAccent)
-
-            Button(role: .destructive) {
-                showDeleteConfirm = true
-            } label: {
-                Label("Delete Account", systemImage: "trash")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(.red)
-        }
-    }
-
-    #if DEBUG
-    private var debugCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Debug").font(.headline).foregroundStyle(.white)
-            // Verifies Crashlytics: crash, then relaunch to upload the report.
-            Button("Trigger Test Crash", role: .destructive) {
-                fatalError("Test crash from Settings")
-            }
-        }
-        .card()
-    }
-    #endif
-
-    // MARK: - Helpers
 
     private func statRow(_ label: String, _ value: String) -> some View {
         HStack {
@@ -212,8 +182,8 @@ struct SettingsView: View {
     }
 
     private var appVersion: String {
-        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-        let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-        return "\(v) (\(b))"
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
     }
 }

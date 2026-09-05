@@ -16,27 +16,38 @@ struct LessonListView: View {
     @State private var showSkipConfirmation = false
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(group.lessons) { lesson in
-                    LessonRow(
-                        lesson: lesson,
-                        progress: curriculumVM.lessonProgress(
-                            lessonId: lesson.id,
-                            groupId: group.id
-                        )
-                    )
-                }
+        ZStack {
+            BrandBackground()
 
-                // Skip the whole category for players who know every trick.
-                if !isGroupCompleted {
-                    skipGroupButton
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    PageHeroCard(
+                        eyebrow: "Choose any lesson",
+                        title: group.title,
+                        message: group.description,
+                        icon: group.iconName,
+                        accent: .brandTeal
+                    )
+
+                    ForEach(group.lessons) { lesson in
+                        LessonRow(
+                            lesson: lesson,
+                            progress: curriculumVM.lessonProgress(
+                                lessonId: lesson.id,
+                                groupId: group.id
+                            )
+                        )
+                    }
+
+                    // Let experienced learners mark a whole category as known.
+                    if !isGroupCompleted {
+                        skipGroupButton
+                    }
                 }
+                .padding()
             }
-            .padding()
         }
         .navigationTitle(group.title)
-        .background(Color.groupedBackground)
     }
 
     // MARK: - Skip Category
@@ -72,7 +83,7 @@ struct LessonListView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This marks every lesson here complete and unlocks the next category.")
+            Text("This marks every lesson here as already known. They remain available to practice.")
         }
     }
 }
@@ -92,7 +103,7 @@ struct LessonRow: View {
                 // Completion indicator
                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(isCompleted ? .green : .secondary)
+                    .foregroundStyle(isCompleted ? Color.successGreen : .secondary)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(lesson.title)
@@ -127,6 +138,10 @@ struct LessonRow: View {
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.appBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                    )
                     .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
             )
         }

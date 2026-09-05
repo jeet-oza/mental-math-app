@@ -6,29 +6,20 @@
 //
 
 import SwiftUI
-import FirebaseCore
 
 @main
 struct CalcathonApp: App {
-    @StateObject private var auth = AuthService()
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
-
-    init() {
-        FirebaseApp.configure()
-    }
 
     var body: some Scene {
         WindowGroup {
             Group {
                 if !hasSeenOnboarding {
                     OnboardingView { hasSeenOnboarding = true }
-                } else if auth.isSignedIn {
-                    ContentView()
                 } else {
-                    SignInView()
+                    ContentView()
                 }
             }
-            .environmentObject(auth)
             .tint(Color.brandAccent)
             .preferredColorScheme(.dark)
         }

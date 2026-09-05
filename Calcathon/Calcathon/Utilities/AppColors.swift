@@ -25,6 +25,10 @@ extension Color {
     static let brandAccent = Color(red: 0.909, green: 0.498, blue: 0.141)    // #E87F24
     /// Deeper warm accent — rust.
     static let brandRust = Color(red: 0.812, green: 0.294, blue: 0.0)        // #CF4B00
+    /// Cool supporting accent that gives learning cards a playful second note.
+    static let brandTeal = Color(red: 0.078, green: 0.659, blue: 0.620)       // #14A89E
+    /// Accessible success color tuned to remain clear on the navy surfaces.
+    static let successGreen = Color(red: 0.235, green: 0.784, blue: 0.522)    // #3CC885
     /// Warm neutral background option.
     static let brandBeige = Color(red: 0.961, green: 0.937, blue: 0.902)     // #F5EFE6
 
@@ -67,6 +71,21 @@ extension ShapeStyle where Self == LinearGradient {
 /// Full-bleed navy gradient background for any screen.
 struct BrandBackground: View {
     var body: some View {
-        LinearGradient.navyBackground.ignoresSafeArea()
+        ZStack {
+            LinearGradient.navyBackground
+
+            Circle()
+                .fill(Color.brandPrimary.opacity(0.16))
+                .frame(width: 300, height: 300)
+                .blur(radius: 70)
+                .offset(x: 150, y: -250)
+
+            Circle()
+                .fill(Color.brandAccent.opacity(0.08))
+                .frame(width: 260, height: 260)
+                .blur(radius: 80)
+                .offset(x: -150, y: 300)
+        }
+        .ignoresSafeArea()
     }
 }
